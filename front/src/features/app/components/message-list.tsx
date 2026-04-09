@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
-import type { AppCopy } from "../i18n";
-import { appStyles as styles } from "../styles";
-import type { GmailMessage } from "../../gmail/types";
+import type { AppCopy } from "@features/app/i18n";
+import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import type { GmailMessage } from "@features/gmail/types";
 
 interface MessageListProps {
   copy: AppCopy;
@@ -22,6 +22,7 @@ export function MessageList({
   showReceivedAt = true
 }: MessageListProps) {
   const [selectedMessage, setSelectedMessage] = useState<GmailMessage | null>(null);
+  const styles = createAppStyles(useAuraTheme());
 
   return (
     <>

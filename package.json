@@ -8,7 +8,12 @@
   "scripts": {
     "dev:front": "npm run start --workspace front",
     "dev:back": "npm run dev --workspace back",
-    "typecheck": "npm run typecheck --workspace back && npm run typecheck --workspace front"
+    "typecheck": "npm run typecheck --workspace back && npm run typecheck --workspace front",
+    "local:up": "docker-compose -f docker-compose.local.yml up --build -d",
+    "local:down": "docker-compose -f docker-compose.local.yml down -v",
+    "local:logs": "docker-compose -f docker-compose.local.yml logs -f api worker",
+    "local:doctor": "node scripts/local-doctor.mjs",
+    "local:test:e2e": "node scripts/local-stack-e2e.mjs"
   },
   "dependencies": {
     "react-native-safe-area-context": "^5.7.0"

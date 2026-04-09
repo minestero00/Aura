@@ -2,8 +2,8 @@ import React from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { appStyles as styles } from "../styles";
-import type { AppCopy } from "../i18n";
+import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import type { AppCopy } from "@features/app/i18n";
 
 interface SignInScreenProps {
   copy: AppCopy;
@@ -18,6 +18,9 @@ export function SignInScreen({
   isSubmitting,
   onGoogleSignIn
 }: SignInScreenProps) {
+  const theme = useAuraTheme();
+  const styles = createAppStyles(theme);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -35,7 +38,7 @@ export function SignInScreen({
 
           <View style={styles.googleButtonWrap}>
             <GoogleSigninButton
-              color={GoogleSigninButton.Color.Light}
+              color={theme.isDark ? GoogleSigninButton.Color.Dark : GoogleSigninButton.Color.Light}
               disabled={isSubmitting}
               onPress={() => void onGoogleSignIn()}
               size={GoogleSigninButton.Size.Wide}
@@ -45,7 +48,7 @@ export function SignInScreen({
 
           {isSubmitting ? (
             <View style={styles.inlineLoading}>
-              <ActivityIndicator color="#1d2a35" />
+              <ActivityIndicator color={theme.colors.textPrimary} />
               <Text style={styles.inlineLoadingText}>{copy.signIn.signingIn}</Text>
             </View>
           ) : null}

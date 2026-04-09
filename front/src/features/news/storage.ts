@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { NewsCategory } from "./types";
+import type { NewsCategory } from "@features/news/types";
 
 const NEWS_CATEGORY_STORAGE_KEY = "aura.news.enabled-categories";
 const DEFAULT_CATEGORIES: NewsCategory[] = ["world", "business", "tech"];

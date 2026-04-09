@@ -1,10 +1,10 @@
 import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MessageList } from "../components/message-list";
-import type { AppCopy } from "../i18n";
-import { appStyles as styles } from "../styles";
-import type { GmailDigest, GmailMessage } from "../../gmail/types";
+import { MessageList } from "@components/message-list";
+import type { AppCopy } from "@features/app/i18n";
+import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import type { GmailDigest, GmailMessage } from "@features/gmail/types";
 
 interface MailScreenProps {
   copy: AppCopy;
@@ -39,6 +39,9 @@ export function MailScreen({
   onReplyToMessage,
   replyingMessageId
 }: MailScreenProps) {
+  const theme = useAuraTheme();
+  const styles = createAppStyles(theme);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
@@ -75,7 +78,7 @@ export function MailScreen({
 
           {isInboxLoading ? (
             <View style={styles.inlineLoading}>
-              <ActivityIndicator color="#1d2a35" />
+              <ActivityIndicator color={theme.colors.textPrimary} />
               <Text style={styles.inlineLoadingText}>{copy.mail.updatingBrief}</Text>
             </View>
           ) : null}

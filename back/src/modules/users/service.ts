@@ -1,5 +1,6 @@
 import { AppError } from "../../lib/errors/app-error.js";
 import type { z } from "zod";
+import { briefingsService } from "../briefings/service.js";
 import { authStore } from "../auth/store.js";
 import { updatePreferencesSchema } from "./schemas.js";
 
@@ -38,7 +39,14 @@ export const usersService = {
         gmailScopes: gmailConnection?.scopes ?? [],
         gmailConnectedAt: gmailConnection?.connectedAt.toISOString() ?? null,
         gmailSyncReady: Boolean(gmailConnection?.refreshToken),
-        gmailAccessExpiresAt: gmailConnection?.expiresAt?.toISOString() ?? null
+        gmailAccessExpiresAt: gmailConnection?.expiresAt?.toISOString() ?? null,
+        calendarConnected: Boolean(
+          gmailConnection?.scopes.some(
+            scope =>
+              scope === "https://www.googleapis.com/auth/calendar.readonly" ||
+              scope.includes("calendar.readonly")
+          )
+        )
       }
     };
   },
@@ -55,6 +63,8 @@ export const usersService = {
     if (!updated) {
       throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
     }
+
+    briefingsService.touchUserSchedule(userId);
 
     return {
       ok: true,

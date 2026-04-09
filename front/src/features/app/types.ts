@@ -1,11 +1,19 @@
-import type { AuthResponse, MeResponse } from "../auth/types";
-import type { GmailDigest, GmailMessage } from "../gmail/types";
-import type { IgnoredSenderRule } from "../gmail/storage";
-import type { NewsArticle, NewsBriefing, NewsCategory } from "../news/types";
-import type { AppCopy, AppLanguage } from "./i18n";
+import type { AuthResponse, MeResponse } from "@features/auth/types";
+import type { GmailDigest, GmailMessage } from "@features/gmail/types";
+import type { IgnoredSenderRule } from "@features/gmail/storage";
+import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
+import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
+import type { AppCopy, AppLanguage } from "@features/app/i18n";
 
-export type AppTabKey = "mail" | "news" | "settings";
-export type SettingsSectionKey = "menu" | "gmail" | "ignored-senders" | "news" | "language";
+export type AppTabKey = "mail" | "todo" | "news" | "settings";
+export type SettingsSectionKey =
+  | "menu"
+  | "gmail"
+  | "ignored-senders"
+  | "news"
+  | "language"
+  | "notifications"
+  | "permissions";
 
 export interface AuthSessionState {
   session: AuthResponse["session"];
@@ -23,29 +31,54 @@ export interface UseAuraAppResult {
   replyingMessageId: string | null;
   ignoredSenderRules: IgnoredSenderRule[];
   ignoredSenderDraft: string;
+  morningBriefTimeDraft: string;
   enabledNewsCategories: NewsCategory[];
+  calendarAgendaDays: CalendarAgendaDay[];
+  calendarTravelHints: CalendarTravelHint[];
+  areDailyBriefNotificationsEnabled: boolean;
+  isCalendarLoading: boolean;
+  isCalendarTravelLoading: boolean;
+  isDeviceCalendarLoading: boolean;
+  isDeviceCalendarPermissionGranted: boolean;
+  isNotificationPermissionGranted: boolean;
   isNewsLoading: boolean;
   isBootstrapping: boolean;
+  isDailyBriefPreparing: boolean;
   isGmailSubmitting: boolean;
   isInboxLoading: boolean;
   isSubmitting: boolean;
   isGmailRefreshRequired: boolean;
   dailyEmailDigest: GmailDigest | null;
   dailyEmailMessages: GmailMessage[];
+  deviceCalendarAgendaDays: CalendarAgendaDay[];
   newsArticles: NewsArticle[];
   newsBriefing: NewsBriefing | null;
+  isDailyBriefModalVisible: boolean;
   selectedTab: AppTabKey;
   selectedSettingsSection: SettingsSectionKey;
+  selectedTravelMode: "driving" | "transit";
+  handleCloseDailyBriefModal: () => void;
+  handleOpenMailFromDailyBrief: () => void;
+  handleOpenNewsFromDailyBrief: () => void;
+  handleRefreshDailyBrief: () => Promise<void>;
+  handleConnectDeviceCalendar: () => Promise<void>;
+  handleLogout: () => Promise<void>;
   handleConnectGmail: () => Promise<void>;
   handleDisconnectGmail: () => Promise<void>;
   handleIgnoredSenderDraftChange: (value: string) => void;
+  handleMorningBriefTimeDraftChange: (value: string) => void;
   handleIgnoreSender: (message: GmailMessage) => Promise<void>;
   handleOpenGmailSettings: () => void;
   handleOpenIgnoredSenderSettings: (message?: GmailMessage) => void;
   handleOpenLanguageSettings: () => void;
+  handleOpenNotificationSettings: () => void;
+  handleOpenPermissionsSettings: () => void;
   handleOpenNewsSettings: () => void;
+  handleOpenSystemSettings: () => Promise<void>;
   handleRemoveIgnoredSender: (senderKey: string) => Promise<void>;
   handleLoadDailyEmailBrief: () => Promise<void>;
+  handleLoadCalendarAgenda: () => Promise<void>;
+  handleLoadDeviceCalendarAgenda: () => Promise<void>;
   handleLoadDailyNewsBrief: () => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
   handleLoadEmailSummary: () => Promise<void>;
@@ -53,9 +86,13 @@ export interface UseAuraAppResult {
   handleReplyToMessage: (message: GmailMessage) => Promise<void>;
   handleReset: () => Promise<void>;
   handleSaveIgnoredSenderDraft: () => Promise<void>;
+  handleSaveMorningBriefTime: () => Promise<void>;
   handleSelectTab: (tab: AppTabKey) => void;
   handleSelectSettingsSection: (section: SettingsSectionKey) => void;
   handleSetLanguage: (language: AppLanguage) => Promise<void>;
+  handleDisableDailyBriefNotifications: () => Promise<void>;
+  handleEnableDailyBriefNotifications: () => Promise<void>;
+  handleSetTravelMode: (mode: "driving" | "transit") => void;
   handleToggleNewsCategory: (category: NewsCategory) => Promise<void>;
   labelNewsCategory: (category: NewsCategory) => string;
 }

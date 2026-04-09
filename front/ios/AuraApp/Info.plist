@@ -45,7 +45,11 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Aura uses your location to calculate departure times for upcoming schedules.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

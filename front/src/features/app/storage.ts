@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { AppLanguage } from "./i18n";
+import type { AppLanguage } from "@features/app/i18n";
 
 const APP_LANGUAGE_KEY = "aura.app.language";
 

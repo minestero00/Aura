@@ -1,6 +1,6 @@
-import { apiRequest } from "../../lib/api/client";
-import type { NewsBriefingResponse, NewsCategory } from "./types";
-import type { AppLanguage } from "../app/i18n";
+import { apiRequest } from "@lib/api/client";
+import type { NewsBriefingResponse, NewsCategory } from "@features/news/types";
+import type { AppLanguage } from "@features/app/i18n";
 
 export async function fetchDailyNewsBriefing(
   accessToken: string,

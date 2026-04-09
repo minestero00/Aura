@@ -9,6 +9,8 @@ The sequence is based on these existing docs:
 - [TECHNICAL_ARCHITECTURE.md](/Users/riaco/code/dumb/aura/manual/TECHNICAL_ARCHITECTURE.md)
 - [BACKEND_SCHEMA_API_SPEC.md](/Users/riaco/code/dumb/aura/manual/BACKEND_SCHEMA_API_SPEC.md)
 - [PORTABILITY_AND_PRODUCTION_NOTES.md](/Users/riaco/code/dumb/aura/manual/PORTABILITY_AND_PRODUCTION_NOTES.md)
+- [IMPLEMENTATION_STATUS.md](/Users/riaco/code/dumb/aura/manual/IMPLEMENTATION_STATUS.md)
+- [DEPLOY_RUNBOOK.md](/Users/riaco/code/dumb/aura/manual/DEPLOY_RUNBOOK.md)
 
 Principle:
 - build the control plane before the experience layer

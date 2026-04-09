@@ -26,6 +26,8 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     ...rest,
     headers: {
       "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, max-age=0",
+      Pragma: "no-cache",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers
     }

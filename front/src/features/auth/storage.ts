@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { MeResponse, SessionPayload } from "./types";
+import type { MeResponse, SessionPayload } from "@features/auth/types";
 
 const AUTH_SESSION_KEY = "aura.auth.session";
 

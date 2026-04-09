@@ -28,7 +28,8 @@ authRouter.post(
         gmailScopes: [],
         gmailConnectedAt: null,
         gmailSyncReady: false,
-        gmailAccessExpiresAt: null
+        gmailAccessExpiresAt: null,
+        calendarConnected: false
       }
     });
   })

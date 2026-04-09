@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aura-postgres
+    environment:
+      POSTGRES_DB: aura
+      POSTGRES_USER: aura
+      POSTGRES_PASSWORD: aura
+    ports:
+      - "5432:5432"
+    volumes:
+      - aura_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aura -d aura"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: aura-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: back/Dockerfile
+    container_name: aura-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      NODE_ENV: production
+      PRECHECK_STRICT: "false"
+      ENABLE_BRIEFING_SCHEDULER: "false"
+      DATABASE_URL: postgresql://aura:aura@postgres:5432/aura
+      REDIS_URL: redis://redis:6379
+      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
+      GOOGLE_IOS_CLIENT_ID: ${GOOGLE_IOS_CLIENT_ID:-}
+      GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      USAGE_RATE_PER_MINUTE: ${USAGE_RATE_PER_MINUTE:-12}
+      USAGE_DAILY_NEWS_BRIEFING: ${USAGE_DAILY_NEWS_BRIEFING:-40}
+      USAGE_DAILY_EMAIL_SUMMARY: ${USAGE_DAILY_EMAIL_SUMMARY:-40}
+      USAGE_DAILY_OVERVIEW: ${USAGE_DAILY_OVERVIEW:-30}
+      USAGE_DAILY_CHAT: ${USAGE_DAILY_CHAT:-100}
+      USAGE_DAILY_MANUAL_REFRESH: ${USAGE_DAILY_MANUAL_REFRESH:-10}
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:4000/api/v1/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  worker:
+    build:
+      context: .
+      dockerfile: back/Dockerfile
+    container_name: aura-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PRECHECK_STRICT: "false"
+      ENABLE_BRIEFING_SCHEDULER: "true"
+      DATABASE_URL: postgresql://aura:aura@postgres:5432/aura
+      REDIS_URL: redis://redis:6379
+      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
+      GOOGLE_IOS_CLIENT_ID: ${GOOGLE_IOS_CLIENT_ID:-}
+      GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      USAGE_RATE_PER_MINUTE: ${USAGE_RATE_PER_MINUTE:-12}
+      USAGE_DAILY_NEWS_BRIEFING: ${USAGE_DAILY_NEWS_BRIEFING:-40}
+      USAGE_DAILY_EMAIL_SUMMARY: ${USAGE_DAILY_EMAIL_SUMMARY:-40}
+      USAGE_DAILY_OVERVIEW: ${USAGE_DAILY_OVERVIEW:-30}
+      USAGE_DAILY_CHAT: ${USAGE_DAILY_CHAT:-100}
+      USAGE_DAILY_MANUAL_REFRESH: ${USAGE_DAILY_MANUAL_REFRESH:-10}
+    command: ["sh", "-c", "npm run preflight:prod && node dist/worker.js"]
+
+volumes:
+  aura_postgres_data:

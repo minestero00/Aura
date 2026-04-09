@@ -1,0 +1,73 @@
+import type { AppCopy, AppLanguage } from "@features/app/i18n";
+import type { IgnoredSenderRule } from "@features/gmail/storage";
+import type { NewsCategory } from "@features/news/types";
+import type { SettingsSectionKey } from "@features/app/types";
+
+export interface SettingsScreenProps {
+  copy: AppCopy;
+  gmailAddress: string | null;
+  gmailConnected: boolean;
+  gmailConnectedAt: string | null;
+  enabledNewsCategories: NewsCategory[];
+  ignoredSenderDraft: string;
+  ignoredSenderRules: IgnoredSenderRule[];
+  morningBriefTimeDraft: string;
+  isGmailRefreshRequired: boolean;
+  areDailyBriefNotificationsEnabled: boolean;
+  isDeviceCalendarPermissionGranted: boolean;
+  isGoogleCalendarConnected: boolean;
+  isNotificationPermissionGranted: boolean;
+  morningBriefTime: string | null;
+  language: AppLanguage;
+  labelCategory: (category: NewsCategory) => string;
+  selectedSettingsSection: SettingsSectionKey;
+  onConnectGmail: () => Promise<void>;
+  onConnectDeviceCalendar: () => Promise<void>;
+  onDisconnectGmail: () => Promise<void>;
+  onOpenGmailSettings: () => void;
+  onOpenIgnoredSenderSettings: () => void;
+  onOpenLanguageSettings: () => void;
+  onOpenNotificationSettings: () => void;
+  onOpenPermissionsSettings: () => void;
+  onOpenNewsSettings: () => void;
+  onOpenSystemSettings: () => Promise<void>;
+  onIgnoredSenderDraftChange: (value: string) => void;
+  onMorningBriefTimeDraftChange: (value: string) => void;
+  onRemoveIgnoredSender: (senderKey: string) => Promise<void>;
+  onSaveIgnoredSenderDraft: () => Promise<void>;
+  onSaveMorningBriefTime: () => Promise<void>;
+  onSelectSettingsSection: (section: SettingsSectionKey) => void;
+  onSetLanguage: (language: AppLanguage) => Promise<void>;
+  onDisableDailyBriefNotifications: () => Promise<void>;
+  onEnableDailyBriefNotifications: () => Promise<void>;
+  onToggleNewsCategory: (category: NewsCategory) => Promise<void>;
+  onLogout: () => Promise<void>;
+}
+
+export const NEWS_CATEGORIES: NewsCategory[] = [
+  "world",
+  "business",
+  "tech",
+  "science",
+  "health",
+  "sports",
+  "entertainment",
+  "politics",
+  "finance",
+  "travel",
+  "climate",
+  "ai"
+];
+
+export function toPickerDate(value: string) {
+  const match = /^(\d{1,2}):(\d{2})/.exec(value);
+  const date = new Date();
+
+  if (!match) {
+    date.setHours(9, 0, 0, 0);
+    return date;
+  }
+
+  date.setHours(Number(match[1]), Number(match[2]), 0, 0);
+  return date;
+}

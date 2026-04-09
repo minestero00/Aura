@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aura-worker
+  labels:
+    app: aura-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aura-worker
+  template:
+    metadata:
+      labels:
+        app: aura-worker
+    spec:
+      containers:
+        - name: worker
+          image: YOUR_REGISTRY/aura-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "npm run preflight:prod && node dist/worker.js"]
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: ENABLE_BRIEFING_SCHEDULER
+              value: "true"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: database_url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: redis_url
+            - name: GOOGLE_WEB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_web_client_id
+            - name: GOOGLE_IOS_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_ios_client_id
+            - name: GOOGLE_ANDROID_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_android_client_id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_client_secret
+            - name: GOOGLE_MAPS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_maps_api_key
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: anthropic_api_key
+            - name: ANTHROPIC_MODEL
+              value: claude-sonnet-4-20250514
+            - name: APP_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: app_encryption_key

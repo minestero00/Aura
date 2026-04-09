@@ -1,9 +1,9 @@
 import React from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { AppCopy } from "../i18n";
-import { appStyles as styles } from "../styles";
-import type { NewsArticle, NewsBriefing, NewsCategory } from "../../news/types";
+import type { AppCopy } from "@features/app/i18n";
+import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 
 interface NewsScreenProps {
   copy: AppCopy;
@@ -24,6 +24,9 @@ export function NewsScreen({
   newsBriefing,
   onLoadDailyNewsBrief
 }: NewsScreenProps) {
+  const theme = useAuraTheme();
+  const styles = createAppStyles(theme);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
@@ -51,7 +54,7 @@ export function NewsScreen({
 
           {isNewsLoading ? (
             <View style={styles.inlineLoading}>
-              <ActivityIndicator color="#1d2a35" />
+              <ActivityIndicator color={theme.colors.textPrimary} />
               <Text style={styles.inlineLoadingText}>{copy.news.loading}</Text>
             </View>
           ) : null}
@@ -78,7 +81,6 @@ export function NewsScreen({
                 {labelCategory(article.category)} · {article.source}
               </Text>
               <Text style={styles.messageMeta}>{article.publishedAt ?? copy.news.unknownTime}</Text>
-              <Text style={styles.inlineLinkText}>{copy.news.openArticle}</Text>
             </Pressable>
           ))}
         </View>

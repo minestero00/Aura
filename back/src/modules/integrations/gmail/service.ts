@@ -1,4 +1,5 @@
 import { AppError } from "../../../lib/errors/app-error.js";
+import { briefingsService } from "../../briefings/service.js";
 import { authStore } from "../../auth/store.js";
 import { filterIgnoredMessages } from "./filtering.js";
 import {
@@ -66,6 +67,8 @@ export const gmailService = {
       expiresAt: exchanged?.expiryDate ? new Date(exchanged.expiryDate) : null
     });
 
+    briefingsService.touchUserSchedule(userId);
+
     return {
       ok: true,
       integrations: toIntegrationPayload(userId)
@@ -79,6 +82,7 @@ export const gmailService = {
     }
 
     authStore.deleteGmailConnection(userId);
+    briefingsService.touchUserSchedule(userId);
 
     return {
       ok: true,

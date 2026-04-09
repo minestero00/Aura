@@ -1,4 +1,5 @@
 import { AppError } from "../../lib/errors/app-error.js";
+import { briefingsService } from "../briefings/service.js";
 import { verifyGoogleProfile } from "./google-profile.js";
 import { authStore } from "./store.js";
 import { tokenService } from "./token-service.js";
@@ -41,6 +42,8 @@ export const authService = {
       accessTokenExpiresAt: addSeconds(ACCESS_TOKEN_TTL_SECONDS),
       refreshTokenExpiresAt: addSeconds(REFRESH_TOKEN_TTL_SECONDS)
     });
+
+    briefingsService.touchUserSchedule(user.id);
 
     return {
       user,

@@ -1,3 +1,1 @@
-export const usageModule = {
-  name: "usage"
-};
+export { usageRouter } from "./routes.js";

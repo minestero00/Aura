@@ -1,16 +1,70 @@
 import { createServer } from "node:http";
 import { config } from "./config/env.js";
 import { createApp } from "./app.js";
+import { closeRedisClient } from "./lib/cache/redis.js";
+import { authStore } from "./modules/auth/store.js";
+import { hasEncryptionKey } from "./lib/security/encryption.js";
 
-const app = createApp();
-const server = createServer(app);
+async function bootstrap() {
+  if (!hasEncryptionKey() && config.nodeEnv === "production") {
+    throw new Error("APP_ENCRYPTION_KEY must be set in production.");
+  }
 
-server.listen(config.port, () => {
-  console.log(JSON.stringify({
-    level: "info",
-    service: "aura-back",
-    message: "Aura backend listening",
-    url: `http://localhost:${config.port}`,
-    env: config.nodeEnv
-  }));
+  if (!hasEncryptionKey()) {
+    console.log(
+      JSON.stringify({
+        level: "warn",
+        service: "aura-back",
+        message: "APP_ENCRYPTION_KEY is not set; provider tokens are stored as plain text."
+      })
+    );
+  }
+
+  await authStore.initialize();
+
+  const app = createApp();
+  const server = createServer(app);
+
+  async function shutdown(signal: string) {
+    console.log(
+      JSON.stringify({
+        level: "info",
+        service: "aura-back",
+        message: "shutdown requested",
+        signal
+      })
+    );
+
+    server.close(async () => {
+      await Promise.all([
+        authStore.close(),
+        closeRedisClient()
+      ]);
+      process.exit(0);
+    });
+  }
+
+  process.on("SIGINT", () => {
+    void shutdown("SIGINT");
+  });
+  process.on("SIGTERM", () => {
+    void shutdown("SIGTERM");
+  });
+
+  server.listen(config.port, () => {
+    console.log(
+      JSON.stringify({
+        level: "info",
+        service: "aura-back",
+        message: "Aura backend listening",
+        url: `http://localhost:${config.port}`,
+        env: config.nodeEnv
+      })
+    );
+  });
+}
+
+void bootstrap().catch(error => {
+  console.error(error);
+  process.exit(1);
 });

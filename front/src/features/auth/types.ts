@@ -23,6 +23,7 @@ export interface AuthResponse {
     gmailConnectedAt: string | null;
     gmailSyncReady: boolean;
     gmailAccessExpiresAt: string | null;
+    calendarConnected: boolean;
   };
 }
 
@@ -42,5 +43,6 @@ export interface MeResponse {
     gmailConnectedAt: string | null;
     gmailSyncReady: boolean;
     gmailAccessExpiresAt: string | null;
+    calendarConnected: boolean;
   };
 }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../../../lib/http/async-handler.js";
 import { requireAuth } from "../../auth/middleware/require-auth.js";
+import { usageService } from "../../usage/service.js";
 import {
   connectGmailSchema,
   createReplyDraftSchema,
@@ -44,6 +45,10 @@ gmailRouter.post(
   requireAuth,
   asyncHandler(async (req, res) => {
     const input = summarizeGmailSchema.parse(req.body ?? {});
+    await usageService.consumeOrThrow({
+      userId: req.authUser!.id,
+      feature: "email_summary"
+    });
     res.json(
       await gmailService.summarizeRecentMessages(
         req.authUser!.id,
@@ -60,6 +65,10 @@ gmailRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const input = listGmailMessagesSchema.parse(req.query);
+    await usageService.consumeOrThrow({
+      userId: req.authUser!.id,
+      feature: "email_summary"
+    });
     res.json(
       await gmailService.summarizeDailyMessages(
         req.authUser!.id,
@@ -75,6 +84,10 @@ gmailRouter.post(
   requireAuth,
   asyncHandler(async (req, res) => {
     const input = createReplyDraftSchema.parse(req.body ?? {});
+    await usageService.consumeOrThrow({
+      userId: req.authUser!.id,
+      feature: "email_summary"
+    });
     res.json(await gmailService.createReplyDraft(req.authUser!.id, input.messageId, input.language));
   })
 );

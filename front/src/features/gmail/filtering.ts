@@ -1,5 +1,5 @@
-import type { GmailDigest, GmailMessage } from "./types";
-import type { IgnoredSenderRule } from "./storage";
+import type { GmailDigest, GmailMessage } from "@features/gmail/types";
+import type { IgnoredSenderRule } from "@features/gmail/storage";
 
 function extractEmailAddress(from: string) {
   const angleMatch = from.match(/<([^>]+)>/);
