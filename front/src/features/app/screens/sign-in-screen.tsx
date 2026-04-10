@@ -4,6 +4,7 @@ import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
+import { HeroWaveDecoration } from "@components/hero-wave-decoration";
 
 interface SignInScreenProps {
   copy: AppCopy;
@@ -25,9 +26,12 @@ export function SignInScreen({
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>{copy.signIn.eyebrow}</Text>
-          <Text style={styles.title}>{copy.signIn.title}</Text>
-          <Text style={styles.subtitle}>{copy.signIn.subtitle}</Text>
+          <HeroWaveDecoration />
+          <View style={styles.heroForeground}>
+            <Text style={styles.eyebrow}>{copy.signIn.eyebrow}</Text>
+            <Text style={styles.title}>{copy.signIn.title}</Text>
+            <Text style={styles.subtitle}>{copy.signIn.subtitle}</Text>
+          </View>
         </View>
 
         <View style={styles.formCard}>

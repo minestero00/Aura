@@ -22,13 +22,21 @@ export interface CalendarTravelPlanRequest {
   };
 }
 
+export interface CalendarTravelHintsByMode {
+  transit: CalendarTravelHint[];
+  driving: CalendarTravelHint[];
+}
+
 export interface CalendarTravelHint {
   eventId: string;
   dayKey: "today" | "tomorrow";
   source: "current-location" | "previous-event";
   travelMode: "driving" | "transit" | "walking";
+  estimateSource: "maps" | "derived";
   originLabel: string;
   destinationLabel: string;
+  originQuery: string | null;
+  destinationQuery: string | null;
   durationMinutes: number;
   recommendedDepartureAt: string;
   isTightTransfer: boolean;

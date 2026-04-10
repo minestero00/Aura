@@ -13,6 +13,7 @@ This file checks current implementation against:
 - Google Sign-In, backend Google ID token verification, and app session issue/refresh/logout flows.
 - Gmail connect/disconnect and Gmail daily summary flow.
 - News briefing with Anthropic summarization.
+- Conversational Ask mode (`POST /chat`) grounded on daily email/news briefing context.
 - Daily brief endpoint with precompute scheduler.
 - Daily brief snapshot persistence in Postgres.
 - Postgres migration runner (`npm run migrate --workspace back`).

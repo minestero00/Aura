@@ -2,6 +2,7 @@ import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
+import { HeroWaveDecoration } from "@components/hero-wave-decoration";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
@@ -46,9 +47,12 @@ export function MailScreen({
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroCard}>
-          <Text style={styles.eyebrow}>{copy.mail.eyebrow}</Text>
-          <Text style={styles.title}>{copy.mail.title}</Text>
-          <Text style={styles.subtitle}>{copy.mail.subtitle}</Text>
+          <HeroWaveDecoration />
+          <View style={styles.heroForeground}>
+            <Text style={styles.eyebrow}>{copy.mail.eyebrow}</Text>
+            <Text style={styles.title}>{copy.mail.title}</Text>
+            <Text style={styles.subtitle}>{copy.mail.subtitle}</Text>
+          </View>
         </View>
 
         {!gmailConnected ? (

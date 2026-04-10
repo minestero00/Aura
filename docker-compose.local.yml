@@ -32,6 +32,8 @@ services:
       context: .
       dockerfile: back/Dockerfile
     container_name: aura-api
+    env_file:
+      - ./back/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,11 +46,6 @@ services:
       ENABLE_BRIEFING_SCHEDULER: "false"
       DATABASE_URL: postgresql://aura:aura@postgres:5432/aura
       REDIS_URL: redis://redis:6379
-      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
-      GOOGLE_IOS_CLIENT_ID: ${GOOGLE_IOS_CLIENT_ID:-}
-      GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
@@ -75,6 +72,8 @@ services:
       context: .
       dockerfile: back/Dockerfile
     container_name: aura-worker
+    env_file:
+      - ./back/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,11 +87,6 @@ services:
       ENABLE_BRIEFING_SCHEDULER: "true"
       DATABASE_URL: postgresql://aura:aura@postgres:5432/aura
       REDIS_URL: redis://redis:6379
-      GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
-      GOOGLE_IOS_CLIENT_ID: ${GOOGLE_IOS_CLIENT_ID:-}
-      GOOGLE_ANDROID_CLIENT_ID: ${GOOGLE_ANDROID_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}

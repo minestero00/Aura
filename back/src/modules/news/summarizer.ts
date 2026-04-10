@@ -5,17 +5,44 @@ function containsHangul(value: string) {
   return /[가-힣]/.test(value);
 }
 
+function hangulRatio(value: string) {
+  const letters = value.replace(/[^A-Za-z가-힣]/g, "");
+  if (!letters.length) {
+    return 0;
+  }
+
+  const hangulCount = (letters.match(/[가-힣]/g) ?? []).length;
+  return hangulCount / letters.length;
+}
+
+function ensureKoreanLine(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  if (containsHangul(trimmed)) {
+    return trimmed;
+  }
+
+  return `핵심 내용: ${trimmed}`;
+}
+
 function buildFallbackNewsBriefing(articles: NewsArticle[], language: "en" | "ko"): NewsBriefing {
   const categories = Array.from(new Set(articles.map(article => article.category))).slice(0, 5);
   const categoryLabel = categories.join(", ");
 
   if (language === "ko") {
+    const categoryBullets = categories.length
+      ? categories.map(category => `${category} 분야 핵심 이슈를 한국어로 정리해 제공합니다.`)
+      : ["오늘 주요 이슈를 한국어로 정리해 제공합니다."];
+
     return {
       headline:
         articles.length > 0
           ? `${categoryLabel} 분야의 주요 뉴스 ${articles.length}건`
           : "현재 제공할 뉴스가 없습니다",
-      bullets: articles.slice(0, 6).map(article => `[${article.category}] ${article.title}`)
+      bullets: categoryBullets.slice(0, 6)
     };
   }
 
@@ -55,10 +82,21 @@ export async function summarizeNewsArticles(articles: NewsArticle[], language: "
   }
 
   if (language === "ko") {
-    const combined = `${parsed.headline}\n${parsed.bullets.join("\n")}`;
-    if (!containsHangul(combined)) {
+    const normalizedHeadline = ensureKoreanLine(parsed.headline);
+    const normalizedBullets = parsed.bullets
+      .slice(0, 6)
+      .map(bullet => ensureKoreanLine(bullet))
+      .filter(Boolean);
+    const combined = `${normalizedHeadline}\n${normalizedBullets.join("\n")}`;
+
+    if (!containsHangul(combined) || hangulRatio(combined) < 0.15) {
       return fallback;
     }
+
+    return {
+      headline: normalizedHeadline,
+      bullets: normalizedBullets
+    };
   }
 
   return {

@@ -40,7 +40,7 @@ export async function fetchGmailSummary(
   ignoredSenderKeys: string[] = [],
   language: AppLanguage
 ) {
-  return apiRequest<GmailSummaryResponse>("@lib/api/v1/integrations/gmail/summary", {
+  return apiRequest<GmailSummaryResponse>("/api/v1/integrations/gmail/summary", {
     method: "POST",
     accessToken,
     body: JSON.stringify({
@@ -78,7 +78,7 @@ export async function createGmailReplyDraft(
   messageId: string,
   language: AppLanguage
 ) {
-  return apiRequest<GmailReplyDraftResponse>("@lib/api/v1/integrations/gmail/reply-draft", {
+  return apiRequest<GmailReplyDraftResponse>("/api/v1/integrations/gmail/reply-draft", {
     method: "POST",
     accessToken,
     body: JSON.stringify({

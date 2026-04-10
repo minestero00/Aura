@@ -23,8 +23,11 @@ export interface CalendarTravelHint {
   dayKey: "today" | "tomorrow";
   source: "current-location" | "previous-event";
   travelMode: "driving" | "transit" | "walking";
+  estimateSource: "maps" | "derived";
   originLabel: string;
   destinationLabel: string;
+  originQuery: string | null;
+  destinationQuery: string | null;
   durationMinutes: number;
   recommendedDepartureAt: string;
   isTightTransfer: boolean;
@@ -32,7 +35,6 @@ export interface CalendarTravelHint {
 
 export interface CalendarTravelPlanRequest {
   days: CalendarAgendaDay[];
-  preferredMode?: "driving" | "transit";
   currentLocation?: {
     lat: number;
     lng: number;
@@ -40,5 +42,9 @@ export interface CalendarTravelPlanRequest {
 }
 
 export interface CalendarTravelPlanResponse {
-  hints: CalendarTravelHint[];
+  hintsByMode?: {
+    transit: CalendarTravelHint[];
+    driving: CalendarTravelHint[];
+  };
+  hints?: CalendarTravelHint[];
 }

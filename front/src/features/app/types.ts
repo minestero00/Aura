@@ -3,9 +3,11 @@ import type { GmailDigest, GmailMessage } from "@features/gmail/types";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
+import type { ChatMessage } from "@features/chat/types";
+import type { UsageResponse } from "@features/usage/types";
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
 
-export type AppTabKey = "mail" | "todo" | "news" | "settings";
+export type AppTabKey = "mail" | "todo" | "news" | "ask" | "settings";
 export type SettingsSectionKey =
   | "menu"
   | "gmail"
@@ -13,7 +15,8 @@ export type SettingsSectionKey =
   | "news"
   | "language"
   | "notifications"
-  | "permissions";
+  | "permissions"
+  | "usage";
 
 export interface AuthSessionState {
   session: AuthResponse["session"];
@@ -24,6 +27,7 @@ export interface UseAuraAppResult {
   authState: AuthSessionState | null;
   copy: AppCopy;
   errorMessage: string | null;
+  settingsNoticeMessage: string | null;
   language: AppLanguage;
   gmailDebugState: string;
   gmailDigest: GmailDigest | null;
@@ -35,6 +39,8 @@ export interface UseAuraAppResult {
   enabledNewsCategories: NewsCategory[];
   calendarAgendaDays: CalendarAgendaDay[];
   calendarTravelHints: CalendarTravelHint[];
+  chatInputDraft: string;
+  chatMessages: ChatMessage[];
   areDailyBriefNotificationsEnabled: boolean;
   isCalendarLoading: boolean;
   isCalendarTravelLoading: boolean;
@@ -42,6 +48,7 @@ export interface UseAuraAppResult {
   isDeviceCalendarPermissionGranted: boolean;
   isNotificationPermissionGranted: boolean;
   isNewsLoading: boolean;
+  isChatLoading: boolean;
   isBootstrapping: boolean;
   isDailyBriefPreparing: boolean;
   isGmailSubmitting: boolean;
@@ -53,6 +60,7 @@ export interface UseAuraAppResult {
   deviceCalendarAgendaDays: CalendarAgendaDay[];
   newsArticles: NewsArticle[];
   newsBriefing: NewsBriefing | null;
+  usage: UsageResponse | null;
   isDailyBriefModalVisible: boolean;
   selectedTab: AppTabKey;
   selectedSettingsSection: SettingsSectionKey;
@@ -73,6 +81,7 @@ export interface UseAuraAppResult {
   handleOpenLanguageSettings: () => void;
   handleOpenNotificationSettings: () => void;
   handleOpenPermissionsSettings: () => void;
+  handleOpenUsageSettings: () => void;
   handleOpenNewsSettings: () => void;
   handleOpenSystemSettings: () => Promise<void>;
   handleRemoveIgnoredSender: (senderKey: string) => Promise<void>;
@@ -80,6 +89,8 @@ export interface UseAuraAppResult {
   handleLoadCalendarAgenda: () => Promise<void>;
   handleLoadDeviceCalendarAgenda: () => Promise<void>;
   handleLoadDailyNewsBrief: () => Promise<void>;
+  handleChatInputDraftChange: (value: string) => void;
+  handleSendChatMessage: (message?: string) => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
   handleLoadEmailSummary: () => Promise<void>;
   handleLoadRecentEmails: () => Promise<void>;

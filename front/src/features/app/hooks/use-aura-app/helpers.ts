@@ -13,6 +13,34 @@ export function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+export function getLocalizedErrorMessage(
+  error: unknown,
+  fallback: string,
+  language: "en" | "ko"
+) {
+  if (error instanceof ApiError) {
+    if (error.code === "DAILY_QUOTA_EXCEEDED") {
+      return language === "ko"
+        ? "일일 사용량 한도를 초과했습니다. 설정의 사용량 탭에서 현황을 확인해 주세요."
+        : "Daily usage limit reached. Check the usage section in settings.";
+    }
+
+    if (error.code === "DAILY_REFRESH_QUOTA_EXCEEDED") {
+      return language === "ko"
+        ? "일일 수동 새로고침 한도를 초과했습니다."
+        : "Daily manual refresh limit reached.";
+    }
+
+    if (error.code === "RATE_LIMITED") {
+      return language === "ko"
+        ? "요청이 너무 빠릅니다. 잠시 후 다시 시도해 주세요."
+        : "Too many requests. Please try again shortly.";
+    }
+  }
+
+  return getErrorMessage(error, fallback);
+}
+
 export function getIgnoredSenderKeys(rules: IgnoredSenderRule[]) {
   return rules.map(rule => rule.senderKey);
 }

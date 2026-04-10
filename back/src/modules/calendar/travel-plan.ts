@@ -1,6 +1,11 @@
 import { AppError } from "../../lib/errors/app-error.js";
 import { config } from "../../config/env.js";
-import type { CalendarAgendaDay, CalendarTravelHint, CalendarTravelPlanRequest } from "./types.js";
+import type {
+  CalendarAgendaDay,
+  CalendarTravelHint,
+  CalendarTravelHintsByMode,
+  CalendarTravelPlanRequest
+} from "./types.js";
 
 interface DistanceMatrixResponse {
   status?: string;
@@ -130,14 +135,43 @@ function getUpcomingDayEvents(day: CalendarAgendaDay, now: Date) {
   });
 }
 
-export async function buildCalendarTravelHints(
-  input: CalendarTravelPlanRequest
+function deriveDrivingHintsFromTransit(transitHints: CalendarTravelHint[], drivingHints: CalendarTravelHint[]) {
+  const drivingKeys = new Set(drivingHints.map(hint => `${hint.dayKey}:${hint.eventId}:${hint.source}`));
+  const derived: CalendarTravelHint[] = [];
+
+  for (const hint of transitHints) {
+    const key = `${hint.dayKey}:${hint.eventId}:${hint.source}`;
+    if (drivingKeys.has(key)) {
+      continue;
+    }
+
+    const derivedMinutes = Math.max(1, Math.round(hint.durationMinutes * 0.72));
+    const departureShiftMinutes = hint.durationMinutes - derivedMinutes;
+    const derivedDeparture = new Date(
+      new Date(hint.recommendedDepartureAt).getTime() + departureShiftMinutes * 60_000
+    );
+
+    derived.push({
+      ...hint,
+      travelMode: "driving",
+      estimateSource: "derived",
+      durationMinutes: derivedMinutes,
+      recommendedDepartureAt: derivedDeparture.toISOString(),
+      isTightTransfer: derivedDeparture.getTime() <= Date.now()
+    });
+  }
+
+  return derived;
+}
+
+async function buildCalendarTravelHintsForMode(
+  input: CalendarTravelPlanRequest,
+  preferredMode: "driving" | "transit"
 ): Promise<CalendarTravelHint[]> {
   if (!config.googleMapsApiKey) {
     return [];
   }
 
-  const preferredMode = input.preferredMode ?? "transit";
   const now = new Date();
   const hints: CalendarTravelHint[] = [];
   let requestsMade = 0;
@@ -171,8 +205,11 @@ export async function buildCalendarTravelHints(
             dayKey: day.key,
             source: "current-location",
             travelMode: travel.mode,
+            estimateSource: "maps",
             originLabel: "Current location",
             destinationLabel: firstLocatedEvent.title,
+            originQuery: `${input.currentLocation.lat},${input.currentLocation.lng}`,
+            destinationQuery: firstLocatedEvent.location,
             durationMinutes: travel.durationMinutes,
             recommendedDepartureAt: recommendedDepartureAt.toISOString(),
             isTightTransfer: recommendedDepartureAt.getTime() <= now.getTime()
@@ -226,8 +263,11 @@ export async function buildCalendarTravelHints(
           dayKey: day.key,
           source: "previous-event",
           travelMode: travel.mode,
+          estimateSource: "maps",
           originLabel: previous.title,
           destinationLabel: next.title,
+          originQuery: previous.location,
+          destinationQuery: next.location,
           durationMinutes: travel.durationMinutes,
           recommendedDepartureAt: recommendedDepartureAt.toISOString(),
           isTightTransfer: recommendedDepartureAt.getTime() < previousEnd.getTime()
@@ -251,4 +291,26 @@ export async function buildCalendarTravelHints(
   }
 
   return hints;
+}
+
+export async function buildCalendarTravelHintsByMode(
+  input: CalendarTravelPlanRequest
+): Promise<CalendarTravelHintsByMode> {
+  if (!config.googleMapsApiKey) {
+    return {
+      transit: [],
+      driving: []
+    };
+  }
+
+  const [transit, driving] = await Promise.all([
+    buildCalendarTravelHintsForMode(input, "transit"),
+    buildCalendarTravelHintsForMode(input, "driving")
+  ]);
+  const derivedDriving = deriveDrivingHintsFromTransit(transit, driving);
+
+  return {
+    transit,
+    driving: [...driving, ...derivedDriving]
+  };
 }

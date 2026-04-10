@@ -2,9 +2,12 @@ import type { AppCopy, AppLanguage } from "@features/app/i18n";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
 import type { NewsCategory } from "@features/news/types";
 import type { SettingsSectionKey } from "@features/app/types";
+import type { UsageResponse } from "@features/usage/types";
 
 export interface SettingsScreenProps {
   copy: AppCopy;
+  noticeMessage: string | null;
+  usage: UsageResponse | null;
   gmailAddress: string | null;
   gmailConnected: boolean;
   gmailConnectedAt: string | null;
@@ -29,6 +32,7 @@ export interface SettingsScreenProps {
   onOpenLanguageSettings: () => void;
   onOpenNotificationSettings: () => void;
   onOpenPermissionsSettings: () => void;
+  onOpenUsageSettings: () => void;
   onOpenNewsSettings: () => void;
   onOpenSystemSettings: () => Promise<void>;
   onIgnoredSenderDraftChange: (value: string) => void;

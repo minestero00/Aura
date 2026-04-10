@@ -6,14 +6,14 @@ import type {
 } from "@features/calendar/types";
 
 export async function fetchCalendarAgenda(accessToken: string) {
-  return apiRequest<CalendarAgendaResponse>("@lib/api/v1/calendar/agenda", {
+  return apiRequest<CalendarAgendaResponse>("/api/v1/calendar/agenda", {
     method: "GET",
     accessToken
   });
 }
 
 export async function fetchCalendarTravelPlan(accessToken: string, body: CalendarTravelPlanRequest) {
-  return apiRequest<CalendarTravelPlanResponse>("@lib/api/v1/calendar/travel-plan", {
+  return apiRequest<CalendarTravelPlanResponse>("/api/v1/calendar/travel-plan", {
     method: "POST",
     accessToken,
     body: JSON.stringify(body)

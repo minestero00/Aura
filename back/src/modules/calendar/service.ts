@@ -1,7 +1,7 @@
 import { AppError } from "../../lib/errors/app-error.js";
 import { authStore } from "../auth/store.js";
 import { fetchCalendarAgenda } from "./calendar-api.js";
-import { buildCalendarTravelHints } from "./travel-plan.js";
+import { buildCalendarTravelHintsByMode } from "./travel-plan.js";
 import type { CalendarTravelPlanRequest } from "./types.js";
 
 export const calendarService = {
@@ -23,13 +23,12 @@ export const calendarService = {
       throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
     }
 
-    const hints = await buildCalendarTravelHints(input);
+    const hintsByMode = await buildCalendarTravelHintsByMode(input);
     console.log(
       JSON.stringify({
         level: "info",
         service: "aura-back",
         message: "calendar travel-plan computed",
-        preferredMode: input.preferredMode ?? "transit",
         hasCurrentLocation: Boolean(input.currentLocation),
         todayEventCount: input.days.find(day => day.key === "today")?.events.length ?? 0,
         tomorrowEventCount: input.days.find(day => day.key === "tomorrow")?.events.length ?? 0,
@@ -41,11 +40,11 @@ export const calendarService = {
         todayStartsAt: input.days.find(day => day.key === "today")?.events.map(event => event.startsAt) ?? [],
         todayLocations:
           input.days.find(day => day.key === "today")?.events.map(event => event.location ?? "") ?? [],
-        hintCount: hints.length,
-        hintModes: hints.map(hint => hint.travelMode)
+        transitHintCount: hintsByMode.transit.length,
+        drivingHintCount: hintsByMode.driving.length
       })
     );
 
-    return { hints };
+    return { hintsByMode };
   }
 };

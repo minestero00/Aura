@@ -23,7 +23,12 @@ export interface CalendarModuleDeps {
   setIsDeviceCalendarLoading: Dispatch<SetStateAction<boolean>>;
   setHasLoadedDeviceCalendarAgenda: Dispatch<SetStateAction<boolean>>;
   setIsDeviceCalendarPermissionGranted: Dispatch<SetStateAction<boolean>>;
-  setCalendarTravelHints: Dispatch<SetStateAction<CalendarTravelHint[]>>;
+  setCalendarTravelHintsByMode: Dispatch<
+    SetStateAction<{
+      transit: CalendarTravelHint[];
+      driving: CalendarTravelHint[];
+    }>
+  >;
   setIsCalendarTravelLoading: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -106,8 +111,7 @@ export async function loadDeviceCalendarAgenda(deps: CalendarModuleDeps) {
 
 export async function loadCalendarTravelPlan(
   deps: CalendarModuleDeps,
-  days: CalendarAgendaDay[],
-  preferredMode: "driving" | "transit"
+  days: CalendarAgendaDay[]
 ) {
   if (!deps.authState) {
     return;
@@ -120,13 +124,20 @@ export async function loadCalendarTravelPlan(
     const { result: response } = await deps.withSessionAutoRefresh(accessToken =>
       fetchCalendarTravelPlan(accessToken, {
         days,
-        preferredMode,
         currentLocation: currentLocation ?? undefined
       })
     );
-    deps.setCalendarTravelHints(response.hints);
+    const nextHintsByMode = response.hintsByMode ?? {
+      transit: response.hints ?? [],
+      driving: response.hints ?? []
+    };
+
+    deps.setCalendarTravelHintsByMode(nextHintsByMode);
   } catch (error: unknown) {
-    deps.setCalendarTravelHints([]);
+    deps.setCalendarTravelHintsByMode({
+      transit: [],
+      driving: []
+    });
     deps.setErrorMessage(
       getErrorMessage(
         error,

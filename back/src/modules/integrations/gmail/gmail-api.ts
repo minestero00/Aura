@@ -36,6 +36,20 @@ interface GmailMessageResponse {
   };
 }
 
+function logGmailFailure(userId: string, path: string, status: number, payload: unknown) {
+  console.log(
+    JSON.stringify({
+      level: "warn",
+      service: "aura-back",
+      message: "gmail request failed",
+      userId,
+      path,
+      status,
+      payload
+    })
+  );
+}
+
 function getHeaderValue(message: GmailMessageResponse, headerName: string) {
   const match = message.payload?.headers?.find(
     header => header.name?.toLowerCase() === headerName.toLowerCase()
@@ -44,27 +58,34 @@ function getHeaderValue(message: GmailMessageResponse, headerName: string) {
   return match?.value ?? "";
 }
 
-async function getAuthorizedAccessToken(userId: string) {
+async function getAuthorizedAccessToken(userId: string, forceRefresh = false) {
   const connection = authStore.getGmailConnection(userId);
 
   if (!connection) {
     throw new AppError(400, "GMAIL_NOT_CONNECTED", "Gmail is not connected.");
   }
 
+  const hasAccessToken = Boolean(connection.accessToken);
   const expiresSoon = connection.expiresAt
     ? connection.expiresAt.getTime() <= Date.now() + 60_000
     : false;
 
-  if (connection.accessToken && !expiresSoon) {
-    return connection.accessToken;
+  // If we don't have a refresh token, use the current access token as long as it exists.
+  // Some Google sessions do not issue refresh_token on repeated consent.
+  if (!connection.refreshToken) {
+    if (hasAccessToken && !forceRefresh) {
+      return connection.accessToken;
+    }
+
+    throw new AppError(
+      401,
+      "GMAIL_AUTH_RECONNECT_REQUIRED",
+      "Gmail authorization expired. Please reconnect Gmail."
+    );
   }
 
-  if (!connection.refreshToken) {
-    throw new AppError(
-      400,
-      "GMAIL_SYNC_NOT_READY",
-      "Gmail is connected, but background sync is not ready yet."
-    );
+  if (hasAccessToken && !forceRefresh && !expiresSoon) {
+    return connection.accessToken;
   }
 
   const refreshed = await refreshGoogleAccessToken(connection.refreshToken);
@@ -76,20 +97,55 @@ async function getAuthorizedAccessToken(userId: string) {
   return refreshed.accessToken;
 }
 
-async function gmailRequest<T>(accessToken: string, path: string) {
-  const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  });
+async function gmailRequest<T>(userId: string, path: string) {
+  async function send(accessToken: string) {
+    const response = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
 
-  const payload = (await response.json().catch(() => null)) as T | null;
-
-  if (!response.ok || !payload) {
-    throw new AppError(502, "GMAIL_API_ERROR", "Gmail API request failed.", payload);
+    const payload = (await response.json().catch(() => null)) as T | null;
+    return { response, payload };
   }
 
-  return payload;
+  const initialToken = await getAuthorizedAccessToken(userId);
+  const first = await send(initialToken);
+
+  if (first.response.ok && first.payload) {
+    return first.payload;
+  }
+  logGmailFailure(userId, path, first.response.status, first.payload);
+
+  // Google occasionally rejects a cached token even before local expiry.
+  if (first.response.status === 401) {
+    try {
+      const refreshedToken = await getAuthorizedAccessToken(userId, true);
+      const retried = await send(refreshedToken);
+
+      if (retried.response.ok && retried.payload) {
+        return retried.payload;
+      }
+      logGmailFailure(userId, path, retried.response.status, retried.payload);
+
+      if (retried.response.status === 401) {
+        throw new AppError(
+          401,
+          "GMAIL_AUTH_RECONNECT_REQUIRED",
+          "Gmail authorization expired. Please reconnect Gmail.",
+          retried.payload
+        );
+      }
+
+      throw new AppError(502, "GMAIL_API_ERROR", "Gmail API request failed.", retried.payload);
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+    }
+  }
+
+  throw new AppError(502, "GMAIL_API_ERROR", "Gmail API request failed.", first.payload);
 }
 
 function extractEmailAddress(from: string) {
@@ -104,11 +160,10 @@ export async function fetchRecentGmailMessages(
     query?: string;
   } = {}
 ) {
-  const accessToken = await getAuthorizedAccessToken(userId);
   const normalizedLimit = Math.max(1, Math.min(options.limit ?? 10, 20));
   const query = encodeURIComponent(options.query ?? "in:inbox newer_than:14d");
   const list = await gmailRequest<GmailListResponse>(
-    accessToken,
+    userId,
     `messages?maxResults=${normalizedLimit}&q=${query}`
   );
 
@@ -117,7 +172,7 @@ export async function fetchRecentGmailMessages(
   const messages = await Promise.all(
     ids.map(message =>
       gmailRequest<GmailMessageResponse>(
-        accessToken,
+        userId,
         `messages/${message.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`
       )
     )
@@ -141,9 +196,8 @@ export async function fetchDailyGmailMessages(userId: string, limit = 20) {
 }
 
 export async function fetchGmailMessageForReply(userId: string, messageId: string) {
-  const accessToken = await getAuthorizedAccessToken(userId);
   const message = await gmailRequest<GmailMessageResponse>(
-    accessToken,
+    userId,
     `messages/${messageId}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=Message-ID&metadataHeaders=References`
   );
 

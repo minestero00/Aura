@@ -1,16 +1,13 @@
 import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
-import { startTransition, useEffect, useRef, useState } from "react";
 import { Platform, Linking } from "react-native";
 import { googleConfig } from "@config/google";
-import { ApiError } from "@lib/api/client";
 import {
   GMAIL_COMPOSE_SCOPE,
   GMAIL_READONLY_SCOPE,
   GOOGLE_CALENDAR_SCOPE
 } from "@features/app/hooks/use-aura-app/constants";
 import {
-  getErrorMessage,
-  toTimeDraft
+  getErrorMessage
 } from "@features/app/hooks/use-aura-app/helpers";
 import {
   connectDeviceCalendar,
@@ -18,6 +15,7 @@ import {
   loadCalendarTravelPlan,
   loadDeviceCalendarAgenda
 } from "@features/app/hooks/use-aura-app/calendar";
+import { hydrateChatHistory, submitChatMessage } from "@features/app/hooks/use-aura-app/chat";
 import {
   disableDailyBriefNotifications,
   enableDailyBriefNotifications,
@@ -38,32 +36,25 @@ import {
   replyToMessage
 } from "@features/app/hooks/use-aura-app/gmail";
 import { createSessionManager } from "@features/app/hooks/use-aura-app/session";
+import { useAuraAppEffects } from "@features/app/hooks/use-aura-app/effects";
+import { useAuraAppState } from "@features/app/hooks/use-aura-app/state";
 import { getCategoryLabel, getCopy, type AppLanguage } from "@features/app/i18n";
+import { saveAppLanguage } from "@features/app/storage";
 import {
-  getInitialDailyBriefOpen,
-  subscribeToDailyBriefOpen
-} from "@features/app/notifications";
-import { loadAppLanguage, saveAppLanguage } from "@features/app/storage";
-import {
-  fetchMe,
   logoutAuthSession,
-  refreshAuthSession,
   signInWithGoogleToken
 } from "@features/auth/api";
-import { clearAuthSession, loadAuthSession, saveAuthSession } from "@features/auth/storage";
+import { clearAuthSession } from "@features/auth/storage";
 import { filterIgnoredMessages, getSenderKey } from "@features/gmail/filtering";
-import { loadIgnoredSenderRules, saveIgnoredSenderRules } from "@features/gmail/storage";
-import type { GmailDigest, GmailMessage } from "@features/gmail/types";
-import type { IgnoredSenderRule } from "@features/gmail/storage";
-import { loadEnabledNewsCategories, saveEnabledNewsCategories } from "@features/news/storage";
-import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
-import { checkDeviceCalendarPermission, isCalendarPermissionGranted } from "@features/calendar/device";
-import { mergeAgendaDays } from "@features/calendar/merge";
-import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
+import { saveIgnoredSenderRules } from "@features/gmail/storage";
+import type { GmailMessage } from "@features/gmail/types";
+import { saveEnabledNewsCategories } from "@features/news/storage";
+import type { NewsCategory } from "@features/news/types";
+import { fetchUsage } from "@features/usage/api";
+import type { CalendarAgendaDay } from "@features/calendar/types";
+import { isUrgentMailQuestion } from "@features/chat/intent";
 import type {
-  AppTabKey,
   AuthSessionState,
-  SettingsSectionKey,
   UseAuraAppResult
 } from "@features/app/types";
 
@@ -74,356 +65,148 @@ GoogleSignin.configure({
 });
 
 export function useAuraApp(): UseAuraAppResult {
-  const [authState, setAuthState] = useState<AuthSessionState | null>(null);
-  const [language, setLanguage] = useState<AppLanguage>("en");
-  const [selectedTab, setSelectedTab] = useState<AppTabKey>("mail");
-  const [selectedSettingsSection, setSelectedSettingsSection] =
-    useState<SettingsSectionKey>("menu");
-  const [selectedTravelMode, setSelectedTravelMode] = useState<"driving" | "transit">("transit");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGmailSubmitting, setIsGmailSubmitting] = useState(false);
-  const [isInboxLoading, setIsInboxLoading] = useState(false);
-  const [isNewsLoading, setIsNewsLoading] = useState(false);
-  const [isBootstrapping, setIsBootstrapping] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [gmailDebugState, setGmailDebugState] = useState("idle");
-  const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
-  const [gmailDigest, setGmailDigest] = useState<GmailDigest | null>(null);
-  const [replyingMessageId, setReplyingMessageId] = useState<string | null>(null);
-  const [dailyEmailDigest, setDailyEmailDigest] = useState<GmailDigest | null>(null);
-  const [dailyEmailMessages, setDailyEmailMessages] = useState<GmailMessage[]>([]);
-  const [ignoredSenderRules, setIgnoredSenderRules] = useState<IgnoredSenderRule[]>([]);
-  const [ignoredSenderDraft, setIgnoredSenderDraft] = useState("");
-  const [morningBriefTimeDraft, setMorningBriefTimeDraft] = useState("09:00");
-  const [enabledNewsCategories, setEnabledNewsCategories] = useState<NewsCategory[]>([
-    "world",
-    "business",
-    "tech"
-  ]);
-  const [calendarAgendaDays, setCalendarAgendaDays] = useState<CalendarAgendaDay[]>([]);
-  const [isCalendarLoading, setIsCalendarLoading] = useState(false);
-  const [hasLoadedCalendarAgenda, setHasLoadedCalendarAgenda] = useState(false);
-  const [deviceCalendarAgendaDays, setDeviceCalendarAgendaDays] = useState<CalendarAgendaDay[]>([]);
-  const [isDeviceCalendarLoading, setIsDeviceCalendarLoading] = useState(false);
-  const [hasLoadedDeviceCalendarAgenda, setHasLoadedDeviceCalendarAgenda] = useState(false);
-  const [calendarTravelHints, setCalendarTravelHints] = useState<CalendarTravelHint[]>([]);
-  const [isCalendarTravelLoading, setIsCalendarTravelLoading] = useState(false);
-  const [isDeviceCalendarPermissionGranted, setIsDeviceCalendarPermissionGranted] = useState(false);
-  const [newsBriefing, setNewsBriefing] = useState<NewsBriefing | null>(null);
-  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
-  const [pendingDailyBriefOpen, setPendingDailyBriefOpen] = useState(false);
-  const [isDailyBriefModalVisible, setIsDailyBriefModalVisible] = useState(false);
-  const [isDailyBriefPreparing, setIsDailyBriefPreparing] = useState(false);
-  const [hasShownDailyBriefThisSession, setHasShownDailyBriefThisSession] = useState(false);
-  const [areDailyBriefNotificationsEnabled, setAreDailyBriefNotificationsEnabled] = useState(false);
-  const [isNotificationPermissionGranted, setIsNotificationPermissionGranted] = useState(false);
-  const hasStartedInitialDailyBriefRef = useRef(false);
-  const hasAttemptedDeviceCalendarPromptRef = useRef(false);
-  const lastTravelPlanSignatureRef = useRef("");
+  const {
+    authState,
+    setAuthState,
+    language,
+    setLanguage,
+    selectedTab,
+    setSelectedTab,
+    selectedSettingsSection,
+    setSelectedSettingsSection,
+    selectedTravelMode,
+    setSelectedTravelMode,
+    isSubmitting,
+    setIsSubmitting,
+    isGmailSubmitting,
+    setIsGmailSubmitting,
+    isInboxLoading,
+    setIsInboxLoading,
+    isNewsLoading,
+    setIsNewsLoading,
+    isBootstrapping,
+    setIsBootstrapping,
+    errorMessage,
+    setErrorMessage,
+    settingsNoticeMessage,
+    setSettingsNoticeMessage,
+    gmailDebugState,
+    setGmailDebugState,
+    gmailMessages,
+    setGmailMessages,
+    gmailDigest,
+    setGmailDigest,
+    replyingMessageId,
+    setReplyingMessageId,
+    dailyEmailDigest,
+    setDailyEmailDigest,
+    dailyEmailMessages,
+    setDailyEmailMessages,
+    ignoredSenderRules,
+    setIgnoredSenderRules,
+    ignoredSenderDraft,
+    setIgnoredSenderDraft,
+    morningBriefTimeDraft,
+    setMorningBriefTimeDraft,
+    enabledNewsCategories,
+    setEnabledNewsCategories,
+    calendarAgendaDays,
+    setCalendarAgendaDays,
+    isCalendarLoading,
+    setIsCalendarLoading,
+    hasLoadedCalendarAgenda,
+    setHasLoadedCalendarAgenda,
+    deviceCalendarAgendaDays,
+    setDeviceCalendarAgendaDays,
+    isDeviceCalendarLoading,
+    setIsDeviceCalendarLoading,
+    hasLoadedDeviceCalendarAgenda,
+    setHasLoadedDeviceCalendarAgenda,
+    calendarTravelHintsByMode,
+    setCalendarTravelHintsByMode,
+    isCalendarTravelLoading,
+    setIsCalendarTravelLoading,
+    isDeviceCalendarPermissionGranted,
+    setIsDeviceCalendarPermissionGranted,
+    newsBriefing,
+    setNewsBriefing,
+    newsArticles,
+    setNewsArticles,
+    usage,
+    setUsage,
+    chatSessionId,
+    setChatSessionId,
+    chatMessages,
+    setChatMessages,
+    chatInputDraft,
+    setChatInputDraft,
+    isChatLoading,
+    setIsChatLoading,
+    pendingDailyBriefOpen,
+    setPendingDailyBriefOpen,
+    isDailyBriefModalVisible,
+    setIsDailyBriefModalVisible,
+    isDailyBriefPreparing,
+    setIsDailyBriefPreparing,
+    hasShownDailyBriefThisSession,
+    setHasShownDailyBriefThisSession,
+    areDailyBriefNotificationsEnabled,
+    setAreDailyBriefNotificationsEnabled,
+    isNotificationPermissionGranted,
+    setIsNotificationPermissionGranted,
+    hasStartedInitialDailyBriefRef,
+    hasAttemptedDeviceCalendarPromptRef,
+    lastTravelPlanSignatureRef,
+    settingsNoticeTimerRef
+  } = useAuraAppState();
   const { syncMe, withSessionAutoRefresh } = createSessionManager({
     getAuthState: () => authState,
     setAuthState
   });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function bootstrapLanguage() {
-      const storedLanguage = await loadAppLanguage();
-
-      if (isMounted) {
-        setLanguage(storedLanguage);
-      }
-    }
-
-    void bootstrapLanguage();
-
-    async function bootstrapSession() {
-      try {
-        const stored = await loadAuthSession();
-
-        if (!stored) {
-          return;
-        }
-
-        let nextSession = stored.session;
-        let me;
-
-        try {
-          me = await fetchMe(stored.session.accessToken);
-        } catch (error) {
-          if (!(error instanceof ApiError) || error.status !== 401) {
-            throw error;
-          }
-
-          nextSession = await refreshAuthSession(stored.session.refreshToken);
-          me = await fetchMe(nextSession.accessToken);
-        }
-
-        if (!isMounted) {
-          return;
-        }
-
-        startTransition(() => {
-          setAuthState({
-            session: nextSession,
-            me
-          });
-        });
-        await saveAuthSession({
-          session: nextSession,
-          me
-        });
-        setMorningBriefTimeDraft(toTimeDraft(me.preferences.morningBriefTime));
-      } catch {
-        await clearAuthSession();
-      } finally {
-        if (isMounted) {
-          setIsBootstrapping(false);
-        }
-      }
-    }
-
-    void bootstrapSession();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function bootstrapDeviceCalendarPermission() {
-      const status = await checkDeviceCalendarPermission();
-
-      if (isMounted) {
-        setIsDeviceCalendarPermissionGranted(isCalendarPermissionGranted(status));
-      }
-    }
-
-    void bootstrapDeviceCalendarPermission();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!authState) {
-      return;
-    }
-
-    setMorningBriefTimeDraft(toTimeDraft(authState.me.preferences.morningBriefTime));
-  }, [authState?.me.preferences.morningBriefTime]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    void getInitialDailyBriefOpen().then(openedFromNotification => {
-      if (isMounted && openedFromNotification) {
-        setPendingDailyBriefOpen(true);
-      }
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = subscribeToDailyBriefOpen(() => {
-      setPendingDailyBriefOpen(true);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function bootstrapNewsCategories() {
-      const categories = await loadEnabledNewsCategories();
-
-      if (isMounted) {
-        setEnabledNewsCategories(categories);
-      }
-    }
-
-    void bootstrapNewsCategories();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!authState || hasStartedInitialDailyBriefRef.current) {
-      return;
-    }
-
-    hasStartedInitialDailyBriefRef.current = true;
-    void prepareDailyBriefForSession(authState.session, authState.me.integrations.gmailConnected);
-  }, [authState]);
-
-  useEffect(() => {
-    if (
-      !authState ||
-      selectedTab !== "todo" ||
-      !authState.me.integrations.calendarConnected ||
-      isCalendarLoading ||
-      hasLoadedCalendarAgenda
-    ) {
-      return;
-    }
-
-    void handleLoadCalendarAgenda();
-  }, [
+  useAuraAppEffects({
     authState,
-    hasLoadedCalendarAgenda,
+    language,
+    selectedTab,
     isCalendarLoading,
-    selectedTab
-  ]);
-
-  useEffect(() => {
-    if (
-      selectedTab !== "todo" ||
-      !isDeviceCalendarPermissionGranted ||
-      isDeviceCalendarLoading ||
-      hasLoadedDeviceCalendarAgenda
-    ) {
-      return;
-    }
-
-    void handleLoadDeviceCalendarAgenda();
-  }, [
-    hasLoadedDeviceCalendarAgenda,
+    hasLoadedCalendarAgenda,
     isDeviceCalendarLoading,
+    hasLoadedDeviceCalendarAgenda,
     isDeviceCalendarPermissionGranted,
-    selectedTab
-  ]);
-
-  useEffect(() => {
-    if (!authState || selectedTab !== "todo") {
-      return;
-    }
-
-    const mergedDays = mergeAgendaDays(calendarAgendaDays, deviceCalendarAgendaDays);
-    const hasAnyLocatedEvent = mergedDays.some(day => day.events.some(event => Boolean(event.location)));
-
-    if (!hasAnyLocatedEvent) {
-      setCalendarTravelHints([]);
-      return;
-    }
-
-    const signature = JSON.stringify(
-      {
-        selectedTravelMode,
-        days: mergedDays.map(day => ({
-          key: day.key,
-          events: day.events.map(event => ({
-            id: event.id,
-            startsAt: event.startsAt,
-            endsAt: event.endsAt,
-            location: event.location
-          }))
-        }))
-      }
-    );
-
-    if (lastTravelPlanSignatureRef.current === signature) {
-      return;
-    }
-
-    lastTravelPlanSignatureRef.current = signature;
-    void handleLoadCalendarTravelPlan(mergedDays, selectedTravelMode);
-  }, [
-    authState?.session.accessToken,
     calendarAgendaDays,
     deviceCalendarAgendaDays,
-    selectedTravelMode,
-    selectedTab
-  ]);
-
-  useEffect(() => {
-    if (
-      selectedTab !== "todo" ||
-      isDeviceCalendarPermissionGranted ||
-      hasAttemptedDeviceCalendarPromptRef.current
-    ) {
-      return;
-    }
-
-    hasAttemptedDeviceCalendarPromptRef.current = true;
-    void handleConnectDeviceCalendar();
-  }, [isDeviceCalendarPermissionGranted, selectedTab]);
-
-  useEffect(() => {
-    if (!authState) {
-      return;
-    }
-
-    void refreshDailyBriefNotificationState();
-  }, [authState?.session.accessToken, language]);
-
-  useEffect(() => {
-    if (!authState || !pendingDailyBriefOpen) {
-      return;
-    }
-
-    setPendingDailyBriefOpen(false);
-    setHasShownDailyBriefThisSession(false);
-    setSelectedTab("mail");
-    void prepareDailyBriefForSession(authState.session, authState.me.integrations.gmailConnected);
-  }, [
-    authState?.me.integrations.gmailConnected,
-    authState?.session.accessToken,
+    pendingDailyBriefOpen,
     enabledNewsCategories,
     ignoredSenderRules,
-    language,
-    pendingDailyBriefOpen
-  ]);
-
-  useEffect(() => {
-    if (!authState || hasShownDailyBriefThisSession || isDailyBriefPreparing) {
-      return;
-    }
-
-    const requiresEmail = authState.me.integrations.gmailConnected;
-    const hasEmailBrief = !requiresEmail || Boolean(dailyEmailDigest);
-    const hasNewsBrief = Boolean(newsBriefing);
-
-    if (!hasEmailBrief || !hasNewsBrief) {
-      return;
-    }
-
-    setIsDailyBriefModalVisible(true);
-    setHasShownDailyBriefThisSession(true);
-  }, [
-    authState,
     dailyEmailDigest,
-    hasShownDailyBriefThisSession,
+    newsBriefing,
     isDailyBriefPreparing,
-    newsBriefing
-  ]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function bootstrapIgnoredSenders() {
-      const rules = await loadIgnoredSenderRules();
-
-      if (isMounted) {
-        setIgnoredSenderRules(rules);
-      }
-    }
-
-    void bootstrapIgnoredSenders();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    hasShownDailyBriefThisSession,
+    setAuthState,
+    setLanguage,
+    setMorningBriefTimeDraft,
+    setIsBootstrapping,
+    setEnabledNewsCategories,
+    setIsDeviceCalendarPermissionGranted,
+    setPendingDailyBriefOpen,
+    setHasShownDailyBriefThisSession,
+    setSelectedTab,
+    setCalendarTravelHintsByMode,
+    setIsDailyBriefModalVisible,
+    setIgnoredSenderRules,
+    hasStartedInitialDailyBriefRef,
+    hasAttemptedDeviceCalendarPromptRef,
+    lastTravelPlanSignatureRef,
+    settingsNoticeTimerRef,
+    getChatDeps,
+    hydrateChatHistoryFn: hydrateChatHistory,
+    prepareDailyBriefForSession,
+    handleLoadCalendarAgenda,
+    handleLoadDeviceCalendarAgenda,
+    handleLoadCalendarTravelPlan,
+    handleConnectDeviceCalendar,
+    refreshDailyBriefNotificationState
+  });
 
   function getDailyBriefDeps() {
     return {
@@ -463,7 +246,7 @@ export function useAuraApp(): UseAuraAppResult {
       setIsDeviceCalendarLoading,
       setHasLoadedDeviceCalendarAgenda,
       setIsDeviceCalendarPermissionGranted,
-      setCalendarTravelHints,
+      setCalendarTravelHintsByMode,
       setIsCalendarTravelLoading
     };
   }
@@ -487,8 +270,35 @@ export function useAuraApp(): UseAuraAppResult {
     };
   }
 
+  function getChatDeps() {
+    return {
+      authState,
+      language,
+      chatSessionId,
+      chatInputDraft,
+      withSessionAutoRefresh,
+      setChatSessionId,
+      setChatMessages,
+      setChatInputDraft,
+      setIsChatLoading,
+      setErrorMessage
+    };
+  }
+
   async function refreshDailyBriefNotificationState() {
     await refreshDailyBriefNotificationStateOp(getDailyBriefDeps());
+  }
+
+  function showSettingsNotice(message: string) {
+    if (settingsNoticeTimerRef.current) {
+      clearTimeout(settingsNoticeTimerRef.current);
+    }
+
+    setSettingsNoticeMessage(message);
+    settingsNoticeTimerRef.current = setTimeout(() => {
+      setSettingsNoticeMessage(null);
+      settingsNoticeTimerRef.current = null;
+    }, 2200);
   }
 
   async function connectGmailForCurrentSession(session: AuthSessionState["session"]) {
@@ -580,6 +390,7 @@ export function useAuraApp(): UseAuraAppResult {
 
     setAuthState(null);
     setErrorMessage(null);
+    setSettingsNoticeMessage(null);
     setGmailDebugState("idle");
     setGmailMessages([]);
     setGmailDigest(null);
@@ -587,11 +398,19 @@ export function useAuraApp(): UseAuraAppResult {
     setDailyEmailMessages([]);
     setNewsBriefing(null);
     setNewsArticles([]);
+    setUsage(null);
+    setChatSessionId(null);
+    setChatMessages([]);
+    setChatInputDraft("");
+    setIsChatLoading(false);
     setCalendarAgendaDays([]);
     setHasLoadedCalendarAgenda(false);
     setDeviceCalendarAgendaDays([]);
     setHasLoadedDeviceCalendarAgenda(false);
-    setCalendarTravelHints([]);
+    setCalendarTravelHintsByMode({
+      transit: [],
+      driving: []
+    });
     lastTravelPlanSignatureRef.current = "";
     setIsDailyBriefModalVisible(false);
     setIsDailyBriefPreparing(false);
@@ -608,7 +427,7 @@ export function useAuraApp(): UseAuraAppResult {
     }
     setGmailDebugState("manual_connect_requested");
     await connectGmailForCurrentSession(authState.session);
-    await prepareDailyBriefForSession(authState.session, true);
+    showSettingsNotice(copy.settings.refreshDone);
   }
 
   async function handleDisconnectGmail() {
@@ -670,11 +489,8 @@ export function useAuraApp(): UseAuraAppResult {
     await loadDeviceCalendarAgenda(getCalendarDeps());
   }
 
-  async function handleLoadCalendarTravelPlan(
-    days: CalendarAgendaDay[],
-    preferredMode: "driving" | "transit"
-  ) {
-    await loadCalendarTravelPlan(getCalendarDeps(), days, preferredMode);
+  async function handleLoadCalendarTravelPlan(days: CalendarAgendaDay[]) {
+    await loadCalendarTravelPlan(getCalendarDeps(), days);
   }
 
   async function handleIgnoreSender(message: GmailMessage) {
@@ -703,21 +519,6 @@ export function useAuraApp(): UseAuraAppResult {
 
   function handleSetTravelMode(mode: "driving" | "transit") {
     setSelectedTravelMode(mode);
-    setCalendarTravelHints([]);
-    lastTravelPlanSignatureRef.current = "";
-
-    if (!authState || selectedTab !== "todo") {
-      return;
-    }
-
-    const mergedDays = mergeAgendaDays(calendarAgendaDays, deviceCalendarAgendaDays);
-    const hasAnyLocatedEvent = mergedDays.some(day => day.events.some(event => Boolean(event.location)));
-
-    if (!hasAnyLocatedEvent) {
-      return;
-    }
-
-    void handleLoadCalendarTravelPlan(mergedDays, mode);
   }
 
   function handleOpenNotificationSettings() {
@@ -728,6 +529,31 @@ export function useAuraApp(): UseAuraAppResult {
   function handleOpenPermissionsSettings() {
     setSelectedTab("settings");
     setSelectedSettingsSection("permissions");
+  }
+
+  async function handleLoadUsage() {
+    if (!authState) {
+      return;
+    }
+
+    try {
+      setErrorMessage(null);
+      const { result } = await withSessionAutoRefresh(accessToken => fetchUsage(accessToken));
+      setUsage(result);
+    } catch (error: unknown) {
+      setErrorMessage(
+        getErrorMessage(
+          error,
+          language === "ko" ? "사용량 정보를 불러올 수 없습니다." : "Unable to load usage right now."
+        )
+      );
+    }
+  }
+
+  function handleOpenUsageSettings() {
+    setSelectedTab("settings");
+    setSelectedSettingsSection("usage");
+    void handleLoadUsage();
   }
 
   function handleOpenLanguageSettings() {
@@ -819,8 +645,24 @@ export function useAuraApp(): UseAuraAppResult {
     await Linking.openSettings();
   }
 
+  async function handleSendChatMessage(message?: string) {
+    const text = (message ?? chatInputDraft).trim();
+
+    if (
+      authState &&
+      isUrgentMailQuestion(text) &&
+      authState.me.integrations.gmailConnected &&
+      dailyEmailMessages.length === 0
+    ) {
+      await handleLoadDailyEmailBriefForSession(authState.session);
+    }
+
+    await submitChatMessage(getChatDeps(), message);
+  }
+
   const visibleGmailMessages = filterIgnoredMessages(gmailMessages, ignoredSenderRules);
   const visibleDailyEmailMessages = filterIgnoredMessages(dailyEmailMessages, ignoredSenderRules);
+  const calendarTravelHints = calendarTravelHintsByMode[selectedTravelMode] ?? [];
   const isGmailRefreshRequired =
     Boolean(authState?.me.integrations.gmailConnected) &&
     !Boolean(authState?.me.integrations.gmailSyncReady) &&
@@ -834,11 +676,14 @@ export function useAuraApp(): UseAuraAppResult {
     calendarAgendaDays,
     calendarTravelHints,
     copy,
+    chatInputDraft,
+    chatMessages,
     dailyEmailDigest,
     dailyEmailMessages: visibleDailyEmailMessages,
     deviceCalendarAgendaDays,
     enabledNewsCategories,
     errorMessage,
+    settingsNoticeMessage,
     language,
     gmailDebugState,
     gmailDigest,
@@ -848,6 +693,7 @@ export function useAuraApp(): UseAuraAppResult {
     ignoredSenderDraft,
     morningBriefTimeDraft,
     isBootstrapping,
+    isChatLoading,
     isCalendarLoading,
     isCalendarTravelLoading,
     isDailyBriefPreparing,
@@ -862,6 +708,7 @@ export function useAuraApp(): UseAuraAppResult {
     isNotificationPermissionGranted,
     newsArticles,
     newsBriefing,
+    usage,
     selectedTab,
     selectedSettingsSection,
     selectedTravelMode,
@@ -877,6 +724,7 @@ export function useAuraApp(): UseAuraAppResult {
     handleOpenLanguageSettings,
     handleOpenNotificationSettings,
     handleOpenPermissionsSettings,
+    handleOpenUsageSettings,
     handleOpenNewsSettings,
     handleOpenSystemSettings,
     handleDisableDailyBriefNotifications,
@@ -887,6 +735,8 @@ export function useAuraApp(): UseAuraAppResult {
     handleLoadCalendarAgenda,
     handleLoadDeviceCalendarAgenda,
     handleLoadDailyNewsBrief,
+    handleChatInputDraftChange: setChatInputDraft,
+    handleSendChatMessage,
     handleLogout: handleReset,
     handleOpenMailFromDailyBrief: () => {
       setSelectedTab("mail");
