@@ -73,5 +73,8 @@ Design부터 어플 이름까지 죄다 AI한테 맡겨서 신박한 경험임(A
   </video>
 </div>
 
+
+[Youtube Link](https://youtube.com/shorts/FxfYeaELkao?feature=share)
+
 - Ai Chat 기능에서 만들다가 뭘 할지 당장 생각이 안나서 일단 냅두고 있음. 생각나면 만든다는 마인드 ;;
 - 그때 그때 생각나는 추가적인 것 있으면 수정할 예정.
