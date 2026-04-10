@@ -8,6 +8,17 @@ export function notFoundHandler(_req: Request, _res: Response, next: NextFunctio
 
 export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
   if (err instanceof AppError) {
+    const details = err.details as { retryAfterSeconds?: unknown } | undefined;
+    if (
+      err.statusCode === 429 &&
+      details &&
+      typeof details.retryAfterSeconds === "number" &&
+      Number.isFinite(details.retryAfterSeconds) &&
+      details.retryAfterSeconds > 0
+    ) {
+      res.setHeader("Retry-After", String(Math.max(1, Math.ceil(details.retryAfterSeconds))));
+    }
+
     return res.status(err.statusCode).json({
       error: {
         code: err.code,

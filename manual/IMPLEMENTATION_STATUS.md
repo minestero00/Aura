@@ -1,6 +1,6 @@
 # Implementation Status (Pre-Deploy)
 
-Date: 2026-04-09
+Date: 2026-04-10
 
 This file checks current implementation against:
 - [sequence.md](/Users/riaco/code/dumb/aura/manual/sequence.md)
@@ -34,11 +34,17 @@ This file checks current implementation against:
   - dedicated worker process for scheduler
   - API container startup migration
 - Deployment baseline:
-  - GitHub Actions backend CI workflow
+  - GitHub Actions backend CI workflow (build + migrate + usage smoke)
   - GitHub Actions manual image deploy workflow
+  - GitHub Actions manual release rollout workflow (k8s apply + migration job + rollout wait)
+  - GitHub Actions main-branch auto staging release workflow
+  - GitHub Actions manual production promote workflow
   - Kubernetes API/worker/service manifests under `deploy/k8s`
+  - Kubernetes migration job manifest under `deploy/k8s`
   - worker queue smoke test script
   - local stack end-to-end script (`npm run local:test:e2e`)
+  - usage quota smoke test script (`npm run smoke:usage --workspace back`)
+  - DB reset/seed scripts (`npm run db:reset|db:seed --workspace back`)
 - Background jobs:
   - DB-backed queue (`background_jobs`)
   - worker polling loop with retry backoff and dead-letter state
@@ -53,8 +59,7 @@ This file checks current implementation against:
 - Enforce non-empty `APP_ENCRYPTION_KEY` in all deploy environments (currently fallback to plain text if missing).
 - Cross-region/global quota synchronization is not implemented yet (current Redis+DB approach targets single backend region).
 - Dedicated queue broker (SQS/Rabbit/Kafka/BullMQ+Redis) is not implemented yet.
-- Seed/reset scripts are still missing.
-- Full CD automation is not committed yet (CI only; deploy stage/manual promotion pending).
+- Full CD automation is not committed yet (production deploy remains manual approval path).
 
 ## Production Sequence (Next Recommended Order)
 

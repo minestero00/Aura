@@ -12,17 +12,20 @@ export function UsageSection(props: SettingsSectionProps) {
         {
           label: copy.settings.usageOverview,
           used: usage.counters.briefingsGenerated,
-          limit: usage.limits.dailyOverview
+          limit: usage.limits.dailyOverview,
+          remaining: usage.remaining.dailyOverview
         },
         {
           label: copy.settings.usageChat,
           used: usage.counters.chatRequests,
-          limit: usage.limits.dailyChat
+          limit: usage.limits.dailyChat,
+          remaining: usage.remaining.dailyChat
         },
         {
           label: copy.settings.usageRefresh,
           used: usage.counters.refreshRequests,
-          limit: usage.limits.dailyManualRefresh
+          limit: usage.limits.dailyManualRefresh,
+          remaining: usage.remaining.dailyManualRefresh
         }
       ]
     : [];
@@ -42,9 +45,13 @@ export function UsageSection(props: SettingsSectionProps) {
               <Text style={styles.detailLine}>
                 {copy.settings.usageUpdatedAt}: {usage.periodStart.slice(0, 10)}
               </Text>
+              <Text style={styles.detailLine}>
+                {copy.settings.usageResetAt}: {usage.periodEnd.slice(0, 19).replace("T", " ")} UTC
+              </Text>
               {usageRows.map(row => {
                 const safeLimit = Math.max(1, row.limit);
                 const ratio = Math.min(1, row.used / safeLimit);
+                const isLimitReached = row.remaining <= 0;
 
                 return (
                   <View key={row.label} style={styles.usageRow}>
@@ -55,6 +62,9 @@ export function UsageSection(props: SettingsSectionProps) {
                     <View style={styles.usageTrack}>
                       <View style={[styles.usageFill, { width: `${Math.max(4, Math.round(ratio * 100))}%` }]} />
                     </View>
+                    <Text style={isLimitReached ? styles.toggleDisabledText : styles.messageMeta}>
+                      {copy.settings.usageRemaining(row.remaining)}
+                    </Text>
                   </View>
                 );
               })}

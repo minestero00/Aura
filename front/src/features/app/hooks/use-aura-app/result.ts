@@ -1,0 +1,190 @@
+import { filterIgnoredMessages } from "@features/gmail/filtering";
+import { getCategoryLabel, type AppCopy, type AppLanguage } from "@features/app/i18n";
+import type { UseAuraAppResult } from "@features/app/types";
+
+interface BuildResultParams {
+  authState: UseAuraAppResult["authState"];
+  areDailyBriefNotificationsEnabled: UseAuraAppResult["areDailyBriefNotificationsEnabled"];
+  calendarAgendaDays: UseAuraAppResult["calendarAgendaDays"];
+  calendarTravelHintsByMode: { transit: UseAuraAppResult["calendarTravelHints"]; driving: UseAuraAppResult["calendarTravelHints"] };
+  copy: AppCopy;
+  chatInputDraft: UseAuraAppResult["chatInputDraft"];
+  setChatInputDraft: (value: string) => void;
+  chatMessages: UseAuraAppResult["chatMessages"];
+  dailyEmailDigest: UseAuraAppResult["dailyEmailDigest"];
+  dailyEmailMessages: UseAuraAppResult["dailyEmailMessages"];
+  deviceCalendarAgendaDays: UseAuraAppResult["deviceCalendarAgendaDays"];
+  enabledNewsCategories: UseAuraAppResult["enabledNewsCategories"];
+  errorMessage: UseAuraAppResult["errorMessage"];
+  settingsNoticeMessage: UseAuraAppResult["settingsNoticeMessage"];
+  language: AppLanguage;
+  gmailDebugState: UseAuraAppResult["gmailDebugState"];
+  gmailDigest: UseAuraAppResult["gmailDigest"];
+  gmailMessages: UseAuraAppResult["gmailMessages"];
+  replyingMessageId: UseAuraAppResult["replyingMessageId"];
+  ignoredSenderRules: UseAuraAppResult["ignoredSenderRules"];
+  ignoredSenderDraft: UseAuraAppResult["ignoredSenderDraft"];
+  setIgnoredSenderDraft: (value: string) => void;
+  morningBriefTimeDraft: UseAuraAppResult["morningBriefTimeDraft"];
+  setMorningBriefTimeDraft: (value: string) => void;
+  isBootstrapping: UseAuraAppResult["isBootstrapping"];
+  isChatLoading: UseAuraAppResult["isChatLoading"];
+  isCalendarLoading: UseAuraAppResult["isCalendarLoading"];
+  isCalendarTravelLoading: UseAuraAppResult["isCalendarTravelLoading"];
+  isDailyBriefPreparing: UseAuraAppResult["isDailyBriefPreparing"];
+  isDailyBriefModalVisible: UseAuraAppResult["isDailyBriefModalVisible"];
+  setIsDailyBriefModalVisible: (value: boolean) => void;
+  isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
+  isDeviceCalendarPermissionGranted: UseAuraAppResult["isDeviceCalendarPermissionGranted"];
+  isGmailSubmitting: UseAuraAppResult["isGmailSubmitting"];
+  isInboxLoading: UseAuraAppResult["isInboxLoading"];
+  isNewsLoading: UseAuraAppResult["isNewsLoading"];
+  isSubmitting: UseAuraAppResult["isSubmitting"];
+  isNotificationPermissionGranted: UseAuraAppResult["isNotificationPermissionGranted"];
+  newsArticles: UseAuraAppResult["newsArticles"];
+  newsBriefing: UseAuraAppResult["newsBriefing"];
+  usage: UseAuraAppResult["usage"];
+  selectedTab: UseAuraAppResult["selectedTab"];
+  setSelectedTab: (tab: UseAuraAppResult["selectedTab"]) => void;
+  selectedSettingsSection: UseAuraAppResult["selectedSettingsSection"];
+  setSelectedSettingsSection: (section: UseAuraAppResult["selectedSettingsSection"]) => void;
+  selectedTravelMode: UseAuraAppResult["selectedTravelMode"];
+  isGmailRefreshRequired: boolean;
+  handlers: {
+    handleConnectDeviceCalendar: UseAuraAppResult["handleConnectDeviceCalendar"];
+    handleConnectGmail: UseAuraAppResult["handleConnectGmail"];
+    handleDisconnectGmail: UseAuraAppResult["handleDisconnectGmail"];
+    handleIgnoreSender: UseAuraAppResult["handleIgnoreSender"];
+    handleOpenSystemSettings: UseAuraAppResult["handleOpenSystemSettings"];
+    handleDisableDailyBriefNotifications: UseAuraAppResult["handleDisableDailyBriefNotifications"];
+    handleEnableDailyBriefNotifications: UseAuraAppResult["handleEnableDailyBriefNotifications"];
+    handleRemoveIgnoredSender: UseAuraAppResult["handleRemoveIgnoredSender"];
+    handleLoadDailyEmailBrief: UseAuraAppResult["handleLoadDailyEmailBrief"];
+    handleLoadCalendarAgenda: UseAuraAppResult["handleLoadCalendarAgenda"];
+    handleLoadDeviceCalendarAgenda: UseAuraAppResult["handleLoadDeviceCalendarAgenda"];
+    handleLoadDailyNewsBrief: UseAuraAppResult["handleLoadDailyNewsBrief"];
+    handleSendChatMessage: UseAuraAppResult["handleSendChatMessage"];
+    handleReset: UseAuraAppResult["handleReset"];
+    handleRefreshDailyBrief: UseAuraAppResult["handleRefreshDailyBrief"];
+    handleGoogleSignIn: UseAuraAppResult["handleGoogleSignIn"];
+    handleLoadEmailSummary: UseAuraAppResult["handleLoadEmailSummary"];
+    handleLoadRecentEmails: UseAuraAppResult["handleLoadRecentEmails"];
+    handleReplyToMessage: UseAuraAppResult["handleReplyToMessage"];
+    handleSaveIgnoredSenderDraft: UseAuraAppResult["handleSaveIgnoredSenderDraft"];
+    handleSaveMorningBriefTime: UseAuraAppResult["handleSaveMorningBriefTime"];
+    handleSetLanguage: UseAuraAppResult["handleSetLanguage"];
+    handleToggleNewsCategory: UseAuraAppResult["handleToggleNewsCategory"];
+    handleSetTravelMode: UseAuraAppResult["handleSetTravelMode"];
+  };
+  openHandlers: {
+    handleOpenGmailSettings: UseAuraAppResult["handleOpenGmailSettings"];
+    handleOpenIgnoredSenderSettings: UseAuraAppResult["handleOpenIgnoredSenderSettings"];
+    handleOpenLanguageSettings: UseAuraAppResult["handleOpenLanguageSettings"];
+    handleOpenNotificationSettings: UseAuraAppResult["handleOpenNotificationSettings"];
+    handleOpenPermissionsSettings: UseAuraAppResult["handleOpenPermissionsSettings"];
+    handleOpenUsageSettings: UseAuraAppResult["handleOpenUsageSettings"];
+    handleOpenNewsSettings: UseAuraAppResult["handleOpenNewsSettings"];
+  };
+}
+
+export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult {
+  const visibleGmailMessages = filterIgnoredMessages(params.gmailMessages, params.ignoredSenderRules);
+  const visibleDailyEmailMessages = filterIgnoredMessages(params.dailyEmailMessages, params.ignoredSenderRules);
+  const calendarTravelHints = params.calendarTravelHintsByMode[params.selectedTravelMode] ?? [];
+
+  return {
+    authState: params.authState,
+    areDailyBriefNotificationsEnabled: params.areDailyBriefNotificationsEnabled,
+    calendarAgendaDays: params.calendarAgendaDays,
+    calendarTravelHints,
+    copy: params.copy,
+    chatInputDraft: params.chatInputDraft,
+    chatMessages: params.chatMessages,
+    dailyEmailDigest: params.dailyEmailDigest,
+    dailyEmailMessages: visibleDailyEmailMessages,
+    deviceCalendarAgendaDays: params.deviceCalendarAgendaDays,
+    enabledNewsCategories: params.enabledNewsCategories,
+    errorMessage: params.errorMessage,
+    settingsNoticeMessage: params.settingsNoticeMessage,
+    language: params.language,
+    gmailDebugState: params.gmailDebugState,
+    gmailDigest: params.gmailDigest,
+    gmailMessages: visibleGmailMessages,
+    replyingMessageId: params.replyingMessageId,
+    ignoredSenderRules: params.ignoredSenderRules,
+    ignoredSenderDraft: params.ignoredSenderDraft,
+    morningBriefTimeDraft: params.morningBriefTimeDraft,
+    isBootstrapping: params.isBootstrapping,
+    isChatLoading: params.isChatLoading,
+    isCalendarLoading: params.isCalendarLoading,
+    isCalendarTravelLoading: params.isCalendarTravelLoading,
+    isDailyBriefPreparing: params.isDailyBriefPreparing,
+    isDailyBriefModalVisible: params.isDailyBriefModalVisible,
+    isDeviceCalendarLoading: params.isDeviceCalendarLoading,
+    isDeviceCalendarPermissionGranted: params.isDeviceCalendarPermissionGranted,
+    isGmailSubmitting: params.isGmailSubmitting,
+    isInboxLoading: params.isInboxLoading,
+    isNewsLoading: params.isNewsLoading,
+    isSubmitting: params.isSubmitting,
+    isGmailRefreshRequired: params.isGmailRefreshRequired,
+    isNotificationPermissionGranted: params.isNotificationPermissionGranted,
+    newsArticles: params.newsArticles,
+    newsBriefing: params.newsBriefing,
+    usage: params.usage,
+    selectedTab: params.selectedTab,
+    selectedSettingsSection: params.selectedSettingsSection,
+    selectedTravelMode: params.selectedTravelMode,
+    handleConnectDeviceCalendar: params.handlers.handleConnectDeviceCalendar,
+    handleConnectGmail: params.handlers.handleConnectGmail,
+    handleCloseDailyBriefModal: () => params.setIsDailyBriefModalVisible(false),
+    handleDisconnectGmail: params.handlers.handleDisconnectGmail,
+    handleIgnoredSenderDraftChange: params.setIgnoredSenderDraft,
+    handleMorningBriefTimeDraftChange: params.setMorningBriefTimeDraft,
+    handleIgnoreSender: params.handlers.handleIgnoreSender,
+    handleOpenGmailSettings: params.openHandlers.handleOpenGmailSettings,
+    handleOpenIgnoredSenderSettings: params.openHandlers.handleOpenIgnoredSenderSettings,
+    handleOpenLanguageSettings: params.openHandlers.handleOpenLanguageSettings,
+    handleOpenNotificationSettings: params.openHandlers.handleOpenNotificationSettings,
+    handleOpenPermissionsSettings: params.openHandlers.handleOpenPermissionsSettings,
+    handleOpenUsageSettings: params.openHandlers.handleOpenUsageSettings,
+    handleOpenNewsSettings: params.openHandlers.handleOpenNewsSettings,
+    handleOpenSystemSettings: params.handlers.handleOpenSystemSettings,
+    handleDisableDailyBriefNotifications: params.handlers.handleDisableDailyBriefNotifications,
+    handleEnableDailyBriefNotifications: params.handlers.handleEnableDailyBriefNotifications,
+    handleSetTravelMode: params.handlers.handleSetTravelMode,
+    handleRemoveIgnoredSender: params.handlers.handleRemoveIgnoredSender,
+    handleLoadDailyEmailBrief: params.handlers.handleLoadDailyEmailBrief,
+    handleLoadCalendarAgenda: params.handlers.handleLoadCalendarAgenda,
+    handleLoadDeviceCalendarAgenda: params.handlers.handleLoadDeviceCalendarAgenda,
+    handleLoadDailyNewsBrief: params.handlers.handleLoadDailyNewsBrief,
+    handleChatInputDraftChange: params.setChatInputDraft,
+    handleSendChatMessage: params.handlers.handleSendChatMessage,
+    handleLogout: params.handlers.handleReset,
+    handleOpenMailFromDailyBrief: () => {
+      params.setSelectedTab("mail");
+      params.setIsDailyBriefModalVisible(false);
+    },
+    handleOpenNewsFromDailyBrief: () => {
+      params.setSelectedTab("news");
+      params.setIsDailyBriefModalVisible(false);
+    },
+    handleRefreshDailyBrief: params.handlers.handleRefreshDailyBrief,
+    handleGoogleSignIn: params.handlers.handleGoogleSignIn,
+    handleLoadEmailSummary: params.handlers.handleLoadEmailSummary,
+    handleLoadRecentEmails: params.handlers.handleLoadRecentEmails,
+    handleReplyToMessage: params.handlers.handleReplyToMessage,
+    handleReset: params.handlers.handleReset,
+    handleSaveIgnoredSenderDraft: params.handlers.handleSaveIgnoredSenderDraft,
+    handleSaveMorningBriefTime: params.handlers.handleSaveMorningBriefTime,
+    handleSetLanguage: params.handlers.handleSetLanguage,
+    handleToggleNewsCategory: params.handlers.handleToggleNewsCategory,
+    labelNewsCategory: category => getCategoryLabel(params.language, category),
+    handleSelectTab: tab => {
+      params.setSelectedTab(tab);
+      if (tab !== "settings") {
+        params.setSelectedSettingsSection("menu");
+      }
+    },
+    handleSelectSettingsSection: params.setSelectedSettingsSection
+  };
+}

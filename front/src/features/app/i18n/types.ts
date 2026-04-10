@@ -162,10 +162,12 @@ export interface AppCopy {
     usageTitle: string;
     usageSubtitle: string;
     usageUpdatedAt: string;
+    usageResetAt: string;
     usageOverview: string;
     usageChat: string;
     usageRefresh: string;
     usageOf: (used: number, limit: number) => string;
+    usageRemaining: (remaining: number) => string;
     logoutTitle: string;
     logoutSubtitle: string;
     logoutAction: string;

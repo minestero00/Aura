@@ -12,8 +12,12 @@
     "typecheck": "tsc --noEmit",
     "migrate": "tsx scripts/migrate.ts",
     "migrate:prod": "node scripts/migrate.mjs",
+    "db:reset": "node scripts/reset-db.mjs",
+    "db:seed": "node scripts/seed-db.mjs",
+    "db:rebuild": "npm run db:reset && npm run db:seed",
     "preflight:prod": "node scripts/preflight.mjs",
-    "smoke:worker": "node scripts/smoke-worker-queue.mjs"
+    "smoke:worker": "node scripts/smoke-worker-queue.mjs",
+    "smoke:usage": "tsx scripts/smoke-usage.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

@@ -1,6 +1,16 @@
 import { ApiError } from "@lib/api/client";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
 
+function readRetryAfterSeconds(error: ApiError) {
+  if (typeof error.details === "object" && error.details !== null && "retryAfterSeconds" in error.details) {
+    const value = (error.details as { retryAfterSeconds?: unknown }).retryAfterSeconds;
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
+
 export function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof ApiError) {
     return error.message;
@@ -19,7 +29,13 @@ export function getLocalizedErrorMessage(
   language: "en" | "ko"
 ) {
   if (error instanceof ApiError) {
-    if (error.code === "DAILY_QUOTA_EXCEEDED") {
+    if (
+      error.code === "DAILY_CHAT_QUOTA_EXCEEDED" ||
+      error.code === "DAILY_NEWS_QUOTA_EXCEEDED" ||
+      error.code === "DAILY_EMAIL_QUOTA_EXCEEDED" ||
+      error.code === "DAILY_OVERVIEW_QUOTA_EXCEEDED" ||
+      error.code === "DAILY_QUOTA_EXCEEDED"
+    ) {
       return language === "ko"
         ? "일일 사용량 한도를 초과했습니다. 설정의 사용량 탭에서 현황을 확인해 주세요."
         : "Daily usage limit reached. Check the usage section in settings.";
@@ -32,6 +48,12 @@ export function getLocalizedErrorMessage(
     }
 
     if (error.code === "RATE_LIMITED") {
+      const retryAfter = readRetryAfterSeconds(error);
+      if (retryAfter && retryAfter > 0) {
+        return language === "ko"
+          ? `요청이 너무 빠릅니다. 약 ${retryAfter}초 후 다시 시도해 주세요.`
+          : `Too many requests. Try again in about ${retryAfter} seconds.`;
+      }
       return language === "ko"
         ? "요청이 너무 빠릅니다. 잠시 후 다시 시도해 주세요."
         : "Too many requests. Please try again shortly.";

@@ -17,23 +17,18 @@ export const EN_COPY: AppCopy = {
   signIn: {
     eyebrow: 'Aura',
     title: 'Daily AI briefings for your news and inbox',
-    subtitle:
-      'Sign in with your Google account to activate the real Aura session flow.',
+    subtitle: 'Sign in with your Google account to activate the real Aura session flow.',
     sectionTitle: 'Google Sign-In',
-    helper:
-      'This uses your real Google OAuth client IDs and backend token verification.',
+    helper: 'This uses your real Google OAuth client IDs and backend token verification.',
     signingIn: 'Signing in...',
   },
   mail: {
     eyebrow: 'Mail',
     title: "Today's email brief",
-    subtitle:
-      'Focus on the inbox items that matter and hide ignored senders automatically.',
+    subtitle: 'Focus on the inbox items that matter and hide ignored senders automatically.',
     dailyBriefTitle: 'Daily Brief',
-    dailyBriefSubtitle:
-      'A quick snapshot of your inbox and news before you dive into details.',
-    dailyBriefEmpty:
-      'Your daily brief will appear here after mail and news are prepared.',
+    dailyBriefSubtitle: 'A quick snapshot of your inbox and news before you dive into details.',
+    dailyBriefEmpty: 'Your daily brief will appear here after mail and news are prepared.',
     dailyBriefPreparing: 'Preparing your daily brief...',
     dailyBriefRefresh: 'Refresh brief',
     dailyBriefOpenMail: 'Open Mail',
@@ -58,8 +53,7 @@ export const EN_COPY: AppCopy = {
   news: {
     eyebrow: 'News',
     title: 'Daily news briefing',
-    subtitle:
-      'Get a compact briefing built from the categories you enabled in settings.',
+    subtitle: 'Get a compact briefing built from the categories you enabled in settings.',
     todayBriefTitle: "Today's Brief",
     activeCategories: 'Active categories',
     loadBrief: 'Load Daily News Brief',
@@ -75,12 +69,10 @@ export const EN_COPY: AppCopy = {
     deviceTitle: 'Device calendar',
     deviceSubtitle: 'Read calendar events already stored on this phone.',
     deviceConnectTitle: 'Device calendar access needed',
-    deviceConnectBody:
-      'Allow calendar access to read schedules from your phone calendar apps.',
+    deviceConnectBody: 'Allow calendar access to read schedules from your phone calendar apps.',
     deviceConnectAction: 'Allow device calendar',
     reconnectTitle: 'Calendar access needed',
-    reconnectBody:
-      'Reconnect Google access once to include your calendar schedule here.',
+    reconnectBody: 'Reconnect Google access once to include your calendar schedule here.',
     reconnectAction: 'Reconnect Google',
     loadAgenda: 'Load schedule',
     loading: 'Loading your schedule...',
@@ -112,11 +104,9 @@ export const EN_COPY: AppCopy = {
   settings: {
     eyebrow: 'Settings',
     title: 'Control Aura',
-    subtitle:
-      'Open Gmail access settings, manage ignored senders, choose news topics, or change the app language from here.',
+    subtitle: 'Open Gmail access settings, manage ignored senders, choose news topics, or change the app language from here.',
     gmailTitle: 'Gmail access',
-    gmailSubtitle:
-      'Reconnect Gmail here if access expired or you want to disconnect this account.',
+    gmailSubtitle: 'Reconnect Gmail here if access expired or you want to disconnect this account.',
     currentStatus: 'Current status',
     connected: 'Connected',
     address: 'Address',
@@ -125,15 +115,13 @@ export const EN_COPY: AppCopy = {
     yes: 'Yes',
     no: 'No',
     refreshRequired: 'Refresh required',
-    refreshHelp:
-      'Gmail access has expired. Reconnect Gmail to keep inbox features working.',
+    refreshHelp: 'Gmail access has expired. Reconnect Gmail to keep inbox features working.',
     refreshDone: 'Gmail access refreshed.',
     refreshGmail: 'Refresh Gmail Access',
     connectGmail: 'Connect Gmail',
     disconnectGmail: 'Disconnect Gmail',
     ignoredTitle: 'Ignored senders',
-    ignoredSubtitle:
-      'Add or remove email addresses that Aura should hide from mail lists and summaries.',
+    ignoredSubtitle: 'Add or remove email addresses that Aura should hide from mail lists and summaries.',
     ignoredManage: 'Manage ignored senders',
     ignoredHelper:
       'Enter an email address. Messages from matching senders will be filtered out locally.',
@@ -155,8 +143,7 @@ export const EN_COPY: AppCopy = {
     languageEnglish: 'English',
     languageKorean: 'Korean',
     notificationsTitle: 'Daily brief notifications',
-    notificationsSubtitle:
-      'Send a local Aura reminder every morning and prepare the latest mail and news brief when opened.',
+    notificationsSubtitle: 'Send a local Aura reminder every morning and prepare the latest mail and news brief when opened.',
     notificationsStatus: 'Status',
     notificationsPermission: 'Permission',
     notificationsTime: 'Delivery time',
@@ -168,8 +155,7 @@ export const EN_COPY: AppCopy = {
     notificationsDisable: 'Disable daily brief',
     notificationsRefresh: 'Refresh schedule',
     permissionsTitle: 'Permissions',
-    permissionsSubtitle:
-      'Manage the access Aura needs to show your briefings and schedule.',
+    permissionsSubtitle: 'Manage the access Aura needs to show your briefings and schedule.',
     permissionsDeviceCalendar: 'Device calendar',
     permissionsNotifications: 'Notifications',
     permissionsGoogleCalendar: 'Google Calendar',
@@ -185,10 +171,12 @@ export const EN_COPY: AppCopy = {
     usageTitle: 'Daily usage',
     usageSubtitle: 'Current quota usage and limits.',
     usageUpdatedAt: 'Today',
+    usageResetAt: 'Reset at',
     usageOverview: 'Daily brief requests',
     usageChat: 'Ask requests',
     usageRefresh: 'Manual refreshes',
     usageOf: (used, limit) => `${used} / ${limit}`,
+    usageRemaining: remaining => `${remaining} remaining`,
     logoutTitle: 'Sign out',
     logoutSubtitle: 'Remove this Aura session from the device.',
     logoutAction: 'Sign out',
@@ -205,10 +193,6 @@ export const EN_COPY: AppCopy = {
     send: 'Ask Aura',
     assistantLabel: 'Aura',
     userLabel: 'You',
-    quickPrompts: [
-      'What is the most urgent email today?',
-      'Summarize today news in 3 lines.',
-      'What can be postponed until tomorrow?',
-    ],
+    quickPrompts: ['What is the most urgent email today?', 'Summarize today news in 3 lines.', 'What can be postponed until tomorrow?'],
   },
 };

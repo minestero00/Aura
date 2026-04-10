@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __MIGRATION_JOB_NAME__
+  labels:
+    app: aura-migrate
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: aura-migrate
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: YOUR_REGISTRY/aura-api:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "npm run preflight:prod && npm run migrate:prod"]
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: database_url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: redis_url
+            - name: GOOGLE_WEB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_web_client_id
+            - name: GOOGLE_IOS_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_ios_client_id
+            - name: GOOGLE_ANDROID_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_android_client_id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_client_secret
+            - name: GOOGLE_MAPS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: google_maps_api_key
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: anthropic_api_key
+            - name: ANTHROPIC_MODEL
+              value: claude-sonnet-4-20250514
+            - name: APP_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aura-secrets
+                  key: app_encryption_key

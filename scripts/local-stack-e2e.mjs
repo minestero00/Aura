@@ -114,6 +114,7 @@ async function main() {
     DATABASE_URL: process.env.DATABASE_URL || "postgresql://aura:aura@127.0.0.1:5432/aura"
   };
   await run("npm", ["run", "smoke:worker", "--workspace", "back"], { env: smokeEnv });
+  await run("npm", ["run", "smoke:usage", "--workspace", "back"], { env: smokeEnv });
   console.log("local stack e2e passed");
 }
 

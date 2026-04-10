@@ -1,0 +1,106 @@
+name: backend-release
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: "Deploy image tag (already pushed to GHCR)"
+        required: false
+        type: string
+        default: "latest"
+      environment:
+        description: "Target environment label"
+        required: false
+        type: string
+        default: "staging"
+      namespace:
+        description: "Kubernetes namespace"
+        required: false
+        type: string
+        default: "aura"
+      run_migration:
+        description: "Run DB migration job before rollout"
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      KUBECONFIG_B64:
+        required: true
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Deploy image tag (already pushed to GHCR)"
+        required: true
+        default: "latest"
+      environment:
+        description: "Target environment label"
+        required: true
+        default: "staging"
+      namespace:
+        description: "Kubernetes namespace"
+        required: true
+        default: "aura"
+      run_migration:
+        description: "Run DB migration job before rollout"
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.31.0
+
+      - name: Configure kubeconfig
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        run: |
+          test -n "$KUBECONFIG_B64"
+          mkdir -p "$HOME/.kube"
+          echo "$KUBECONFIG_B64" | base64 --decode > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Prepare manifests
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/aura-back:${{ inputs.image_tag }}
+        run: |
+          mkdir -p /tmp/aura-k8s
+          cp deploy/k8s/*.yaml /tmp/aura-k8s/
+          sed -i.bak "s|YOUR_REGISTRY/aura-api:latest|$IMAGE|g" /tmp/aura-k8s/*.yaml
+
+      - name: Apply service
+        run: kubectl -n "${{ inputs.namespace }}" apply -f /tmp/aura-k8s/api-service.yaml
+
+      - name: Run migration job
+        if: ${{ inputs.run_migration }}
+        run: |
+          JOB_NAME="aura-migrate-${{ github.run_id }}-${{ github.run_attempt }}"
+          sed "s/__MIGRATION_JOB_NAME__/${JOB_NAME}/g" /tmp/aura-k8s/migrate-job.yaml | kubectl -n "${{ inputs.namespace }}" apply -f -
+          kubectl -n "${{ inputs.namespace }}" wait --for=condition=complete "job/${JOB_NAME}" --timeout=300s
+          kubectl -n "${{ inputs.namespace }}" logs "job/${JOB_NAME}"
+
+      - name: Apply deployments
+        run: |
+          kubectl -n "${{ inputs.namespace }}" apply -f /tmp/aura-k8s/api-deployment.yaml
+          kubectl -n "${{ inputs.namespace }}" apply -f /tmp/aura-k8s/worker-deployment.yaml
+
+      - name: Rollout status
+        run: |
+          kubectl -n "${{ inputs.namespace }}" rollout status deployment/aura-api --timeout=300s
+          kubectl -n "${{ inputs.namespace }}" rollout status deployment/aura-worker --timeout=300s
+
+      - name: Readiness smoke
+        run: |
+          kubectl -n "${{ inputs.namespace }}" get pods -l app=aura-api -o wide
+          kubectl -n "${{ inputs.namespace }}" get pods -l app=aura-worker -o wide

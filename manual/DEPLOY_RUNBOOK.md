@@ -72,9 +72,13 @@ Kubernetes baseline manifests:
 - `deploy/k8s/api-deployment.yaml`
 - `deploy/k8s/api-service.yaml`
 - `deploy/k8s/worker-deployment.yaml`
+- `deploy/k8s/migrate-job.yaml`
 - GitHub Actions:
   - CI: `.github/workflows/backend-ci.yml`
   - image push (manual): `.github/workflows/backend-deploy.yml`
+  - release rollout (manual): `.github/workflows/backend-release.yml`
+  - staging auto release on `main`: `.github/workflows/backend-staging-auto.yml`
+  - production manual promote: `.github/workflows/backend-prod-promote.yml`
 
 ## 5. Health Checks
 
@@ -96,4 +100,4 @@ Kubernetes baseline manifests:
 
 - Queue backend still DB polling, not dedicated queue broker.
 - No distributed lock/coordinator for multi-worker high scale.
-- CI runs build/typecheck + Docker build (`.github/workflows/backend-ci.yml`) but no deploy stage yet.
+- Promotion to production is still manual trigger based.

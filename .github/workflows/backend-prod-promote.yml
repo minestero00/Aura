@@ -1,0 +1,27 @@
+name: backend-prod-promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to promote to production"
+        required: true
+      namespace:
+        description: "Production namespace"
+        required: true
+        default: "aura"
+      run_migration:
+        description: "Run DB migration job before rollout"
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  deploy_production:
+    uses: ./.github/workflows/backend-release.yml
+    with:
+      image_tag: ${{ inputs.image_tag }}
+      environment: production
+      namespace: ${{ inputs.namespace }}
+      run_migration: ${{ inputs.run_migration }}
+    secrets: inherit

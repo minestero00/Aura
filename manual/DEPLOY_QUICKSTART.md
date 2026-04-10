@@ -27,11 +27,21 @@
 
 1. 시크릿/환경변수 반영
    - DB/Redis/Google/Anthropic 관련 값 주입
+   - GitHub Actions Environment Secret:
+     - `KUBECONFIG_B64` (base64 encoded kubeconfig)
+   - 권장 환경:
+     - `staging` environment에 `KUBECONFIG_B64` 등록
+     - `production` environment에 `KUBECONFIG_B64` 등록 + required reviewers 설정
 2. 매니페스트 적용
    - `deploy/k8s/api-deployment.yaml`
    - `deploy/k8s/api-service.yaml`
    - `deploy/k8s/worker-deployment.yaml`
-3. 이미지 태그를 새 버전으로 업데이트 후 롤아웃
+   - `deploy/k8s/migrate-job.yaml`
+3. 이미지 릴리스
+   - main 자동 스테이징: `.github/workflows/backend-staging-auto.yml`
+   - 수동 이미지 푸시: `.github/workflows/backend-deploy.yml`
+   - 수동 배포/마이그레이션/롤아웃: `.github/workflows/backend-release.yml`
+   - 수동 프로덕션 승격: `.github/workflows/backend-prod-promote.yml`
 
 ## 4) 배포 후 검증
 
@@ -49,4 +59,3 @@
 
 - 이전 정상 이미지 태그로 `api`/`worker`를 동시에 되돌림
 - `health/ready` 정상 확인 후 트래픽 유지
-
