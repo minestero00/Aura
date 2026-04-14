@@ -49,6 +49,28 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
 
   useEffect(() => {
     if (
+      !deps.authState ||
+      deps.selectedTab !== "todo" ||
+      deps.isWeatherLoading ||
+      deps.hasLoadedTodayWeather
+    ) {
+      return;
+    }
+
+    void deps.handleLoadTodayWeatherAdvice();
+  }, [
+    deps.authState?.session.accessToken,
+    deps.hasLoadedTodayWeather,
+    deps.isWeatherLoading,
+    deps.selectedTab
+  ]);
+
+  useEffect(() => {
+    deps.setHasLoadedTodayWeather(false);
+  }, [deps.language]);
+
+  useEffect(() => {
+    if (
       deps.selectedTab !== "todo" ||
       !deps.isDeviceCalendarPermissionGranted ||
       deps.isDeviceCalendarLoading ||

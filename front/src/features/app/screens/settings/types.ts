@@ -33,6 +33,7 @@ export interface SettingsScreenProps {
   onOpenNotificationSettings: () => void;
   onOpenPermissionsSettings: () => void;
   onOpenUsageSettings: () => void;
+  onOpenDataPrivacySettings: () => void;
   onOpenNewsSettings: () => void;
   onOpenSystemSettings: () => Promise<void>;
   onIgnoredSenderDraftChange: (value: string) => void;

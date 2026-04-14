@@ -70,6 +70,11 @@ export const KO_COPY: AppCopy = {
     deviceConnectTitle: '기기 캘린더 권한 필요',
     deviceConnectBody: '휴대폰 캘린더 앱의 일정을 읽으려면 캘린더 권한을 허용하세요.',
     deviceConnectAction: '기기 캘린더 허용',
+    weatherTitle: '오늘의 날씨 조언',
+    weatherSubtitle: '현재 위치 날씨를 바탕으로 우산과 옷차림을 빠르게 안내합니다.',
+    weatherRefresh: '날씨 다시 불러오기',
+    weatherLoading: '오늘 날씨를 불러오는 중...',
+    weatherUnavailable: '날씨 조언을 불러오지 못했습니다. 위치 권한을 확인한 뒤 다시 시도해주세요.',
     reconnectTitle: '캘린더 권한 필요',
     reconnectBody: '한 번만 Google 접근을 다시 연결하면 여기서 일정을 볼 수 있습니다.',
     reconnectAction: 'Google 다시 연결',
@@ -170,6 +175,28 @@ export const KO_COPY: AppCopy = {
     menuNotifications: '데일리 브리핑 알림',
     menuPermissions: '권한',
     menuUsage: '일일 사용량',
+    menuDataPrivacy: '데이터 및 개인정보',
+    dataPrivacyMenuHint: '무엇을 읽고 저장하고 전송하는지',
+    dataPrivacyTitle: '데이터 및 개인정보',
+    dataPrivacySubtitle: 'Aura가 어떤 데이터를 왜 사용하는지 한눈에 확인하세요.',
+    dataPrivacyGoogleTitle: 'Google 로그인',
+    dataPrivacyGoogleBody:
+      'Aura는 로그인과 세션 보안을 위해 Google 계정 식별 정보만 사용하며, 비밀번호는 저장하지 않습니다.',
+    dataPrivacyGmailTitle: 'Gmail 읽기 전용 접근',
+    dataPrivacyGmailBody:
+      '연결 시 최근 메일을 읽어 요약과 긴급 메일 신호를 만듭니다. Gmail에서 초안 열기를 누르기 전에는 메일 발송을 수행하지 않습니다.',
+    dataPrivacyCalendarTitle: '캘린더 데이터',
+    dataPrivacyCalendarBody:
+      '오늘/내일 일정을 읽어 일정 화면과 이동 시간 힌트를 생성합니다.',
+    dataPrivacyLocationTitle: '위치 데이터',
+    dataPrivacyLocationBody:
+      '현재 위치는 일정 장소와의 이동 시간 계산에만 사용됩니다.',
+    dataPrivacyAiTitle: 'AI 처리',
+    dataPrivacyAiBody:
+      '브리핑/질문 처리는 Aura 백엔드를 통해 Anthropic 서버에서 수행되며, API 키는 앱에 저장되지 않습니다.',
+    dataPrivacyStorageTitle: '저장되는 정보',
+    dataPrivacyStorageBody:
+      '서비스 동작을 위해 세션, 사용자 설정, 연동 계정 메타데이터, 사용량 카운터, 브리핑 스냅샷이 백엔드에 저장됩니다.',
     usageTitle: '일일 사용량',
     usageSubtitle: '현재 사용량과 한도를 표시합니다.',
     usageUpdatedAt: '현재',

@@ -8,6 +8,7 @@ import { mergeAgendaDays } from "@features/calendar/merge";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import { AgendaDayCard } from "@features/app/screens/todo/agenda-day-card";
 import { TravelModeSelector } from "@features/app/screens/todo/travel-mode-selector";
+import type { TodayWeatherAdvice } from "@features/weather/types";
 
 interface TodoScreenProps {
   calendarAgendaDays: CalendarAgendaDay[];
@@ -17,12 +18,15 @@ interface TodoScreenProps {
   deviceCalendarAgendaDays: CalendarAgendaDay[];
   isDeviceCalendarLoading: boolean;
   isDeviceCalendarPermissionGranted: boolean;
+  isWeatherLoading: boolean;
   isCalendarLoading: boolean;
   isCalendarTravelLoading: boolean;
   selectedTravelMode: "driving" | "transit";
+  todayWeatherAdvice: TodayWeatherAdvice | null;
   onConnectDeviceCalendar: () => Promise<void>;
   onConnectCalendar: () => Promise<void>;
   onSetTravelMode: (mode: "driving" | "transit") => void;
+  onLoadTodayWeatherAdvice: () => Promise<void>;
   onLoadDeviceCalendarAgenda: () => Promise<void>;
   onLoadCalendarAgenda: () => Promise<void>;
 }
@@ -35,12 +39,15 @@ export function TodoScreen({
   deviceCalendarAgendaDays,
   isDeviceCalendarLoading,
   isDeviceCalendarPermissionGranted,
+  isWeatherLoading,
   isCalendarLoading,
   isCalendarTravelLoading,
   selectedTravelMode,
+  todayWeatherAdvice,
   onConnectDeviceCalendar,
   onConnectCalendar,
   onSetTravelMode,
+  onLoadTodayWeatherAdvice,
   onLoadDeviceCalendarAgenda,
   onLoadCalendarAgenda
 }: TodoScreenProps) {
@@ -87,6 +94,39 @@ export function TodoScreen({
             </View>
           </View>
         ) : null}
+
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>{copy.todo.weatherTitle}</Text>
+          <Text style={styles.sectionSubtitle}>{copy.todo.weatherSubtitle}</Text>
+
+          <View style={styles.buttonRow}>
+            <Pressable disabled={isWeatherLoading} onPress={() => void onLoadTodayWeatherAdvice()} style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>{copy.todo.weatherRefresh}</Text>
+            </Pressable>
+          </View>
+
+          {isWeatherLoading ? (
+            <View style={styles.inlineLoading}>
+              <ActivityIndicator color={theme.colors.textPrimary} />
+              <Text style={styles.inlineLoadingText}>{copy.todo.weatherLoading}</Text>
+            </View>
+          ) : null}
+
+          {!isWeatherLoading && todayWeatherAdvice ? (
+            <View style={styles.compactDigestCard}>
+              <Text style={styles.compactDigestHeadline}>
+                {todayWeatherAdvice.locationName} · {Math.round(todayWeatherAdvice.temperature.currentC)}°C
+              </Text>
+              <Text style={styles.detailLine}>{todayWeatherAdvice.advice.summary}</Text>
+              <Text style={styles.detailLine}>{todayWeatherAdvice.advice.umbrellaAdvice}</Text>
+              <Text style={styles.detailLine}>{todayWeatherAdvice.advice.outfitAdvice}</Text>
+            </View>
+          ) : null}
+
+          {!isWeatherLoading && !todayWeatherAdvice ? (
+            <Text style={styles.helperText}>{copy.todo.weatherUnavailable}</Text>
+          ) : null}
+        </View>
 
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{copy.todo.title}</Text>

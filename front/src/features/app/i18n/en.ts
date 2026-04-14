@@ -71,6 +71,11 @@ export const EN_COPY: AppCopy = {
     deviceConnectTitle: 'Device calendar access needed',
     deviceConnectBody: 'Allow calendar access to read schedules from your phone calendar apps.',
     deviceConnectAction: 'Allow device calendar',
+    weatherTitle: "Today's weather advice",
+    weatherSubtitle: 'Use current location weather to decide umbrella and clothing quickly.',
+    weatherRefresh: 'Refresh weather',
+    weatherLoading: "Loading today's weather...",
+    weatherUnavailable: 'Weather advice is unavailable. Allow location and try again.',
     reconnectTitle: 'Calendar access needed',
     reconnectBody: 'Reconnect Google access once to include your calendar schedule here.',
     reconnectAction: 'Reconnect Google',
@@ -168,6 +173,28 @@ export const EN_COPY: AppCopy = {
     menuNotifications: 'Daily brief notifications',
     menuPermissions: 'Permissions',
     menuUsage: 'Daily usage',
+    menuDataPrivacy: 'Data & privacy',
+    dataPrivacyMenuHint: 'What Aura reads, stores, and sends',
+    dataPrivacyTitle: 'Data & privacy',
+    dataPrivacySubtitle: 'Clear summary of which data Aura uses and why.',
+    dataPrivacyGoogleTitle: 'Google sign-in',
+    dataPrivacyGoogleBody:
+      'Aura uses Google account identity for login and session security. Passwords are not stored in Aura.',
+    dataPrivacyGmailTitle: 'Gmail read-only access',
+    dataPrivacyGmailBody:
+      'When connected, Aura reads recent messages to build summaries and urgent mail signals. Aura does not send mail unless you open draft intent in Gmail.',
+    dataPrivacyCalendarTitle: 'Calendar data',
+    dataPrivacyCalendarBody:
+      'Aura reads today and tomorrow events from connected calendars to build your schedule view and timing hints.',
+    dataPrivacyLocationTitle: 'Location data',
+    dataPrivacyLocationBody:
+      'Location is used only for travel-time estimation between your current position and event locations.',
+    dataPrivacyAiTitle: 'AI processing',
+    dataPrivacyAiBody:
+      'Briefing and chat prompts are processed server-side with Anthropic through Aura backend. API keys never live in the app.',
+    dataPrivacyStorageTitle: 'Stored data',
+    dataPrivacyStorageBody:
+      'Session, preferences, connected account metadata, usage counters, and briefing snapshots are stored in Aura backend for product operation.',
     usageTitle: 'Daily usage',
     usageSubtitle: 'Current quota usage and limits.',
     usageUpdatedAt: 'Today',

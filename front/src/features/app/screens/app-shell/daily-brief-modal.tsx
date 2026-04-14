@@ -10,74 +10,78 @@ interface DailyBriefModalProps {
 
 export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
   const styles = createAppStyles(theme);
+  const hasEmail = Boolean(!app.isDailyBriefPreparing && app.dailyEmailDigest);
+  const hasNews = Boolean(!app.isDailyBriefPreparing && app.newsBriefing);
+  const hasNoContent = !app.isDailyBriefPreparing && !hasEmail && !hasNews;
 
   return (
     <Modal animationType="fade" transparent visible={app.isDailyBriefModalVisible}>
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modalCard}>
-          <ScrollView contentContainerStyle={styles.modalScrollContent}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={styles.sectionTitle}>{app.copy.mail.dailyBriefTitle}</Text>
-              <Pressable onPress={app.handleCloseDailyBriefModal} style={styles.modalCloseButton}>
-                <Text style={styles.modalCloseText}>×</Text>
-              </Pressable>
+      <View style={styles.dailyBriefModalBackdrop}>
+        <View style={styles.dailyBriefModalCard}>
+          <View style={styles.dailyBriefModalHeader}>
+            <View style={styles.dailyBriefHeaderMain}>
+              <Text style={styles.dailyBriefEyebrow}>AURA BRIEF</Text>
+              <Text style={styles.dailyBriefTitle}>{app.copy.mail.dailyBriefTitle}</Text>
             </View>
-            <Text style={styles.helperText}>{app.copy.mail.dailyBriefSubtitle}</Text>
+
+            <Pressable onPress={app.handleCloseDailyBriefModal} style={styles.dailyBriefCloseButton}>
+              <Text style={styles.dailyBriefCloseText}>×</Text>
+            </Pressable>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.dailyBriefBodyContent} style={styles.dailyBriefBodyScroll}>
+            <Text style={styles.dailyBriefSubtitle}>{app.copy.mail.dailyBriefSubtitle}</Text>
+            <View style={styles.dailyBriefMetaRow}>
+              <View style={styles.dailyBriefMetaChip}>
+                <Text style={styles.dailyBriefMetaChipText}>{hasEmail ? app.copy.mail.dailyBriefEmailLabel : "—"}</Text>
+              </View>
+              <View style={styles.dailyBriefMetaChip}>
+                <Text style={styles.dailyBriefMetaChipText}>{hasNews ? app.copy.mail.dailyBriefNewsLabel : "—"}</Text>
+              </View>
+            </View>
 
             {app.isDailyBriefPreparing ? (
-              <View style={styles.modalLoadingWrap}>
+              <View style={styles.dailyBriefLoadingWrap}>
                 <ActivityIndicator color={theme.colors.textPrimary} />
                 <Text style={styles.inlineLoadingText}>{app.copy.mail.dailyBriefPreparing}</Text>
               </View>
             ) : null}
 
-            {!app.isDailyBriefPreparing && app.dailyEmailDigest ? (
-              <View style={styles.compactDigestCard}>
-                <Text style={styles.digestLabel}>{app.copy.mail.dailyBriefEmailLabel}</Text>
-                <Text style={styles.compactDigestHeadline}>{app.dailyEmailDigest.headline}</Text>
+            {hasEmail && app.dailyEmailDigest ? (
+              <View style={styles.dailyBriefDigestCard}>
+                <View style={styles.dailyBriefDigestHeader}>
+                  <Text style={styles.dailyBriefDigestIcon}>✉︎</Text>
+                  <Text style={styles.dailyBriefDigestLabel}>{app.copy.mail.dailyBriefEmailLabel}</Text>
+                </View>
+                <Text style={styles.dailyBriefDigestHeadline}>{app.dailyEmailDigest.headline}</Text>
                 {app.dailyEmailDigest.bullets.map((bullet, index) => (
-                  <Text key={`modal-email-${index}`} style={styles.digestBullet}>
-                    • {bullet}
-                  </Text>
+                  <View key={`modal-email-${index}`} style={styles.dailyBriefBulletRow}>
+                    <Text style={styles.dailyBriefBulletDot}>•</Text>
+                    <Text style={styles.dailyBriefBulletText}>{bullet}</Text>
+                  </View>
                 ))}
               </View>
             ) : null}
 
-            {!app.isDailyBriefPreparing && app.newsBriefing ? (
-              <View style={styles.compactDigestCard}>
-                <Text style={styles.digestLabel}>{app.copy.mail.dailyBriefNewsLabel}</Text>
-                <Text style={styles.compactDigestHeadline}>{app.newsBriefing.headline}</Text>
+            {hasNews && app.newsBriefing ? (
+              <View style={styles.dailyBriefDigestCard}>
+                <View style={styles.dailyBriefDigestHeader}>
+                  <Text style={styles.dailyBriefDigestIcon}>☰</Text>
+                  <Text style={styles.dailyBriefDigestLabel}>{app.copy.mail.dailyBriefNewsLabel}</Text>
+                </View>
+                <Text style={styles.dailyBriefDigestHeadline}>{app.newsBriefing.headline}</Text>
                 {app.newsBriefing.bullets.map((bullet, index) => (
-                  <Text key={`modal-news-${index}`} style={styles.digestBullet}>
-                    • {bullet}
-                  </Text>
+                  <View key={`modal-news-${index}`} style={styles.dailyBriefBulletRow}>
+                    <Text style={styles.dailyBriefBulletDot}>•</Text>
+                    <Text style={styles.dailyBriefBulletText}>{bullet}</Text>
+                  </View>
                 ))}
               </View>
             ) : null}
 
-            {!app.isDailyBriefPreparing && !app.dailyEmailDigest && !app.newsBriefing ? (
-              <Text style={styles.helperText}>{app.copy.mail.dailyBriefEmpty}</Text>
-            ) : null}
-
-            <View style={styles.modalActionRow}>
-              <Pressable
-                onPress={() => void app.handleRefreshDailyBrief()}
-                style={[styles.modalActionButton, styles.modalActionButtonPrimary]}
-              >
-                <Text style={[styles.modalActionButtonText, styles.modalActionButtonTextPrimary]}>
-                  {app.copy.mail.dailyBriefRefresh}
-                </Text>
-              </Pressable>
-
-              <Pressable onPress={app.handleOpenMailFromDailyBrief} style={styles.modalActionButton}>
-                <Text style={styles.modalActionButtonText}>{app.copy.mail.dailyBriefOpenMail}</Text>
-              </Pressable>
-
-              <Pressable onPress={app.handleOpenNewsFromDailyBrief} style={styles.modalActionButton}>
-                <Text style={styles.modalActionButtonText}>{app.copy.mail.dailyBriefOpenNews}</Text>
-              </Pressable>
-            </View>
+            {hasNoContent ? <Text style={styles.dailyBriefEmptyText}>{app.copy.mail.dailyBriefEmpty}</Text> : null}
           </ScrollView>
+
         </View>
       </View>
     </Modal>

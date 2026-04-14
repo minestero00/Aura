@@ -38,7 +38,7 @@ export function buildShellStyles(theme: AuraTheme) {
       marginTop: 8,
       minHeight: 54,
       maxHeight: 110,
-      borderRadius: 14,
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.lineStrong,
       backgroundColor: colors.surfaceMuted,
@@ -71,7 +71,7 @@ export function buildShellStyles(theme: AuraTheme) {
     backIconButton: {
       width: 34,
       height: 34,
-      borderRadius: 17,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.surfaceMuted
@@ -131,16 +131,16 @@ export function buildShellStyles(theme: AuraTheme) {
     container: { flex: 1, justifyContent: "center", padding: 20, gap: 16, backgroundColor: colors.background },
     heroCard: {
       padding: 24,
-      borderRadius: 28,
+      borderRadius: 32,
       backgroundColor: colors.backgroundSecondary,
       borderWidth: 1,
       borderColor: colors.lineStrong,
       overflow: "hidden",
-      shadowColor: theme.isDark ? "#6f86ff" : "#8ea1ff",
-      shadowOpacity: theme.isDark ? 0.18 : 0.15,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 3
+      shadowColor: theme.isDark ? "#3a6be5" : "#88a7ff",
+      shadowOpacity: theme.isDark ? 0.24 : 0.22,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4
     },
     heroWaveWrap: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
     heroWave: { position: "absolute", borderRadius: 999 },
@@ -149,7 +149,7 @@ export function buildShellStyles(theme: AuraTheme) {
       right: -40,
       width: 260,
       height: 132,
-      backgroundColor: theme.isDark ? "rgba(146, 183, 255, 0.24)" : "rgba(125, 169, 255, 0.24)",
+      backgroundColor: theme.isDark ? "rgba(123, 171, 255, 0.3)" : "rgba(95, 146, 255, 0.22)",
       transform: [{ rotate: "-9deg" }]
     },
     heroWaveMiddle: {
@@ -157,7 +157,7 @@ export function buildShellStyles(theme: AuraTheme) {
       right: -28,
       width: 250,
       height: 118,
-      backgroundColor: theme.isDark ? "rgba(169, 143, 255, 0.24)" : "rgba(157, 140, 255, 0.24)",
+      backgroundColor: theme.isDark ? "rgba(93, 151, 255, 0.26)" : "rgba(67, 125, 246, 0.22)",
       transform: [{ rotate: "-7deg" }]
     },
     heroWaveBottom: {
@@ -165,25 +165,36 @@ export function buildShellStyles(theme: AuraTheme) {
       right: -44,
       width: 270,
       height: 110,
-      backgroundColor: theme.isDark ? "rgba(186, 205, 255, 0.18)" : "rgba(184, 203, 255, 0.24)",
+      backgroundColor: theme.isDark ? "rgba(147, 190, 255, 0.22)" : "rgba(126, 171, 255, 0.2)",
       transform: [{ rotate: "-11deg" }]
     },
     heroForeground: { position: "relative", zIndex: 1 },
     eyebrow: { color: colors.textMuted, fontSize: 12, fontWeight: "700", letterSpacing: 1.4, marginBottom: 10, textTransform: "uppercase" },
     title: { color: colors.textPrimary, fontSize: 31, fontWeight: "800", lineHeight: 38 },
     subtitle: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: 12 },
-    formCard: { padding: 20, borderRadius: 24, backgroundColor: colors.elevated, borderWidth: 1, borderColor: colors.line },
-    sectionCard: {
+    formCard: {
       padding: 20,
-      borderRadius: 24,
+      borderRadius: 28,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#7f95ff" : "#c6d1ff",
-      shadowOpacity: theme.isDark ? 0.14 : 0.2,
-      shadowRadius: 14,
+      shadowColor: theme.isDark ? "#223d7a" : "#b8c9ec",
+      shadowOpacity: theme.isDark ? 0.18 : 0.2,
+      shadowRadius: 16,
       shadowOffset: { width: 0, height: 8 },
       elevation: 2
+    },
+    sectionCard: {
+      padding: 20,
+      borderRadius: 28,
+      backgroundColor: colors.elevated,
+      borderWidth: 1,
+      borderColor: colors.line,
+      shadowColor: theme.isDark ? "#20386f" : "#c1cfea",
+      shadowOpacity: theme.isDark ? 0.18 : 0.2,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 3
     },
     sectionTitle: { color: colors.textPrimary, fontSize: 19, fontWeight: "800", marginBottom: 12 },
     inputLabel: { color: colors.textPrimary, fontSize: 14, fontWeight: "700", marginBottom: 8 },

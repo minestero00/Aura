@@ -8,6 +8,7 @@ import { NotificationsSection } from "@features/app/screens/settings/sections/no
 import { PermissionsSection } from "@features/app/screens/settings/sections/permissions-section";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
 import { UsageSection } from "@features/app/screens/settings/sections/usage-section";
+import { DataPrivacySection } from "@features/app/screens/settings/sections/data-privacy-section";
 
 export function SettingsSectionContent(props: SettingsSectionProps) {
   if (props.selectedSettingsSection === "gmail") {
@@ -36,6 +37,10 @@ export function SettingsSectionContent(props: SettingsSectionProps) {
 
   if (props.selectedSettingsSection === "usage") {
     return <UsageSection {...props} />;
+  }
+
+  if (props.selectedSettingsSection === "data-privacy") {
+    return <DataPrivacySection {...props} />;
   }
 
   return <MenuSection {...props} />;

@@ -39,7 +39,10 @@ export function buildDepsInput(params: any) {
     setChatSessionId,
     setChatMessages,
     setChatInputDraft,
-    setIsChatLoading
+    setIsChatLoading,
+    setTodayWeatherAdvice,
+    setIsWeatherLoading,
+    setHasLoadedTodayWeather
   } = params;
 
   return {
@@ -107,6 +110,15 @@ export function buildDepsInput(params: any) {
       setChatInputDraft,
       setIsChatLoading,
       setErrorMessage
+    },
+    weather: {
+      authState,
+      language,
+      withSessionAutoRefresh,
+      setErrorMessage,
+      setTodayWeatherAdvice,
+      setIsWeatherLoading,
+      setHasLoadedTodayWeather
     }
   };
 }

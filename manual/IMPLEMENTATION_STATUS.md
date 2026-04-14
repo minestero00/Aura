@@ -28,6 +28,8 @@ This file checks current implementation against:
   - DB-backed daily quota counters and `GET /usage`
 - Calendar tab and Google Calendar read flow.
 - Device calendar integration and merged agenda view.
+- Today weather advice (OpenWeatherMap + umbrella/clothing guidance) integrated into Todo tab.
+- Settings > Data & Privacy transparency screen (Google/Gmail/Calendar/Location/AI/storage usage summary).
 - Local production-like deploy scaffold:
   - backend Dockerfile
   - `postgres + redis + api` docker-compose stack

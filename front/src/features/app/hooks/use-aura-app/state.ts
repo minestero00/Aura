@@ -7,6 +7,7 @@ import type { ChatMessage } from "@features/chat/types";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
+import type { TodayWeatherAdvice } from "@features/weather/types";
 
 export function useAuraAppState() {
   const [authState, setAuthState] = useState<AuthSessionState | null>(null);
@@ -64,6 +65,9 @@ export function useAuraAppState() {
   const [hasShownDailyBriefThisSession, setHasShownDailyBriefThisSession] = useState(false);
   const [areDailyBriefNotificationsEnabled, setAreDailyBriefNotificationsEnabled] = useState(false);
   const [isNotificationPermissionGranted, setIsNotificationPermissionGranted] = useState(false);
+  const [todayWeatherAdvice, setTodayWeatherAdvice] = useState<TodayWeatherAdvice | null>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [hasLoadedTodayWeather, setHasLoadedTodayWeather] = useState(false);
 
   const hasStartedInitialDailyBriefRef = useRef(false);
   const hasAttemptedDeviceCalendarPromptRef = useRef(false);
@@ -159,6 +163,12 @@ export function useAuraAppState() {
     setAreDailyBriefNotificationsEnabled,
     isNotificationPermissionGranted,
     setIsNotificationPermissionGranted,
+    todayWeatherAdvice,
+    setTodayWeatherAdvice,
+    isWeatherLoading,
+    setIsWeatherLoading,
+    hasLoadedTodayWeather,
+    setHasLoadedTodayWeather,
     hasStartedInitialDailyBriefRef,
     hasAttemptedDeviceCalendarPromptRef,
     lastTravelPlanSignatureRef,

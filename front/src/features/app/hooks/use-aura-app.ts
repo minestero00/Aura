@@ -53,6 +53,7 @@ export function useAuraApp(): UseAuraAppResult {
     handleLoadCalendarAgenda: handlers.handleLoadCalendarAgenda,
     handleLoadDeviceCalendarAgenda: handlers.handleLoadDeviceCalendarAgenda,
     handleLoadCalendarTravelPlan: handlers.handleLoadCalendarTravelPlan,
+    handleLoadTodayWeatherAdvice: handlers.handleLoadTodayWeatherAdvice,
     handleConnectDeviceCalendar: handlers.handleConnectDeviceCalendar,
     refreshDailyBriefNotificationState: handlers.refreshDailyBriefNotificationState
   });
@@ -96,6 +97,11 @@ export function useAuraApp(): UseAuraAppResult {
     void handlers.handleLoadUsage();
   }
 
+  function handleOpenDataPrivacySettings() {
+    state.setSelectedTab("settings");
+    state.setSelectedSettingsSection("data-privacy");
+  }
+
   function handleOpenLanguageSettings() {
     state.setSelectedTab("settings");
     state.setSelectedSettingsSection("language");
@@ -121,6 +127,7 @@ export function useAuraApp(): UseAuraAppResult {
       handleOpenNotificationSettings,
       handleOpenPermissionsSettings,
       handleOpenUsageSettings,
+      handleOpenDataPrivacySettings,
       handleOpenNewsSettings
     }
   });

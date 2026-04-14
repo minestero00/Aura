@@ -24,6 +24,7 @@ export function MenuSection(props: SettingsSectionProps) {
     onOpenPermissionsSettings,
     onOpenNotificationSettings,
     onOpenUsageSettings,
+    onOpenDataPrivacySettings,
     onOpenGmailSettings,
     onOpenIgnoredSenderSettings,
     onOpenNewsSettings,
@@ -86,6 +87,16 @@ export function MenuSection(props: SettingsSectionProps) {
                   ? copy.settings.usageOf(usage.counters.briefingsGenerated, usage.limits.dailyOverview)
                   : (language === "ko" ? "확인하기" : "View")}
               </Text>
+            </View>
+            <Text style={styles.settingsChevron}>›</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Pressable onPress={onOpenDataPrivacySettings} style={styles.settingsMenuItem}>
+            <View style={styles.settingsMenuMain}>
+              <Text style={styles.messageSubject}>{copy.settings.menuDataPrivacy}</Text>
+              <Text style={styles.messageMeta}>{copy.settings.dataPrivacyMenuHint}</Text>
             </View>
             <Text style={styles.settingsChevron}>›</Text>
           </Pressable>

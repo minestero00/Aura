@@ -7,7 +7,7 @@ export function buildContentStyles(theme: AuraTheme) {
     successCard: {
       marginTop: 12,
       padding: 12,
-      borderRadius: 14,
+      borderRadius: 18,
       backgroundColor: colors.accentSoft,
       borderWidth: 1,
       borderColor: colors.lineStrong
@@ -16,7 +16,7 @@ export function buildContentStyles(theme: AuraTheme) {
     textInput: {
       marginTop: 16,
       minHeight: 50,
-      borderRadius: 16,
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.lineStrong,
       backgroundColor: colors.surfaceMuted,
@@ -27,7 +27,7 @@ export function buildContentStyles(theme: AuraTheme) {
     chatInput: {
       marginTop: 12,
       minHeight: 110,
-      borderRadius: 16,
+      borderRadius: 20,
       borderWidth: 1,
       borderColor: colors.lineStrong,
       backgroundColor: colors.surfaceMuted,
@@ -44,7 +44,7 @@ export function buildContentStyles(theme: AuraTheme) {
     sectionSubtitle: { color: colors.textSecondary, fontSize: 14, lineHeight: 22, marginBottom: 14 },
     secondaryButton: {
       minHeight: 52,
-      borderRadius: 16,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.backgroundSecondary,
@@ -53,25 +53,37 @@ export function buildContentStyles(theme: AuraTheme) {
       paddingHorizontal: 16
     },
     secondaryButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: "700" },
-    primaryButton: { minHeight: 56, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent, paddingHorizontal: 16 },
+    primaryButton: {
+      minHeight: 56,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accent,
+      paddingHorizontal: 16,
+      shadowColor: colors.accent,
+      shadowOpacity: theme.isDark ? 0.2 : 0.24,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 2
+    },
     primaryButtonText: { color: colors.accentText, fontSize: 16, fontWeight: "700" },
     buttonRow: { marginTop: 18, gap: 12 },
     outlineButton: {
       minHeight: 52,
-      borderRadius: 16,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.lineStrong,
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.surface,
       paddingHorizontal: 16
     },
     outlineButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: "700" },
-    dangerButton: { minHeight: 52, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.dangerSoft, paddingHorizontal: 16 },
+    dangerButton: { minHeight: 52, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: colors.dangerSoft, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.line },
     dangerButtonText: { color: colors.dangerText, fontSize: 16, fontWeight: "800" },
     outlineButtonCompact: {
       minHeight: 40,
-      borderRadius: 12,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
@@ -79,11 +91,11 @@ export function buildContentStyles(theme: AuraTheme) {
       backgroundColor: colors.surfaceMuted,
       paddingHorizontal: 12
     },
-    digestCard: { marginTop: 18, padding: 16, borderRadius: 18, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.line },
+    digestCard: { marginTop: 18, padding: 16, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.line },
     compactDigestCard: {
       marginTop: 14,
       padding: 16,
-      borderRadius: 18,
+      borderRadius: 22,
       backgroundColor: colors.backgroundSecondary,
       borderWidth: 1,
       borderColor: colors.line,
@@ -98,7 +110,7 @@ export function buildContentStyles(theme: AuraTheme) {
     messageCard: {
       marginTop: 12,
       padding: 14,
-      borderRadius: 16,
+      borderRadius: 20,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.backgroundSecondary
@@ -120,7 +132,7 @@ export function buildContentStyles(theme: AuraTheme) {
     settingsRow: {
       marginTop: 12,
       padding: 14,
-      borderRadius: 14,
+      borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.backgroundSecondary,

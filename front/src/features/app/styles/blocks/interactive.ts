@@ -8,7 +8,7 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     travelModeButton: {
       flex: 1,
       minHeight: 42,
-      borderRadius: 12,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
@@ -23,7 +23,7 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     travelHintText: { flex: 1, color: colors.textSecondary, fontSize: 14, lineHeight: 20 },
     travelHintLinkText: { color: colors.accent, fontSize: 13, fontWeight: "700" },
     travelHintIcon: { fontSize: 15, lineHeight: 22 },
-    chatBubble: { borderRadius: 16, borderWidth: 1, padding: 14, maxWidth: "82%" },
+    chatBubble: { borderRadius: 20, borderWidth: 1, padding: 14, maxWidth: "82%" },
     chatMessageBlock: { marginTop: 10 },
     chatBubbleRow: { flexDirection: "row" },
     chatBubbleRowLeft: { justifyContent: "flex-start" },
@@ -40,7 +40,7 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     chatCitationText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
     urgentMailCardsWrap: { marginTop: 6, gap: 8, width: "100%" },
     urgentMailCard: {
-      borderRadius: 12,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.line,
       backgroundColor: colors.surfaceMuted,
@@ -60,33 +60,50 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       width: "100%",
       maxWidth: 420,
       maxHeight: "78%",
-      borderRadius: 24,
+      borderRadius: 28,
       backgroundColor: colors.elevated,
       borderWidth: 1,
-      borderColor: colors.line
+      borderColor: colors.line,
+      overflow: "hidden"
     },
-    modalScrollContent: { padding: 20, paddingBottom: 24 },
+    modalBodyScroll: { flex: 1 },
+    modalBodyContent: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16 },
     modalHeaderRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       gap: 12,
-      marginBottom: 8
+      paddingHorizontal: 20,
+      paddingTop: 18,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line
     },
     modalCloseButton: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.surfaceMuted
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.line
     },
     modalCloseText: { color: colors.textSecondary, fontSize: 18, fontWeight: "800" },
     modalLoadingWrap: { paddingVertical: 28, alignItems: "center", justifyContent: "center", gap: 12 },
-    modalActionRow: { marginTop: 18, flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    modalFooterActions: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 18,
+      gap: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      backgroundColor: colors.elevated
+    },
+    modalSecondaryActionsRow: { flexDirection: "row", gap: 10 },
     modalActionButton: {
       minHeight: 44,
-      borderRadius: 14,
+      borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 14,
@@ -94,35 +111,180 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       borderWidth: 1,
       borderColor: colors.line
     },
+    modalPrimaryActionButton: { width: "100%" },
+    modalSecondaryActionButton: { flex: 1, minWidth: 0 },
     modalActionButtonPrimary: { backgroundColor: colors.accent },
     modalActionButtonText: { color: colors.textPrimary, fontSize: 14, fontWeight: "700" },
     modalActionButtonTextPrimary: { color: colors.accentText },
+    dailyBriefModalBackdrop: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 18
+    },
+    dailyBriefModalCard: {
+      width: "100%",
+      maxWidth: 430,
+      height: "82%",
+      minHeight: 420,
+      borderRadius: 30,
+      backgroundColor: colors.elevated,
+      borderWidth: 1,
+      borderColor: colors.lineStrong,
+      overflow: "hidden",
+      shadowColor: theme.isDark ? "#000000" : "#91a8d9",
+      shadowOpacity: theme.isDark ? 0.32 : 0.22,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 8
+    },
+    dailyBriefModalHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingTop: 18,
+      paddingBottom: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.line,
+      backgroundColor: colors.surface
+    },
+    dailyBriefHeaderMain: { flex: 1, gap: 4 },
+    dailyBriefEyebrow: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 1.2
+    },
+    dailyBriefTitle: {
+      color: colors.textPrimary,
+      fontSize: 22,
+      fontWeight: "800",
+      lineHeight: 28
+    },
+    dailyBriefSubtitle: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      lineHeight: 19
+    },
+    dailyBriefCloseButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    dailyBriefCloseText: { color: colors.textSecondary, fontSize: 19, fontWeight: "800" },
+    dailyBriefBodyScroll: { flex: 1 },
+    dailyBriefBodyContent: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 16, gap: 10 },
+    dailyBriefMetaRow: { flexDirection: "row", gap: 8 },
+    dailyBriefMetaChip: {
+      minHeight: 26,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft,
+      borderWidth: 1,
+      borderColor: colors.line
+    },
+    dailyBriefMetaChipText: { color: colors.textPrimary, fontSize: 11, fontWeight: "700" },
+    dailyBriefLoadingWrap: { paddingVertical: 26, alignItems: "center", justifyContent: "center", gap: 12 },
+    dailyBriefDigestCard: {
+      marginTop: 2,
+      padding: 14,
+      borderRadius: 20,
+      backgroundColor: colors.backgroundSecondary,
+      borderWidth: 1,
+      borderColor: colors.line,
+      gap: 8
+    },
+    dailyBriefDigestHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+    dailyBriefDigestIcon: { color: colors.textPrimary, fontSize: 14, lineHeight: 18 },
+    dailyBriefDigestLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 0.8,
+      textTransform: "uppercase"
+    },
+    dailyBriefDigestHeadline: {
+      color: colors.textPrimary,
+      fontSize: 15,
+      fontWeight: "800",
+      lineHeight: 22
+    },
+    dailyBriefBulletRow: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
+    dailyBriefBulletDot: { color: colors.textSecondary, fontSize: 13, lineHeight: 20 },
+    dailyBriefBulletText: { flex: 1, color: colors.textSecondary, fontSize: 14, lineHeight: 20 },
+    dailyBriefEmptyText: { color: colors.textSecondary, fontSize: 14, lineHeight: 21, paddingVertical: 12 },
+    dailyBriefFooterActions: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 16,
+      gap: 10,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      backgroundColor: colors.surface
+    },
+    dailyBriefSecondaryActionRow: { flexDirection: "row", gap: 10 },
+    dailyBriefActionButton: {
+      minHeight: 46,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderWidth: 1,
+      borderColor: colors.lineStrong
+    },
+    dailyBriefPrimaryActionButton: {
+      width: "100%",
+      backgroundColor: colors.accent,
+      borderColor: colors.accent
+    },
+    dailyBriefSecondaryActionButton: { flex: 1, minWidth: 0 },
+    dailyBriefActionButtonText: { color: colors.textPrimary, fontSize: 13, fontWeight: "700" },
+    dailyBriefPrimaryActionText: { color: colors.accentText },
     bottomNav: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 14,
+      paddingHorizontal: 16,
       paddingTop: 10,
       paddingBottom: 22,
       borderTopWidth: 0,
       backgroundColor: colors.elevated,
-      shadowColor: theme.isDark ? "#000000" : "#9bacd9",
-      shadowOpacity: theme.isDark ? 0.3 : 0.16,
-      shadowRadius: 14,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.line,
+      shadowColor: theme.isDark ? "#000000" : "#9fb4e0",
+      shadowOpacity: theme.isDark ? 0.34 : 0.2,
+      shadowRadius: 16,
       shadowOffset: { width: 0, height: -6 },
-      elevation: 6
+      elevation: 7
     },
     bottomNavItem: {
       minHeight: 46,
       minWidth: 62,
-      borderRadius: 12,
+      borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 8,
       gap: 4
     },
-    bottomNavItemActive: { backgroundColor: colors.accentSoft },
-    bottomNavIcon: { color: colors.textMuted, fontSize: 16, lineHeight: 18 },
+    bottomNavItemActive: {
+      backgroundColor: colors.accentSoft,
+      borderWidth: 1,
+      borderColor: colors.lineStrong
+    },
+    bottomNavIcon: { color: colors.textMuted, fontSize: 15, lineHeight: 18 },
     bottomNavIconActive: { color: colors.textPrimary },
     bottomNavLabel: { color: colors.textMuted, fontSize: 11, fontWeight: "700" },
     bottomNavLabelActive: { color: colors.textPrimary }

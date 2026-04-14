@@ -2,6 +2,7 @@ import type { ChatModuleDeps } from "@features/app/hooks/use-aura-app/chat";
 import type { DailyBriefModuleDeps } from "@features/app/hooks/use-aura-app/daily-brief";
 import type { GmailModuleDeps } from "@features/app/hooks/use-aura-app/gmail";
 import type { CalendarModuleDeps } from "@features/app/hooks/use-aura-app/calendar";
+import type { WeatherModuleDeps } from "@features/app/hooks/use-aura-app/weather";
 import type { AppLanguage } from "@features/app/i18n";
 import type { AuthSessionState } from "@features/app/types";
 import type { GmailMessage } from "@features/gmail/types";
@@ -61,6 +62,7 @@ export interface AuraHandlersContext {
     getCalendarDeps: () => CalendarModuleDeps;
     getGmailDeps: () => GmailModuleDeps;
     getChatDeps: () => ChatModuleDeps;
+    getWeatherDeps: () => WeatherModuleDeps;
   };
   onSelectSettingsSectionMenu: () => void;
 }

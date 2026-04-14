@@ -18,6 +18,8 @@ export interface AuraEffectsDeps {
   isDeviceCalendarLoading: boolean;
   hasLoadedDeviceCalendarAgenda: boolean;
   isDeviceCalendarPermissionGranted: boolean;
+  isWeatherLoading: boolean;
+  hasLoadedTodayWeather: boolean;
   calendarAgendaDays: CalendarAgendaDay[];
   deviceCalendarAgendaDays: CalendarAgendaDay[];
   pendingDailyBriefOpen: boolean;
@@ -33,6 +35,7 @@ export interface AuraEffectsDeps {
   setIsBootstrapping: (value: boolean) => void;
   setEnabledNewsCategories: (categories: NewsCategory[]) => void;
   setIsDeviceCalendarPermissionGranted: (value: boolean) => void;
+  setHasLoadedTodayWeather: (value: boolean) => void;
   setPendingDailyBriefOpen: (value: boolean) => void;
   setHasShownDailyBriefThisSession: (value: boolean) => void;
   setSelectedTab: (tab: "mail" | "news" | "todo" | "settings" | "ask") => void;
@@ -52,6 +55,7 @@ export interface AuraEffectsDeps {
   handleLoadDeviceCalendarAgenda: () => Promise<void>;
   handleLoadCalendarTravelPlan: (days: CalendarAgendaDay[]) => Promise<void>;
   handleConnectDeviceCalendar: () => Promise<void>;
+  handleLoadTodayWeatherAdvice: () => Promise<void>;
   refreshDailyBriefNotificationState: () => Promise<void>;
 }
 

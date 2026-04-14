@@ -9,5 +9,5 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 codexCli.md
-Image/testImage/*.mov
+Image/testImage/Aura_iPhone17Pro_Alpha.mov
 *.mov

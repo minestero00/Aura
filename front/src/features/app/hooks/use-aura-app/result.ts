@@ -39,10 +39,12 @@ interface BuildResultParams {
   isGmailSubmitting: UseAuraAppResult["isGmailSubmitting"];
   isInboxLoading: UseAuraAppResult["isInboxLoading"];
   isNewsLoading: UseAuraAppResult["isNewsLoading"];
+  isWeatherLoading: UseAuraAppResult["isWeatherLoading"];
   isSubmitting: UseAuraAppResult["isSubmitting"];
   isNotificationPermissionGranted: UseAuraAppResult["isNotificationPermissionGranted"];
   newsArticles: UseAuraAppResult["newsArticles"];
   newsBriefing: UseAuraAppResult["newsBriefing"];
+  todayWeatherAdvice: UseAuraAppResult["todayWeatherAdvice"];
   usage: UseAuraAppResult["usage"];
   selectedTab: UseAuraAppResult["selectedTab"];
   setSelectedTab: (tab: UseAuraAppResult["selectedTab"]) => void;
@@ -62,6 +64,7 @@ interface BuildResultParams {
     handleLoadDailyEmailBrief: UseAuraAppResult["handleLoadDailyEmailBrief"];
     handleLoadCalendarAgenda: UseAuraAppResult["handleLoadCalendarAgenda"];
     handleLoadDeviceCalendarAgenda: UseAuraAppResult["handleLoadDeviceCalendarAgenda"];
+    handleLoadTodayWeatherAdvice: UseAuraAppResult["handleLoadTodayWeatherAdvice"];
     handleLoadDailyNewsBrief: UseAuraAppResult["handleLoadDailyNewsBrief"];
     handleSendChatMessage: UseAuraAppResult["handleSendChatMessage"];
     handleReset: UseAuraAppResult["handleReset"];
@@ -83,6 +86,7 @@ interface BuildResultParams {
     handleOpenNotificationSettings: UseAuraAppResult["handleOpenNotificationSettings"];
     handleOpenPermissionsSettings: UseAuraAppResult["handleOpenPermissionsSettings"];
     handleOpenUsageSettings: UseAuraAppResult["handleOpenUsageSettings"];
+    handleOpenDataPrivacySettings: UseAuraAppResult["handleOpenDataPrivacySettings"];
     handleOpenNewsSettings: UseAuraAppResult["handleOpenNewsSettings"];
   };
 }
@@ -125,11 +129,13 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isGmailSubmitting: params.isGmailSubmitting,
     isInboxLoading: params.isInboxLoading,
     isNewsLoading: params.isNewsLoading,
+    isWeatherLoading: params.isWeatherLoading,
     isSubmitting: params.isSubmitting,
     isGmailRefreshRequired: params.isGmailRefreshRequired,
     isNotificationPermissionGranted: params.isNotificationPermissionGranted,
     newsArticles: params.newsArticles,
     newsBriefing: params.newsBriefing,
+    todayWeatherAdvice: params.todayWeatherAdvice,
     usage: params.usage,
     selectedTab: params.selectedTab,
     selectedSettingsSection: params.selectedSettingsSection,
@@ -147,6 +153,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleOpenNotificationSettings: params.openHandlers.handleOpenNotificationSettings,
     handleOpenPermissionsSettings: params.openHandlers.handleOpenPermissionsSettings,
     handleOpenUsageSettings: params.openHandlers.handleOpenUsageSettings,
+    handleOpenDataPrivacySettings: params.openHandlers.handleOpenDataPrivacySettings,
     handleOpenNewsSettings: params.openHandlers.handleOpenNewsSettings,
     handleOpenSystemSettings: params.handlers.handleOpenSystemSettings,
     handleDisableDailyBriefNotifications: params.handlers.handleDisableDailyBriefNotifications,
@@ -156,6 +163,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleLoadDailyEmailBrief: params.handlers.handleLoadDailyEmailBrief,
     handleLoadCalendarAgenda: params.handlers.handleLoadCalendarAgenda,
     handleLoadDeviceCalendarAgenda: params.handlers.handleLoadDeviceCalendarAgenda,
+    handleLoadTodayWeatherAdvice: params.handlers.handleLoadTodayWeatherAdvice,
     handleLoadDailyNewsBrief: params.handlers.handleLoadDailyNewsBrief,
     handleChatInputDraftChange: params.setChatInputDraft,
     handleSendChatMessage: params.handlers.handleSendChatMessage,

@@ -19,11 +19,11 @@ export function AppShell({ app }: AppShellProps) {
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
   const navItems: Array<{ key: "mail" | "todo" | "news" | "ask" | "settings"; label: string; icon: string }> = [
-    { key: "mail", label: app.copy.tabs.mail, icon: "✉️" },
-    { key: "todo", label: app.copy.tabs.todo, icon: "📅" },
-    { key: "news", label: app.copy.tabs.news, icon: "📰" },
-    { key: "ask", label: app.copy.tabs.ask, icon: "💬" },
-    { key: "settings", label: app.copy.tabs.settings, icon: "⚙️" }
+    { key: "mail", label: app.copy.tabs.mail, icon: "✉︎" },
+    { key: "todo", label: app.copy.tabs.todo, icon: "◷" },
+    { key: "news", label: app.copy.tabs.news, icon: "☰" },
+    { key: "ask", label: app.copy.tabs.ask, icon: "◉" },
+    { key: "settings", label: app.copy.tabs.settings, icon: "⚙︎" }
   ];
 
   return (
@@ -73,10 +73,13 @@ export function AppShell({ app }: AppShellProps) {
             isCalendarTravelLoading={app.isCalendarTravelLoading}
             isDeviceCalendarLoading={app.isDeviceCalendarLoading}
             isDeviceCalendarPermissionGranted={app.isDeviceCalendarPermissionGranted}
+            isWeatherLoading={app.isWeatherLoading}
             selectedTravelMode={app.selectedTravelMode}
+            todayWeatherAdvice={app.todayWeatherAdvice}
             onConnectDeviceCalendar={app.handleConnectDeviceCalendar}
             onConnectCalendar={app.handleConnectGmail}
             onSetTravelMode={app.handleSetTravelMode}
+            onLoadTodayWeatherAdvice={app.handleLoadTodayWeatherAdvice}
             onLoadDeviceCalendarAgenda={app.handleLoadDeviceCalendarAgenda}
             onLoadCalendarAgenda={app.handleLoadCalendarAgenda}
           />
@@ -114,6 +117,7 @@ export function AppShell({ app }: AppShellProps) {
             onOpenNotificationSettings={app.handleOpenNotificationSettings}
             onOpenPermissionsSettings={app.handleOpenPermissionsSettings}
             onOpenUsageSettings={app.handleOpenUsageSettings}
+            onOpenDataPrivacySettings={app.handleOpenDataPrivacySettings}
             onOpenNewsSettings={app.handleOpenNewsSettings}
             onOpenSystemSettings={app.handleOpenSystemSettings}
             onIgnoredSenderDraftChange={app.handleIgnoredSenderDraftChange}

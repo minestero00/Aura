@@ -7,6 +7,7 @@ import { gmailRouter } from "../modules/integrations/gmail/index.js";
 import { newsRouter } from "../modules/news/index.js";
 import { usageRouter } from "../modules/usage/index.js";
 import { usersRouter } from "../modules/users/routes.js";
+import { weatherRouter } from "../modules/weather/index.js";
 import { healthRouter } from "./health.js";
 
 export const apiRouter = Router();
@@ -18,5 +19,6 @@ apiRouter.use("/chat", chatRouter);
 apiRouter.use("/briefings", briefingsRouter);
 apiRouter.use("/integrations", gmailRouter);
 apiRouter.use("/news", newsRouter);
+apiRouter.use("/weather", weatherRouter);
 apiRouter.use("/usage", usageRouter);
 apiRouter.use("/", usersRouter);

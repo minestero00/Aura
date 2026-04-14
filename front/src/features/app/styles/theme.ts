@@ -25,44 +25,44 @@ export interface AuraTheme {
 const lightTheme: AuraTheme = {
   isDark: false,
   colors: {
-    background: "#f5f7fc",
-    backgroundSecondary: "#edf2ff",
+    background: "#f3f6fb",
+    backgroundSecondary: "#ecf2ff",
     surface: "#ffffff",
-    surfaceMuted: "#f3f6ff",
+    surfaceMuted: "#f6f8ff",
     elevated: "#ffffff",
-    textPrimary: "#1d2430",
-    textSecondary: "#556178",
-    textMuted: "#8d97ab",
-    line: "#dde4f2",
-    lineStrong: "#cdd7ea",
-    accent: "#6f86ff",
-    accentSoft: "#e9eeff",
+    textPrimary: "#141b2d",
+    textSecondary: "#4f5e7a",
+    textMuted: "#8391ab",
+    line: "#d8e1f0",
+    lineStrong: "#c6d3e7",
+    accent: "#2f6bff",
+    accentSoft: "#e6eeff",
     accentText: "#ffffff",
-    dangerSoft: "#ffeef0",
-    dangerText: "#d94154",
-    overlay: "rgba(18, 25, 40, 0.34)"
+    dangerSoft: "#ffeef1",
+    dangerText: "#cf3b58",
+    overlay: "rgba(14, 22, 38, 0.38)"
   }
 };
 
 const darkTheme: AuraTheme = {
   isDark: true,
   colors: {
-    background: "#090f1d",
-    backgroundSecondary: "#101a33",
-    surface: "#111b30",
-    surfaceMuted: "#17243f",
-    elevated: "#0f182b",
-    textPrimary: "#eef3ff",
-    textSecondary: "#bfcae5",
-    textMuted: "#8f9ebf",
-    line: "#273658",
-    lineStrong: "#34466d",
-    accent: "#9eb2ff",
-    accentSoft: "#1c2c50",
-    accentText: "#071121",
-    dangerSoft: "#3b2130",
-    dangerText: "#ffb5c8",
-    overlay: "rgba(0, 0, 0, 0.52)"
+    background: "#090f1b",
+    backgroundSecondary: "#101a2f",
+    surface: "#121d32",
+    surfaceMuted: "#16233c",
+    elevated: "#0f1a2d",
+    textPrimary: "#edf3ff",
+    textSecondary: "#b6c3df",
+    textMuted: "#8798bd",
+    line: "#25375b",
+    lineStrong: "#31456e",
+    accent: "#78a4ff",
+    accentSoft: "#1b2d53",
+    accentText: "#071224",
+    dangerSoft: "#3d2231",
+    dangerText: "#ffb8ca",
+    overlay: "rgba(0, 0, 0, 0.56)"
   }
 };
 

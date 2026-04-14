@@ -4,6 +4,7 @@ import { createChatHandlers } from "@features/app/hooks/use-aura-app/handlers/ch
 import { createDailyHandlers } from "@features/app/hooks/use-aura-app/handlers/daily";
 import { createGmailHandlers } from "@features/app/hooks/use-aura-app/handlers/gmail";
 import { createSettingsHandlers } from "@features/app/hooks/use-aura-app/handlers/settings";
+import { createWeatherHandlers } from "@features/app/hooks/use-aura-app/handlers/weather";
 import type { AuraHandlersContext } from "@features/app/hooks/use-aura-app/handlers/types";
 
 export { type AuraHandlersContext } from "@features/app/hooks/use-aura-app/handlers/types";
@@ -13,6 +14,7 @@ export function createAuraAppHandlers(context: AuraHandlersContext) {
   const gmail = createGmailHandlers(context);
   const daily = createDailyHandlers(context);
   const calendar = createCalendarHandlers(context);
+  const weather = createWeatherHandlers(context);
   const settings = createSettingsHandlers(context);
   const chat = createChatHandlers(context, {
     handleLoadDailyEmailBriefForSession: daily.handleLoadDailyEmailBriefForSession
@@ -23,6 +25,7 @@ export function createAuraAppHandlers(context: AuraHandlersContext) {
     ...gmail,
     ...daily,
     ...calendar,
+    ...weather,
     ...settings,
     ...chat
   };

@@ -6,6 +6,7 @@ import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/t
 import type { ChatMessage } from "@features/chat/types";
 import type { UsageResponse } from "@features/usage/types";
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
+import type { TodayWeatherAdvice } from "@features/weather/types";
 
 export type AppTabKey = "mail" | "todo" | "news" | "ask" | "settings";
 export type SettingsSectionKey =
@@ -16,7 +17,8 @@ export type SettingsSectionKey =
   | "language"
   | "notifications"
   | "permissions"
-  | "usage";
+  | "usage"
+  | "data-privacy";
 
 export interface AuthSessionState {
   session: AuthResponse["session"];
@@ -55,11 +57,13 @@ export interface UseAuraAppResult {
   isInboxLoading: boolean;
   isSubmitting: boolean;
   isGmailRefreshRequired: boolean;
+  isWeatherLoading: boolean;
   dailyEmailDigest: GmailDigest | null;
   dailyEmailMessages: GmailMessage[];
   deviceCalendarAgendaDays: CalendarAgendaDay[];
   newsArticles: NewsArticle[];
   newsBriefing: NewsBriefing | null;
+  todayWeatherAdvice: TodayWeatherAdvice | null;
   usage: UsageResponse | null;
   isDailyBriefModalVisible: boolean;
   selectedTab: AppTabKey;
@@ -82,12 +86,14 @@ export interface UseAuraAppResult {
   handleOpenNotificationSettings: () => void;
   handleOpenPermissionsSettings: () => void;
   handleOpenUsageSettings: () => void;
+  handleOpenDataPrivacySettings: () => void;
   handleOpenNewsSettings: () => void;
   handleOpenSystemSettings: () => Promise<void>;
   handleRemoveIgnoredSender: (senderKey: string) => Promise<void>;
   handleLoadDailyEmailBrief: () => Promise<void>;
   handleLoadCalendarAgenda: () => Promise<void>;
   handleLoadDeviceCalendarAgenda: () => Promise<void>;
+  handleLoadTodayWeatherAdvice: () => Promise<void>;
   handleLoadDailyNewsBrief: () => Promise<void>;
   handleChatInputDraftChange: (value: string) => void;
   handleSendChatMessage: (message?: string) => Promise<void>;

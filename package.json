@@ -6,6 +6,7 @@
     "back"
   ],
   "scripts": {
+    "postinstall": "node scripts/fix-sqlite-gradle.mjs",
     "dev:front": "npm run start --workspace front",
     "dev:back": "npm run dev --workspace back",
     "typecheck": "npm run typecheck --workspace back && npm run typecheck --workspace front",
