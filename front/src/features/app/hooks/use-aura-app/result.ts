@@ -70,6 +70,10 @@ interface BuildResultParams {
     handleReset: UseAuraAppResult["handleReset"];
     handleRefreshDailyBrief: UseAuraAppResult["handleRefreshDailyBrief"];
     handleGoogleSignIn: UseAuraAppResult["handleGoogleSignIn"];
+    handleKakaoSignIn: UseAuraAppResult["handleKakaoSignIn"];
+    handlePhoneRequestOtp: UseAuraAppResult["handlePhoneRequestOtp"];
+    handlePhoneVerifyOtp: UseAuraAppResult["handlePhoneVerifyOtp"];
+    handleEmailSignIn: UseAuraAppResult["handleEmailSignIn"];
     handleLoadEmailSummary: UseAuraAppResult["handleLoadEmailSummary"];
     handleLoadRecentEmails: UseAuraAppResult["handleLoadRecentEmails"];
     handleReplyToMessage: UseAuraAppResult["handleReplyToMessage"];
@@ -178,6 +182,10 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     },
     handleRefreshDailyBrief: params.handlers.handleRefreshDailyBrief,
     handleGoogleSignIn: params.handlers.handleGoogleSignIn,
+    handleKakaoSignIn: params.handlers.handleKakaoSignIn,
+    handlePhoneRequestOtp: params.handlers.handlePhoneRequestOtp,
+    handlePhoneVerifyOtp: params.handlers.handlePhoneVerifyOtp,
+    handleEmailSignIn: params.handlers.handleEmailSignIn,
     handleLoadEmailSummary: params.handlers.handleLoadEmailSummary,
     handleLoadRecentEmails: params.handlers.handleLoadRecentEmails,
     handleReplyToMessage: params.handlers.handleReplyToMessage,

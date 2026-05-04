@@ -1,27 +1,27 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { MeResponse, SessionPayload } from "@features/auth/types";
+import type { MeResponse } from "@features/auth/types";
 
-const AUTH_SESSION_KEY = "aura.auth.session";
+/**
+ * Supabase persists the auth session itself in AsyncStorage. We only cache
+ * the /auth/me response so the splash screen can render without waiting
+ * on a network round-trip.
+ */
+const ME_CACHE_KEY = "aura.auth.me";
 
-export interface StoredAuthSession {
-  session: SessionPayload;
-  me: MeResponse;
+export async function saveMeCache(me: MeResponse): Promise<void> {
+  await AsyncStorage.setItem(ME_CACHE_KEY, JSON.stringify(me));
 }
 
-export async function saveAuthSession(value: StoredAuthSession) {
-  await AsyncStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(value));
-}
-
-export async function loadAuthSession(): Promise<StoredAuthSession | null> {
-  const raw = await AsyncStorage.getItem(AUTH_SESSION_KEY);
-
-  if (!raw) {
+export async function loadMeCache(): Promise<MeResponse | null> {
+  const raw = await AsyncStorage.getItem(ME_CACHE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as MeResponse;
+  } catch {
     return null;
   }
-
-  return JSON.parse(raw) as StoredAuthSession;
 }
 
-export async function clearAuthSession() {
-  await AsyncStorage.removeItem(AUTH_SESSION_KEY);
+export async function clearMeCache(): Promise<void> {
+  await AsyncStorage.removeItem(ME_CACHE_KEY);
 }

@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import { API_BASE_URL_ANDROID, API_BASE_URL_IOS } from "@env";
+import { getCurrentAccessToken } from "@lib/supabase/client";
 
 export const API_BASE_URL =
   Platform.OS === "android" ? API_BASE_URL_ANDROID : API_BASE_URL_IOS;
@@ -63,6 +64,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   let lastCode: string | undefined;
   let lastMessage = "";
 
+  // If no explicit token provided, pull the current Supabase JWT.
+  // This makes every authenticated request work with zero call-site changes.
+  const tokenForRequest = accessToken ?? (await getCurrentAccessToken());
+
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     let response: Response;
 
@@ -74,7 +79,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
           "Content-Type": "application/json",
           "Cache-Control": "no-cache, no-store, max-age=0",
           Pragma: "no-cache",
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          ...(tokenForRequest ? { Authorization: `Bearer ${tokenForRequest}` } : {}),
           ...headers
         }
       });

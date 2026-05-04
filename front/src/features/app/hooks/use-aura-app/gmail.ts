@@ -62,13 +62,12 @@ export async function connectGmailForCurrentSession(
     const normalizedScopes = Array.from(new Set([...(currentUser?.scopes ?? []), ...scopes])).sort();
 
     const { session: activeSession } = await deps.withSessionAutoRefresh(
-      accessToken =>
+      () =>
         connectGmailIntegration({
           accessToken: tokens.accessToken,
           serverAuthCode: serverAuthCode ?? undefined,
           email: currentUser?.user.email ?? "",
-          scopes: normalizedScopes,
-          sessionAccessToken: accessToken
+          scopes: normalizedScopes
         }),
       session
     );
@@ -90,7 +89,7 @@ export async function disconnectGmail(deps: GmailModuleDeps) {
   deps.setErrorMessage(null);
 
   try {
-    const { session } = await deps.withSessionAutoRefresh(accessToken => disconnectGmailIntegration(accessToken));
+    const { session } = await deps.withSessionAutoRefresh(() => disconnectGmailIntegration());
     deps.setGmailMessages([]);
     deps.setGmailDigest(null);
     deps.setDailyEmailDigest(null);

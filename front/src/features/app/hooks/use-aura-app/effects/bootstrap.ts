@@ -1,13 +1,14 @@
 import { startTransition, useEffect } from "react";
-import { ApiError } from "@lib/api/client";
+import { supabase } from "@lib/supabase/client";
 import { toTimeDraft } from "@features/app/hooks/use-aura-app/helpers";
 import {
   getInitialDailyBriefOpen,
   subscribeToDailyBriefOpen
 } from "@features/app/notifications";
 import { loadAppLanguage } from "@features/app/storage";
-import { fetchMe, refreshAuthSession } from "@features/auth/api";
-import { clearAuthSession, loadAuthSession, saveAuthSession } from "@features/auth/storage";
+import { fetchMe } from "@features/auth/api";
+import { clearMeCache, loadMeCache, saveMeCache } from "@features/auth/storage";
+import type { SessionPayload } from "@features/auth/types";
 import { checkDeviceCalendarPermission, isCalendarPermissionGranted } from "@features/calendar/device";
 import { loadIgnoredSenderRules } from "@features/gmail/storage";
 import { loadEnabledNewsCategories } from "@features/news/storage";
@@ -27,45 +28,51 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
 
     void bootstrapLanguage();
 
+    function toSessionPayload(): Promise<SessionPayload | null> {
+      return supabase.auth.getSession().then(({ data }) => {
+        if (!data.session) return null;
+        return {
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token ?? null,
+          expiresAt: data.session.expires_at ?? null
+        };
+      });
+    }
+
     async function bootstrapSession() {
       try {
-        const stored = await loadAuthSession();
+        const session = await toSessionPayload();
 
-        if (!stored) {
+        if (!session) {
+          // Cold start without an existing session — nothing to restore.
+          await clearMeCache();
           return;
         }
 
-        let nextSession = stored.session;
-        let me;
+        // Render fast from the cached /me, then refresh in the background.
+        const cachedMe = await loadMeCache();
+        if (cachedMe && isMounted) {
+          startTransition(() => {
+            deps.setAuthState({ session, me: cachedMe });
+          });
+          if (cachedMe.preferences) {
+            deps.setMorningBriefTimeDraft(toTimeDraft(cachedMe.preferences.morningBriefTime));
+          }
+        }
 
         try {
-          me = await fetchMe(stored.session.accessToken);
-        } catch (error) {
-          if (!(error instanceof ApiError) || error.status !== 401) {
-            throw error;
-          }
-
-          nextSession = await refreshAuthSession(stored.session.refreshToken);
-          me = await fetchMe(nextSession.accessToken);
-        }
-
-        if (!isMounted) {
-          return;
-        }
-
-        startTransition(() => {
-          deps.setAuthState({
-            session: nextSession,
-            me
+          const me = await fetchMe();
+          if (!isMounted) return;
+          startTransition(() => {
+            deps.setAuthState({ session, me });
           });
-        });
-        await saveAuthSession({
-          session: nextSession,
-          me
-        });
-        deps.setMorningBriefTimeDraft(toTimeDraft(me.preferences.morningBriefTime));
-      } catch {
-        await clearAuthSession();
+          await saveMeCache(me);
+          if (me.preferences) {
+            deps.setMorningBriefTimeDraft(toTimeDraft(me.preferences.morningBriefTime));
+          }
+        } catch {
+          // Network / 401 — Supabase listener below will rehydrate when fixed.
+        }
       } finally {
         if (isMounted) {
           deps.setIsBootstrapping(false);
@@ -75,8 +82,37 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
 
     void bootstrapSession();
 
+    // Live updates: react to Supabase sign-in / sign-out / token refresh.
+    const authSub = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+      if (!session) {
+        await clearMeCache();
+        deps.setAuthState(null);
+        return;
+      }
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        try {
+          const me = await fetchMe();
+          await saveMeCache(me);
+          startTransition(() => {
+            deps.setAuthState({
+              session: {
+                accessToken: session.access_token,
+                refreshToken: session.refresh_token ?? null,
+                expiresAt: session.expires_at ?? null
+              },
+              me
+            });
+          });
+        } catch {
+          // ignore — bootstrap will retry on next reload
+        }
+      }
+    });
+
     return () => {
       isMounted = false;
+      authSub.data.subscription.unsubscribe();
     };
   }, []);
 

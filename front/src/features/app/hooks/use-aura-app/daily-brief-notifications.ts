@@ -45,7 +45,7 @@ export async function saveMorningBriefTime(deps: DailyBriefModuleDeps) {
   try {
     deps.setErrorMessage(null);
     const { session } = await deps.withSessionAutoRefresh(accessToken =>
-      updateUserPreferences(accessToken, {
+      updateUserPreferences( {
         morningBriefTime: normalized,
         pushEnabled: deps.areDailyBriefNotificationsEnabled
       })
@@ -77,7 +77,7 @@ export async function enableDailyBriefNotifications(deps: DailyBriefModuleDeps) 
   try {
     deps.setErrorMessage(null);
     const { session } = await deps.withSessionAutoRefresh(accessToken =>
-      updateUserPreferences(accessToken, {
+      updateUserPreferences( {
         morningBriefTime: normalized,
         pushEnabled: true
       })
@@ -109,7 +109,7 @@ export async function disableDailyBriefNotifications(deps: DailyBriefModuleDeps)
     deps.setErrorMessage(null);
     cancelDailyBriefingNotification();
     const { session } = await deps.withSessionAutoRefresh(accessToken =>
-      updateUserPreferences(accessToken, {
+      updateUserPreferences( {
         pushEnabled: false
       })
     );

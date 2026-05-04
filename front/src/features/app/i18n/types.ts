@@ -21,6 +21,20 @@ export interface AppCopy {
     sectionTitle: string;
     helper: string;
     signingIn: string;
+    googleButton: string;
+    kakaoButton: string;
+    phoneButton: string;
+    emailButton: string;
+    dumbHint: string;
+    back: string;
+    phoneTitle: string;
+    phoneHelper: string;
+    sendOtp: string;
+    verifyOtp: string;
+    otpPlaceholder: string;
+    emailTitle: string;
+    emailHelper: string;
+    signIn: string;
   };
   mail: {
     eyebrow: string;

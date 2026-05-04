@@ -1,13 +1,21 @@
-import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
-import { Platform } from "react-native";
 import { connectGmailForCurrentSession as connectGmailForCurrentSessionOp } from "@features/app/hooks/use-aura-app/gmail";
 import { getErrorMessage } from "@features/app/hooks/use-aura-app/helpers";
 import {
   prepareDailyBriefForSession as prepareDailyBriefForSessionOp,
   refreshDailyBriefNotificationState as refreshDailyBriefNotificationStateOp
 } from "@features/app/hooks/use-aura-app/daily-brief";
-import { logoutAuthSession, signInWithGoogleToken } from "@features/auth/api";
-import { clearAuthSession } from "@features/auth/storage";
+import {
+  isGoogleCancelError,
+  isGooglePlayServicesError,
+  requestPhoneOtp,
+  signInWithEmailPassword,
+  signInWithGoogle,
+  signInWithKakao,
+  SignInError,
+  signOutEverywhere,
+  verifyPhoneOtp
+} from "@features/auth/sign-in";
+import { clearMeCache } from "@features/auth/storage";
 import type { AuthSessionState } from "@features/app/types";
 import type { AuraHandlersContext } from "./types";
 
@@ -43,60 +51,112 @@ export function createAuthHandlers(context: AuraHandlersContext) {
     await prepareDailyBriefForSessionOp(context.deps.getDailyBriefDeps(), session, gmailConnected);
   }
 
+  /**
+   * After any successful Supabase sign-in, the bootstrap effect's
+   * onAuthStateChange listener will call /auth/me and populate authState.
+   * We just kick off Gmail + daily brief preparation once the session lands.
+   */
+  async function postSignIn() {
+    // Wait one tick so the auth state listener has time to populate.
+    await new Promise<void>(resolve => {
+      setTimeout(() => resolve(), 0);
+    });
+    const next = context.authState;
+    if (next?.session) {
+      if (!next.me.integrations.gmailConnected) {
+        await connectGmailForCurrentSession(next.session).catch(() => undefined);
+      }
+      await prepareDailyBriefForSession(next.session, true).catch(() => undefined);
+      context.hasStartedInitialDailyBriefRef.current = true;
+      context.setHasShownDailyBriefThisSession(false);
+    }
+    context.setSelectedTab("mail");
+    context.onSelectSettingsSectionMenu();
+  }
+
   async function handleGoogleSignIn() {
     context.setIsSubmitting(true);
     context.setErrorMessage(null);
-
     try {
-      if (Platform.OS === "android") {
-        await GoogleSignin.hasPlayServices({
-          showPlayServicesUpdateDialog: true
-        });
-      }
-
-      const response = await GoogleSignin.signIn();
-
-      if (response.type !== "success") {
-        context.setErrorMessage("Google sign-in was cancelled.");
-        return;
-      }
-
-      if (!response.data.idToken) {
-        context.setErrorMessage("Google did not return an ID token.");
-        return;
-      }
-
-      const auth = await signInWithGoogleToken(response.data.idToken);
-      await context.syncMe(auth.session);
-      context.setSelectedTab("mail");
-      context.onSelectSettingsSectionMenu();
-
-      if (!auth.integrations.gmailConnected) {
-        await connectGmailForCurrentSession(auth.session);
-        await prepareDailyBriefForSession(auth.session, true);
+      await signInWithGoogle();
+      await postSignIn();
+    } catch (error) {
+      if (isGooglePlayServicesError(error)) {
+        context.setErrorMessage("Google Play Services를 사용할 수 없는 기기입니다.");
+      } else if (isGoogleCancelError(error)) {
+        context.setErrorMessage("Google 로그인이 취소되었습니다.");
+      } else if (error instanceof SignInError) {
+        context.setErrorMessage(error.message);
       } else {
-        await prepareDailyBriefForSession(auth.session, true);
+        context.setErrorMessage(getErrorMessage(error, "Google 로그인에 실패했습니다."));
       }
+    } finally {
+      context.setIsSubmitting(false);
+    }
+  }
 
-      context.hasStartedInitialDailyBriefRef.current = true;
-      context.setHasShownDailyBriefThisSession(false);
-    } catch (error: unknown) {
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code?: string }).code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE
-      ) {
-        context.setErrorMessage("Google Play Services is not available on this device.");
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code?: string }).code === statusCodes.SIGN_IN_CANCELLED
-      ) {
-        context.setErrorMessage("Google sign-in was cancelled.");
+  async function handleKakaoSignIn() {
+    context.setIsSubmitting(true);
+    context.setErrorMessage(null);
+    try {
+      await signInWithKakao();
+      await postSignIn();
+    } catch (error) {
+      if (error instanceof SignInError) {
+        context.setErrorMessage(error.message);
       } else {
-        context.setErrorMessage(getErrorMessage(error, "Unable to sign in with Google right now."));
+        context.setErrorMessage(getErrorMessage(error, "카카오 로그인에 실패했습니다."));
+      }
+    } finally {
+      context.setIsSubmitting(false);
+    }
+  }
+
+  async function handlePhoneRequestOtp(phone: string) {
+    context.setIsSubmitting(true);
+    context.setErrorMessage(null);
+    try {
+      await requestPhoneOtp(phone);
+    } catch (error) {
+      if (error instanceof SignInError) {
+        context.setErrorMessage(error.message);
+      } else {
+        context.setErrorMessage(getErrorMessage(error, "인증 문자 전송에 실패했습니다."));
+      }
+      throw error;
+    } finally {
+      context.setIsSubmitting(false);
+    }
+  }
+
+  async function handlePhoneVerifyOtp(phone: string, token: string) {
+    context.setIsSubmitting(true);
+    context.setErrorMessage(null);
+    try {
+      await verifyPhoneOtp(phone, token);
+      await postSignIn();
+    } catch (error) {
+      if (error instanceof SignInError) {
+        context.setErrorMessage(error.message);
+      } else {
+        context.setErrorMessage(getErrorMessage(error, "인증에 실패했습니다."));
+      }
+    } finally {
+      context.setIsSubmitting(false);
+    }
+  }
+
+  async function handleEmailSignIn(email: string, password: string) {
+    context.setIsSubmitting(true);
+    context.setErrorMessage(null);
+    try {
+      await signInWithEmailPassword(email, password);
+      await postSignIn();
+    } catch (error) {
+      if (error instanceof SignInError) {
+        context.setErrorMessage(error.message);
+      } else {
+        context.setErrorMessage(getErrorMessage(error, "로그인에 실패했습니다."));
       }
     } finally {
       context.setIsSubmitting(false);
@@ -104,23 +164,8 @@ export function createAuthHandlers(context: AuraHandlersContext) {
   }
 
   async function handleReset() {
-    const currentSession = context.authState?.session;
-
-    if (currentSession) {
-      try {
-        await logoutAuthSession(currentSession.accessToken);
-      } catch {
-        // Ignore remote logout failures and continue local cleanup.
-      }
-    }
-
-    await clearAuthSession();
-
-    try {
-      await GoogleSignin.signOut();
-    } catch {
-      // Ignore native sign out errors during local reset.
-    }
+    await signOutEverywhere();
+    await clearMeCache();
 
     context.setAuthState(null);
     context.setErrorMessage(null);
@@ -168,6 +213,10 @@ export function createAuthHandlers(context: AuraHandlersContext) {
     refreshDailyBriefNotificationState,
     prepareDailyBriefForSession,
     handleGoogleSignIn,
+    handleKakaoSignIn,
+    handlePhoneRequestOtp,
+    handlePhoneVerifyOtp,
+    handleEmailSignIn,
     handleReset,
     handleConnectGmail
   };

@@ -43,6 +43,12 @@ _Ai assistant application for all users_
 
 메일 분석을 Gmail 토대로 분석하기 때문에 유지할듯.
 
+### phone check
+
+<https://console.solapi.com/dashboard>
+
+- dumbteam2025@gmail.com 사용, 전화번호 인증하라해서 조민제 명의로 진행함
+
 ## Language
 
 한국어 / English
@@ -72,7 +78,6 @@ Design부터 어플 이름까지 죄다 AI한테 맡겨서 신박한 경험임(A
    <source src="https://youtube.com/shorts/FxfYeaELkao?feature=share" type="video/mp4">
   </video>
 </div>
-
 
 [Youtube Link](https://youtube.com/shorts/FxfYeaELkao?feature=share)
 

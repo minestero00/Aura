@@ -16,7 +16,7 @@ export function DataPrivacySection(props: SettingsSectionProps) {
           subtitle={copy.settings.dataPrivacySubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
         />
-        <ScrollView contentContainerStyle={styles.scrollContentSubpage} style={styles.scrollView}>
+        <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>
             <View style={styles.settingsRow}>
               <View style={styles.settingsRowMain}>

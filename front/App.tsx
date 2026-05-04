@@ -29,6 +29,10 @@ function App(): React.JSX.Element {
         errorMessage={app.errorMessage}
         isSubmitting={app.isSubmitting}
         onGoogleSignIn={app.handleGoogleSignIn}
+        onKakaoSignIn={app.handleKakaoSignIn}
+        onPhoneRequestOtp={app.handlePhoneRequestOtp}
+        onPhoneVerifyOtp={app.handlePhoneVerifyOtp}
+        onEmailSignIn={app.handleEmailSignIn}
       />
     );
   }

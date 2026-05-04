@@ -98,6 +98,10 @@ export interface UseAuraAppResult {
   handleChatInputDraftChange: (value: string) => void;
   handleSendChatMessage: (message?: string) => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
+  handleKakaoSignIn: () => Promise<void>;
+  handlePhoneRequestOtp: (phone: string) => Promise<void>;
+  handlePhoneVerifyOtp: (phone: string, token: string) => Promise<void>;
+  handleEmailSignIn: (email: string, password: string) => Promise<void>;
   handleLoadEmailSummary: () => Promise<void>;
   handleLoadRecentEmails: () => Promise<void>;
   handleReplyToMessage: (message: GmailMessage) => Promise<void>;

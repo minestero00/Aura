@@ -16,27 +16,43 @@ authRouter.get(
   asyncHandler(async (req, res) => {
     const userId = req.authUser!.id;
     const context = await authStore.ensureUserContext(userId);
+    if (!context) {
+      res.status(404).json({
+        error: { code: "USER_NOT_FOUND", message: "User context could not be loaded." }
+      });
+      return;
+    }
     const gmail = authStore.getGmailConnection(userId);
+    const gmailScopes = gmail?.scopes ?? [];
+    const gmailReady =
+      Boolean(gmail) &&
+      gmailScopes.some(scope => scope.includes("gmail.readonly") || scope.includes("gmail.compose"));
 
     res.json({
-      user: context
-        ? {
-            id: context.user.id,
-            email: context.user.email,
-            phone: context.user.phone,
-            name: context.user.name,
-            avatarUrl: context.user.avatarUrl,
-            timezone: context.user.timezone,
-            planTier: context.user.planTier
-          }
-        : null,
-      preferences: context?.preferences ?? null,
+      user: {
+        id: context.user.id,
+        email: context.user.email,
+        phone: context.user.phone,
+        name: context.user.name,
+        avatarUrl: context.user.avatarUrl,
+        timezone: context.user.timezone,
+        planTier: context.user.planTier
+      },
+      preferences: {
+        newsCategories: context.preferences.newsCategories,
+        summaryLength: context.preferences.summaryLength,
+        pushEnabled: context.preferences.pushEnabled,
+        morningBriefTime: context.preferences.morningBriefTime,
+        eveningBriefTime: context.preferences.eveningBriefTime
+      },
       integrations: {
         gmailConnected: Boolean(gmail),
         gmailAddress: gmail?.email ?? null,
-        gmailScopes: gmail?.scopes ?? [],
+        gmailScopes,
         gmailConnectedAt: gmail?.connectedAt ?? null,
-        gmailAccessExpiresAt: gmail?.expiresAt ?? null
+        gmailAccessExpiresAt: gmail?.expiresAt ?? null,
+        gmailSyncReady: gmailReady,
+        calendarConnected: false
       }
     });
   })
