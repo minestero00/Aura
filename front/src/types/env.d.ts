@@ -8,4 +8,5 @@ declare module "@env" {
   export const GOOGLE_ANDROID_CLIENT_ID: string;
   export const GOOGLE_IOS_URL_SCHEME: string;
   export const KAKAO_NATIVE_APP_KEY: string;
+  export const KAKAO_LOGIN_ENABLED: string;
 }

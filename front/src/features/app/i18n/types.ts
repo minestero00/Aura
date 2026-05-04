@@ -23,6 +23,7 @@ export interface AppCopy {
     signingIn: string;
     googleButton: string;
     kakaoButton: string;
+    kakaoComingSoon: string;
     phoneButton: string;
     emailButton: string;
     dumbHint: string;

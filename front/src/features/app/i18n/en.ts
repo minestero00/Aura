@@ -23,6 +23,7 @@ export const EN_COPY: AppCopy = {
     signingIn: 'Signing in...',
     googleButton: 'Continue with Google',
     kakaoButton: 'Continue with Kakao',
+    kakaoComingSoon: 'Kakao sign-in is rolling out soon. Please use another option for now.',
     phoneButton: 'Continue with phone number',
     emailButton: 'Sign in with dumb account',
     dumbHint: 'Already have a dumb account?',

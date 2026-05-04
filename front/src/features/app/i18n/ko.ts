@@ -23,6 +23,7 @@ export const KO_COPY: AppCopy = {
     signingIn: '로그인하는 중...',
     googleButton: 'Google 계정으로 시작',
     kakaoButton: '카카오로 시작',
+    kakaoComingSoon: '현재는 카카오 로그인을 준비 중입니다. 다른 방법으로 로그인해주세요.',
     phoneButton: '휴대전화로 시작',
     emailButton: 'Dumb 계정으로 로그인',
     dumbHint: '이미 dumb 계정이 있으신가요?',

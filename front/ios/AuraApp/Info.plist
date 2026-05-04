@@ -22,8 +22,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -35,12 +33,14 @@
 			</array>
 		</dict>
 	</array>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
 	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -48,12 +48,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Aura uses your location to calculate departure times for upcoming schedules.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Aura uses your location to calculate departure times for upcoming schedules.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

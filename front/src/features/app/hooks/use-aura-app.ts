@@ -1,6 +1,6 @@
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as KakaoLogin from "@react-native-seoul/kakao-login";
-import { KAKAO_NATIVE_APP_KEY } from "@env";
+import { KAKAO_LOGIN_ENABLED, KAKAO_NATIVE_APP_KEY } from "@env";
 import { googleConfig } from "@config/google";
 import { createDepsGetters } from "@features/app/hooks/use-aura-app/deps";
 import { createSessionManager } from "@features/app/hooks/use-aura-app/session";
@@ -24,7 +24,9 @@ GoogleSignin.configure({
 
 // Kakao SDK initializes itself from Info.plist (iOS) and AndroidManifest
 // meta-data (Android), but the JS bridge needs the native app key once.
-if (KAKAO_NATIVE_APP_KEY) {
+// Skip when Kakao login is disabled to avoid loading the native module on
+// devices where Info.plist URL scheme isn't configured yet.
+if (KAKAO_LOGIN_ENABLED === "true" && KAKAO_NATIVE_APP_KEY) {
   try {
     (KakaoLogin as unknown as { initializeKakaoSDK?: (key: string) => void })
       .initializeKakaoSDK?.(KAKAO_NATIVE_APP_KEY);

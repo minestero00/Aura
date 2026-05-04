@@ -3,7 +3,7 @@ import type { DailyBriefModuleDeps } from "@features/app/hooks/use-aura-app/dail
 import type { GmailModuleDeps } from "@features/app/hooks/use-aura-app/gmail";
 import type { CalendarModuleDeps } from "@features/app/hooks/use-aura-app/calendar";
 import type { WeatherModuleDeps } from "@features/app/hooks/use-aura-app/weather";
-import type { AppLanguage } from "@features/app/i18n";
+import type { AppCopy, AppLanguage } from "@features/app/i18n";
 import type { AuthSessionState } from "@features/app/types";
 import type { GmailMessage } from "@features/gmail/types";
 import type { NewsCategory } from "@features/news/types";
@@ -11,7 +11,7 @@ import type { NewsCategory } from "@features/news/types";
 export interface AuraHandlersContext {
   authState: AuthSessionState | null;
   language: AppLanguage;
-  copy: unknown;
+  copy: AppCopy;
   ignoredSenderRules: Array<{ senderKey: string }>;
   ignoredSenderDraft: string;
   enabledNewsCategories: NewsCategory[];

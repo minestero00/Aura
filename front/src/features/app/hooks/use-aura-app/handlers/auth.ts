@@ -1,3 +1,4 @@
+import { KAKAO_LOGIN_ENABLED } from "@env";
 import { connectGmailForCurrentSession as connectGmailForCurrentSessionOp } from "@features/app/hooks/use-aura-app/gmail";
 import { getErrorMessage } from "@features/app/hooks/use-aura-app/helpers";
 import {
@@ -96,6 +97,14 @@ export function createAuthHandlers(context: AuraHandlersContext) {
   }
 
   async function handleKakaoSignIn() {
+    // Kakao 로그인은 비즈앱 검수 통과 전까지 비활성화 — 이메일 동의를 못 받으면
+    // dumb 사용자와 SSO 매칭이 안 되기 때문. 검수 통과 후 .env에서
+    // KAKAO_LOGIN_ENABLED=true 로만 바꾸면 즉시 활성화됨.
+    if (KAKAO_LOGIN_ENABLED !== "true") {
+      context.setErrorMessage(context.copy.signIn.kakaoComingSoon);
+      return;
+    }
+
     context.setIsSubmitting(true);
     context.setErrorMessage(null);
     try {
