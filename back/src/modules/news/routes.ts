@@ -16,6 +16,6 @@ newsRouter.get(
       userId: req.authUser!.id,
       feature: "news_briefing"
     });
-    res.json(await newsService.getDailyBriefing(input.categories, input.language));
+    res.json(await newsService.getDailyBriefing(input.categories, input.language, req.authUser!.id));
   })
 );

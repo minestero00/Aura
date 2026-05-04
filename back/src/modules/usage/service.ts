@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { config } from "../../config/env.js";
+import { createPgPool } from "../../lib/db/pool.js";
 import { AppError } from "../../lib/errors/app-error.js";
 import { createId } from "../../lib/ids.js";
 import { getRedisClient } from "../../lib/cache/redis.js";
@@ -31,9 +32,7 @@ function getPool() {
   }
 
   if (!pool) {
-    pool = new Pool({
-      connectionString: config.databaseUrl
-    });
+    pool = createPgPool();
   }
 
   return pool;
@@ -83,10 +82,21 @@ function logUsageEventBestEffort(
 
   void db
     .query(
-      "INSERT INTO ai_usage_events (id, user_id, feature, model, input_tokens, output_tokens, request_cost_usd, cache_hit, request_latency_ms, status, error_code, created_at) VALUES ($1, $2, $3, $4, 0, 0, 0, false, NULL, $5, $6, now())",
+      "INSERT INTO aura.ai_usage_events (id, user_id, feature, model, input_tokens, output_tokens, request_cost_usd, cache_hit, request_latency_ms, status, error_code, created_at) VALUES ($1, $2, $3, $4, 0, 0, 0, false, NULL, $5, $6, now())",
       [createId(), input.userId, input.feature, config.anthropicModel, input.status, input.errorCode ?? null]
     )
     .catch(() => undefined);
+}
+
+interface ModelUsageInput {
+  userId: string;
+  feature: UsageFeature;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  latencyMs?: number;
+  cacheHit?: boolean;
 }
 
 function getLimits() {
@@ -202,18 +212,41 @@ export const usageService = {
     try {
       await client.query("BEGIN");
       await client.query(
-        "INSERT INTO quota_counters (id, user_id, period_type, period_start, briefings_generated, chat_requests, tokens_used, refresh_requests, updated_at) VALUES ($1, $2, 'day', $3, 0, 0, 0, 0, now()) ON CONFLICT (user_id, period_type, period_start) DO NOTHING",
+        "INSERT INTO aura.quota_counters (id, user_id, period_type, period_start, briefings_generated, chat_requests, tokens_used, refresh_requests, updated_at) VALUES ($1, $2, 'day', $3, 0, 0, 0, 0, now()) ON CONFLICT (user_id, period_type, period_start) DO NOTHING",
         [createId(), input.userId, periodStart]
       );
 
       const rowResult = await client.query<QuotaRow>(
-        "SELECT * FROM quota_counters WHERE user_id = $1 AND period_type = 'day' AND period_start = $2 LIMIT 1 FOR UPDATE",
+        "SELECT * FROM aura.quota_counters WHERE user_id = $1 AND period_type = 'day' AND period_start = $2 LIMIT 1 FOR UPDATE",
         [input.userId, periodStart]
       );
       const row = rowResult.rows[0];
 
       if (!row) {
         throw new AppError(500, "USAGE_COUNTERS_UNAVAILABLE", "Unable to load usage counters.");
+      }
+
+      const tokenBudget = config.usageDailyTokenBudget;
+      if (tokenBudget > 0 && row.tokens_used >= tokenBudget) {
+        logUsageEventBestEffort(db, {
+          userId: input.userId,
+          feature: input.feature,
+          status: "rate_limited",
+          errorCode: "DAILY_TOKEN_BUDGET_EXCEEDED"
+        });
+        throw new AppError(
+          429,
+          "DAILY_TOKEN_BUDGET_EXCEEDED",
+          "Daily AI token budget exhausted.",
+          {
+            feature: input.feature,
+            period: "day",
+            used: row.tokens_used,
+            limit: tokenBudget,
+            remaining: 0,
+            resetAt: getNextDayPeriodStart()
+          }
+        );
       }
 
       if (input.feature === "chat") {
@@ -275,7 +308,7 @@ export const usageService = {
       }
 
       await client.query(
-        "UPDATE quota_counters SET briefings_generated = briefings_generated + $2, chat_requests = chat_requests + $3, refresh_requests = refresh_requests + $4, updated_at = now() WHERE id = $1",
+        "UPDATE aura.quota_counters SET briefings_generated = briefings_generated + $2, chat_requests = chat_requests + $3, refresh_requests = refresh_requests + $4, updated_at = now() WHERE id = $1",
         [
           row.id,
           input.feature === "chat" ? 0 : 1,
@@ -297,10 +330,61 @@ export const usageService = {
       status: "success"
     });
   },
+  async recordModelUsage(input: ModelUsageInput) {
+    const db = getPool();
+    if (!db) {
+      return;
+    }
+
+    const eventId = createId();
+    const totalTokens = Math.max(0, Math.round(input.inputTokens + input.outputTokens));
+    const periodStart = getDayPeriodStart();
+
+    await db
+      .query(
+        "INSERT INTO aura.ai_usage_events (id, user_id, feature, model, input_tokens, output_tokens, request_cost_usd, cache_hit, request_latency_ms, status, error_code, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'success', NULL, now())",
+        [
+          eventId,
+          input.userId,
+          input.feature,
+          input.model,
+          Math.max(0, Math.round(input.inputTokens)),
+          Math.max(0, Math.round(input.outputTokens)),
+          input.costUsd.toFixed(6),
+          input.cacheHit ?? false,
+          input.latencyMs ?? null
+        ]
+      )
+      .catch(error => {
+        console.log(
+          JSON.stringify({
+            level: "warn",
+            service: "aura-back",
+            message: "failed to record model usage event",
+            userId: input.userId,
+            feature: input.feature,
+            error: error instanceof Error ? error.message : String(error)
+          })
+        );
+      });
+
+    if (totalTokens > 0) {
+      await db
+        .query(
+          "INSERT INTO aura.quota_counters (id, user_id, period_type, period_start, briefings_generated, chat_requests, tokens_used, refresh_requests, updated_at) VALUES ($1, $2, 'day', $3, 0, 0, $4, 0, now()) ON CONFLICT (user_id, period_type, period_start) DO UPDATE SET tokens_used = aura.quota_counters.tokens_used + EXCLUDED.tokens_used, updated_at = now()",
+          [createId(), input.userId, periodStart, totalTokens]
+        )
+        .catch(() => undefined);
+    }
+
+    return { eventId };
+  },
   async getDailyUsage(userId: string) {
     const limits = getLimits();
     const db = getPool();
     const periodStart = getDayPeriodStart();
+
+    const tokenBudget = config.usageDailyTokenBudget;
 
     if (!db) {
       return {
@@ -315,12 +399,14 @@ export const usageService = {
         remaining: {
           dailyOverview: limits.dailyOverview,
           dailyChat: limits.dailyChat,
-          dailyManualRefresh: limits.dailyManualRefresh
+          dailyManualRefresh: limits.dailyManualRefresh,
+          dailyTokens: tokenBudget > 0 ? tokenBudget : null
         },
         saturation: {
           dailyOverview: 0,
           dailyChat: 0,
-          dailyManualRefresh: 0
+          dailyManualRefresh: 0,
+          dailyTokens: 0
         },
         limits: {
           minutePerFeature: limits.minutePerFeature,
@@ -328,13 +414,14 @@ export const usageService = {
           dailyEmailSummary: limits.dailyEmailSummary,
           dailyOverview: limits.dailyOverview,
           dailyChat: limits.dailyChat,
-          dailyManualRefresh: limits.dailyManualRefresh
+          dailyManualRefresh: limits.dailyManualRefresh,
+          dailyTokenBudget: tokenBudget
         }
       };
     }
 
     const rowResult = await db.query<QuotaRow>(
-      "SELECT * FROM quota_counters WHERE user_id = $1 AND period_type = 'day' AND period_start = $2 LIMIT 1",
+      "SELECT * FROM aura.quota_counters WHERE user_id = $1 AND period_type = 'day' AND period_start = $2 LIMIT 1",
       [userId, periodStart]
     );
     const row = rowResult.rows[0];
@@ -351,12 +438,16 @@ export const usageService = {
       remaining: {
         dailyOverview: Math.max(0, limits.dailyOverview - (row?.briefings_generated ?? 0)),
         dailyChat: Math.max(0, limits.dailyChat - (row?.chat_requests ?? 0)),
-        dailyManualRefresh: Math.max(0, limits.dailyManualRefresh - (row?.refresh_requests ?? 0))
+        dailyManualRefresh: Math.max(0, limits.dailyManualRefresh - (row?.refresh_requests ?? 0)),
+        dailyTokens:
+          tokenBudget > 0 ? Math.max(0, tokenBudget - (row?.tokens_used ?? 0)) : null
       },
       saturation: {
         dailyOverview: Math.min(1, (row?.briefings_generated ?? 0) / Math.max(1, limits.dailyOverview)),
         dailyChat: Math.min(1, (row?.chat_requests ?? 0) / Math.max(1, limits.dailyChat)),
-        dailyManualRefresh: Math.min(1, (row?.refresh_requests ?? 0) / Math.max(1, limits.dailyManualRefresh))
+        dailyManualRefresh: Math.min(1, (row?.refresh_requests ?? 0) / Math.max(1, limits.dailyManualRefresh)),
+        dailyTokens:
+          tokenBudget > 0 ? Math.min(1, (row?.tokens_used ?? 0) / tokenBudget) : 0
       },
       limits: {
         minutePerFeature: limits.minutePerFeature,
@@ -364,7 +455,8 @@ export const usageService = {
         dailyEmailSummary: limits.dailyEmailSummary,
         dailyOverview: limits.dailyOverview,
         dailyChat: limits.dailyChat,
-        dailyManualRefresh: limits.dailyManualRefresh
+        dailyManualRefresh: limits.dailyManualRefresh,
+        dailyTokenBudget: tokenBudget
       }
     };
   },

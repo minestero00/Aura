@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { config } from "../../config/env.js";
+import { createPgPool } from "../../lib/db/pool.js";
 import { AppError } from "../../lib/errors/app-error.js";
 import { createId } from "../../lib/ids.js";
 import type { ChatCitation, ChatMessage, ChatRole } from "./types.js";
@@ -22,9 +23,7 @@ function getPool() {
   }
 
   if (!pool) {
-    pool = new Pool({
-      connectionString: config.databaseUrl
-    });
+    pool = createPgPool();
   }
 
   return pool;
@@ -101,7 +100,7 @@ export const chatRepository = {
 
     if (sessionId) {
       const existing = await poolInstance.query<{ id: string }>(
-        "SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2",
+        "SELECT id FROM aura.chat_sessions WHERE id = $1 AND user_id = $2",
         [sessionId, userId]
       );
 
@@ -114,7 +113,7 @@ export const chatRepository = {
 
     const id = createId();
     await poolInstance.query(
-      "INSERT INTO chat_sessions (id, user_id, created_at, updated_at) VALUES ($1, $2, now(), now())",
+      "INSERT INTO aura.chat_sessions (id, user_id, created_at, updated_at) VALUES ($1, $2, now(), now())",
       [id, userId]
     );
     return id;
@@ -155,14 +154,14 @@ export const chatRepository = {
       citations: string;
       created_at: Date;
     }>(
-      `INSERT INTO chat_messages (id, session_id, user_id, role, content, citations, created_at)
+      `INSERT INTO aura.chat_messages (id, session_id, user_id, role, content, citations, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, now())
        RETURNING id, session_id, user_id, role, content, citations, created_at`,
       [createId(), sessionId, userId, role, content, JSON.stringify(citations)]
     );
 
     await poolInstance.query(
-      `UPDATE chat_sessions
+      `UPDATE aura.chat_sessions
           SET last_user_message_at = CASE WHEN $2 = 'user' THEN now() ELSE last_user_message_at END,
               last_assistant_message_at = CASE WHEN $2 = 'assistant' THEN now() ELSE last_assistant_message_at END,
               updated_at = now()
@@ -201,7 +200,7 @@ export const chatRepository = {
       created_at: Date;
     }>(
       `SELECT id, session_id, user_id, role, content, citations, created_at
-         FROM chat_messages
+         FROM aura.chat_messages
         WHERE session_id = $1
           AND user_id = $2
         ORDER BY created_at DESC

@@ -1,5 +1,10 @@
 import { useColorScheme } from "react-native";
 
+/**
+ * AURA Theme. Values mirror ../../../../../aura-app-design-system/assets/tokens.css.
+ * If you change tokens.css, mirror the change here so native app and design-system
+ * reference stay in sync.
+ */
 export interface AuraTheme {
   isDark: boolean;
   colors: {
@@ -25,44 +30,44 @@ export interface AuraTheme {
 const lightTheme: AuraTheme = {
   isDark: false,
   colors: {
-    background: "#f3f6fb",
-    backgroundSecondary: "#ecf2ff",
-    surface: "#ffffff",
-    surfaceMuted: "#f6f8ff",
-    elevated: "#ffffff",
-    textPrimary: "#141b2d",
-    textSecondary: "#4f5e7a",
-    textMuted: "#8391ab",
-    line: "#d8e1f0",
-    lineStrong: "#c6d3e7",
-    accent: "#2f6bff",
-    accentSoft: "#e6eeff",
-    accentText: "#ffffff",
-    dangerSoft: "#ffeef1",
-    dangerText: "#cf3b58",
-    overlay: "rgba(14, 22, 38, 0.38)"
+    background: "#F7F8FB",
+    backgroundSecondary: "#F4F2FF",
+    surface: "#FFFFFF",
+    surfaceMuted: "#F4F4F8",
+    elevated: "#FFFFFF",
+    textPrimary: "#0F1226",
+    textSecondary: "#4A4E66",
+    textMuted: "#8B8FA4",
+    line: "#EFEFF4",
+    lineStrong: "#E2E3EC",
+    accent: "#6B5BFF",
+    accentSoft: "#ECE9FF",
+    accentText: "#FFFFFF",
+    dangerSoft: "#FFEAEE",
+    dangerText: "#FF3B5C",
+    overlay: "rgba(15, 18, 38, 0.45)"
   }
 };
 
 const darkTheme: AuraTheme = {
   isDark: true,
   colors: {
-    background: "#090f1b",
-    backgroundSecondary: "#101a2f",
-    surface: "#121d32",
-    surfaceMuted: "#16233c",
-    elevated: "#0f1a2d",
-    textPrimary: "#edf3ff",
-    textSecondary: "#b6c3df",
-    textMuted: "#8798bd",
-    line: "#25375b",
-    lineStrong: "#31456e",
-    accent: "#78a4ff",
-    accentSoft: "#1b2d53",
-    accentText: "#071224",
-    dangerSoft: "#3d2231",
-    dangerText: "#ffb8ca",
-    overlay: "rgba(0, 0, 0, 0.56)"
+    background: "#0C0E26",
+    backgroundSecondary: "#1E1B40",
+    surface: "#121430",
+    surfaceMuted: "#181A30",
+    elevated: "#1E1B40",
+    textPrimary: "#F2F3FA",
+    textSecondary: "#A6A9BD",
+    textMuted: "#888BA0",
+    line: "#20223A",
+    lineStrong: "#2D3045",
+    accent: "#8E76FF",
+    accentSoft: "#2A256B",
+    accentText: "#0F1226",
+    dangerSoft: "#3A1A26",
+    dangerText: "#FF8FA3",
+    overlay: "rgba(0, 0, 0, 0.6)"
   }
 };
 

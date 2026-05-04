@@ -2,6 +2,7 @@ import { createAnthropicJsonSummary } from "../../lib/ai/anthropic.js";
 import { AppError } from "../../lib/errors/app-error.js";
 import { authStore } from "../auth/store.js";
 import { briefingsService } from "../briefings/service.js";
+import { usageService } from "../usage/service.js";
 import { chatRepository } from "./repository.js";
 import type { ChatCitation, ChatReply } from "./types.js";
 
@@ -101,7 +102,7 @@ export const chatService = {
       newsBriefing?.headline ?? null
     );
 
-    const parsed = await createAnthropicJsonSummary<ChatModelOutput>({
+    const result = await createAnthropicJsonSummary<ChatModelOutput>({
       maxTokens: 500,
       system:
         input.language === "ko"
@@ -133,6 +134,15 @@ export const chatService = {
       fallback
     });
 
+    if (result.usage) {
+      await usageService.recordModelUsage({
+        userId,
+        feature: "chat",
+        ...result.usage
+      });
+    }
+
+    const parsed = result.data;
     const answer = sanitizeAnswer(parsed.answer?.trim() || fallback.answer, input.message);
     const citations = sanitizeCitations(parsed.citations ?? fallback.citations);
 

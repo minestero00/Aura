@@ -1,62 +1,43 @@
 import { Router } from "express";
 import { asyncHandler } from "../../lib/http/async-handler.js";
 import { requireAuth } from "./middleware/require-auth.js";
-import { googleAuthSchema, refreshSessionSchema } from "./schemas.js";
-import { authService } from "./service.js";
+import { authStore } from "./store.js";
 
 export const authRouter = Router();
 
-authRouter.post(
-  "/google",
-  asyncHandler(async (req, res) => {
-    const input = googleAuthSchema.parse(req.body);
-    const result = await authService.signInWithGoogle(input);
-
-    res.json({
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        name: result.user.name,
-        avatarUrl: result.user.avatarUrl,
-        timezone: result.user.timezone,
-        planTier: result.user.planTier
-      },
-      session: result.session,
-      integrations: {
-        gmailConnected: result.user.gmailConnected,
-        gmailAddress: null,
-        gmailScopes: [],
-        gmailConnectedAt: null,
-        gmailSyncReady: false,
-        gmailAccessExpiresAt: null,
-        calendarConnected: false
-      }
-    });
-  })
-);
-
-authRouter.post(
-  "/refresh",
-  asyncHandler(async (req, res) => {
-    const input = refreshSessionSchema.parse(req.body);
-    const refreshed = authService.refreshSession(input.refreshToken);
-
-    res.json({
-      accessToken: refreshed.accessToken,
-      refreshToken: refreshed.refreshToken,
-      expiresIn: refreshed.expiresIn
-    });
-  })
-);
-
-authRouter.post(
-  "/logout",
+/**
+ * Returns the authenticated user's profile + integration state.
+ * Sign-in / refresh / logout are handled directly by the Supabase client SDK
+ * on the device — the backend only verifies the resulting JWT.
+ */
+authRouter.get(
+  "/me",
   requireAuth,
   asyncHandler(async (req, res) => {
-    if (req.authSessionId) {
-      authService.logout(req.authSessionId);
-    }
+    const userId = req.authUser!.id;
+    const context = await authStore.ensureUserContext(userId);
+    const gmail = authStore.getGmailConnection(userId);
 
-    res.status(204).send();
+    res.json({
+      user: context
+        ? {
+            id: context.user.id,
+            email: context.user.email,
+            phone: context.user.phone,
+            name: context.user.name,
+            avatarUrl: context.user.avatarUrl,
+            timezone: context.user.timezone,
+            planTier: context.user.planTier
+          }
+        : null,
+      preferences: context?.preferences ?? null,
+      integrations: {
+        gmailConnected: Boolean(gmail),
+        gmailAddress: gmail?.email ?? null,
+        gmailScopes: gmail?.scopes ?? [],
+        gmailConnectedAt: gmail?.connectedAt ?? null,
+        gmailAccessExpiresAt: gmail?.expiresAt ?? null
+      }
+    });
   })
 );

@@ -1,4 +1,5 @@
 import { createAnthropicJsonSummary } from "../../lib/ai/anthropic.js";
+import { usageService } from "../usage/service.js";
 import type { NewsArticle, NewsBriefing } from "./types.js";
 
 function containsHangul(value: string) {
@@ -55,13 +56,17 @@ function buildFallbackNewsBriefing(articles: NewsArticle[], language: "en" | "ko
   };
 }
 
-export async function summarizeNewsArticles(articles: NewsArticle[], language: "en" | "ko") {
+export async function summarizeNewsArticles(
+  articles: NewsArticle[],
+  language: "en" | "ko",
+  userId?: string
+) {
   if (articles.length === 0) {
     return buildFallbackNewsBriefing(articles, language);
   }
 
   const fallback = buildFallbackNewsBriefing(articles, language);
-  const parsed = await createAnthropicJsonSummary<NewsBriefing>({
+  const result = await createAnthropicJsonSummary<NewsBriefing>({
     maxTokens: 500,
     system:
       language === "ko"
@@ -76,6 +81,16 @@ export async function summarizeNewsArticles(articles: NewsArticle[], language: "
     })),
     fallback
   });
+
+  if (userId && result.usage) {
+    await usageService.recordModelUsage({
+      userId,
+      feature: "news_briefing",
+      ...result.usage
+    });
+  }
+
+  const parsed = result.data;
 
   if (!parsed.headline || !Array.isArray(parsed.bullets)) {
     return fallback;

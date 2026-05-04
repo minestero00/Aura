@@ -7,7 +7,9 @@ import { hasEncryptionKey } from "./lib/security/encryption.js";
 
 async function bootstrap() {
   if (!hasEncryptionKey() && config.nodeEnv === "production") {
-    throw new Error("APP_ENCRYPTION_KEY must be set in production.");
+    throw new Error(
+      "APP_ENCRYPTION_KEY must be set in production. Provide a 64 char hex string or base64 of 32 bytes."
+    );
   }
 
   if (!hasEncryptionKey()) {

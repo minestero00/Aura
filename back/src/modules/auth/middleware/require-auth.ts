@@ -1,8 +1,9 @@
 import type { RequestHandler } from "express";
 import { AppError } from "../../../lib/errors/app-error.js";
-import { authService } from "../service.js";
+import { verifySupabaseJwt } from "../../../lib/auth/supabase.js";
+import { authStore } from "../store.js";
 
-export const requireAuth: RequestHandler = (req, _res, next) => {
+export const requireAuth: RequestHandler = async (req, _res, next) => {
   const authorization = req.header("authorization");
 
   if (!authorization) {
@@ -16,13 +17,25 @@ export const requireAuth: RequestHandler = (req, _res, next) => {
   }
 
   try {
-    const auth = authService.authenticateAccessToken(token);
-    req.authAccessToken = token;
-    req.authSessionId = auth.sessionId;
-    req.authUser = auth.user;
-  } catch (error) {
-    return next(error);
-  }
+    const claims = await verifySupabaseJwt(token);
+    const user = await authStore.ensureAuthenticatedUser({
+      id: claims.sub,
+      email: claims.email ?? null,
+      phone: claims.phone ?? null
+    });
 
-  next();
+    req.authAccessToken = token;
+    req.authSessionId = claims.sub;
+    req.authUser = user;
+    next();
+  } catch (error) {
+    if (error instanceof AppError) {
+      return next(error);
+    }
+    return next(
+      new AppError(401, "UNAUTHORIZED", "Access token is invalid or expired.", {
+        reason: error instanceof Error ? error.message : String(error)
+      })
+    );
+  }
 };

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { Pool } from "pg";
 import { config } from "../config/env.js";
 import { asyncHandler } from "../lib/http/async-handler.js";
+import { createPgPool } from "../lib/db/pool.js";
 import { getRedisClient } from "../lib/cache/redis.js";
 
 export const healthRouter = Router();
@@ -34,8 +34,7 @@ healthRouter.get(
 
     if (config.databaseUrl) {
       try {
-        const db = new Pool({
-          connectionString: config.databaseUrl,
+        const db = createPgPool({
           connectionTimeoutMillis: DEPENDENCY_TIMEOUT_MS,
           statement_timeout: DEPENDENCY_TIMEOUT_MS
         });

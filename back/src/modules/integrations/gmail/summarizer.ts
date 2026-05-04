@@ -1,4 +1,5 @@
 import { createAnthropicJsonSummary } from "../../../lib/ai/anthropic.js";
+import { usageService } from "../../usage/service.js";
 import type { GmailMessageSummary, GmailReplyContext } from "./gmail-api.js";
 
 function containsHangul(value: string) {
@@ -38,13 +39,17 @@ function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "
   };
 }
 
-export async function summarizeGmailMessages(messages: GmailMessageSummary[], language: "en" | "ko") {
+export async function summarizeGmailMessages(
+  messages: GmailMessageSummary[],
+  language: "en" | "ko",
+  userId?: string
+) {
   if (messages.length === 0) {
     return buildFallbackDigest(messages, language);
   }
 
   const fallback = buildFallbackDigest(messages, language);
-  const parsed = await createAnthropicJsonSummary<GmailDigest>({
+  const result = await createAnthropicJsonSummary<GmailDigest>({
     maxTokens: 250,
     system:
       language === "ko"
@@ -59,6 +64,16 @@ export async function summarizeGmailMessages(messages: GmailMessageSummary[], la
     })),
     fallback
   });
+
+  if (userId && result.usage) {
+    await usageService.recordModelUsage({
+      userId,
+      feature: "email_summary",
+      ...result.usage
+    });
+  }
+
+  const parsed = result.data;
 
   if (!parsed.headline || !Array.isArray(parsed.bullets)) {
     return buildFallbackDigest(messages, language);
@@ -98,10 +113,11 @@ function buildFallbackReplyDraft(context: GmailReplyContext, language: "en" | "k
 
 export async function generateReplyDraft(
   context: GmailReplyContext,
-  language: "en" | "ko"
+  language: "en" | "ko",
+  userId?: string
 ) {
   const fallback = buildFallbackReplyDraft(context, language);
-  const parsed = await createAnthropicJsonSummary<GmailReplyDraft>({
+  const result = await createAnthropicJsonSummary<GmailReplyDraft>({
     maxTokens: 220,
     system:
       language === "ko"
@@ -115,6 +131,16 @@ export async function generateReplyDraft(
     },
     fallback
   });
+
+  if (userId && result.usage) {
+    await usageService.recordModelUsage({
+      userId,
+      feature: "email_summary",
+      ...result.usage
+    });
+  }
+
+  const parsed = result.data;
 
   if (!parsed.subject || !parsed.body) {
     return fallback;

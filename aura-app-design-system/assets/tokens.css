@@ -1,0 +1,137 @@
+/* ==========================================================================
+   AURA · Design Tokens
+   AI 비서 앱(AURA — Ai for User Reliable Assistant)의 모든 화면이 이 한 벌의
+   CSS 변수만 import해도 톤이 유지됩니다. 절대로 hex 값을 인라인하지 마세요.
+     <link rel="stylesheet" href="tokens.css">
+   ========================================================================== */
+
+:root {
+  /* ── Brand · Aurora (시그니처) ────────────────────────────── */
+  --aurora:        #6B5BFF;   /* 인디고-퍼플 — 로고/주요 강조/Insight 신호 */
+  --aurora-600:    #5746E8;
+  --aurora-700:    #3F31C4;
+  --aurora-50:     #F4F2FF;   /* 카드 배경, soft chip */
+  --aurora-100:    #E2DDFF;
+  --aurora-soft:   #ECE9FF;
+
+  /* ── Brand · Calm (보조 — 뉴스/정보 톤) ──────────────────── */
+  --calm:          #34D2FF;
+  --calm-600:      #1FB8E5;
+  --calm-50:       #E0F6FF;
+
+  /* ── Brand · Warm (보조 — 메일/긴급 알림 톤) ────────────── */
+  --warm:          #FF8A4C;
+  --warm-600:      #E5713A;
+  --warm-50:       #FFEFE6;
+
+  /* ── Ink / Neutral ────────────────────────────────────────── */
+  --ink:           #0F1226;   /* 푸른빛 도는 잉크 — AURA 표지/CTA */
+  --ink-2:         #1F2240;
+  --gray-900:      #2A2D45;
+  --gray-800:      #4A4E66;
+  --gray-700:      #6C7088;
+  --gray-600:      #8B8FA4;
+  --gray-500:      #ABAEC0;
+  --gray-400:      #CDCEDB;
+  --gray-300:      #E2E3EC;
+  --gray-200:      #EFEFF4;
+  --gray-150:      #F4F4F8;   /* 검색바, 입력 fill */
+  --gray-100:      #F7F8FB;   /* 페이지 일반 배경 */
+  --gray-50:       #FBFBFD;
+  --white:         #FFFFFF;
+  --black:         #000000;
+
+  /* ── Semantic ─────────────────────────────────────────────── */
+  --success:       #1FCB7A;
+  --warning:       #FFAA1D;
+  --error:         #FF3B5C;
+  --info:          var(--calm);
+  --urgent:        #FF3B5C;   /* "지금 출발해야 함" 같은 긴급 알림 */
+
+  /* ── Provider · Google 만 (소셜 로그인) ─────────────────── */
+  --google-bg:     #FFFFFF;
+  --google-ink:    #1F2240;
+  --google-edge:   var(--gray-300);
+
+  /* ── Typography · Pretendard 단일 시스템 ─────────────────── */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+          system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', sans-serif;
+  --mono: 'SF Mono', ui-monospace, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* ── Type Scale ───────────────────────────────────────────── */
+  --fs-d1:   34px;  /* Hero (브리핑 제목) */
+  --fs-h1:   26px;
+  --fs-h2:   22px;
+  --fs-h3:   18px;
+  --fs-h4:   16px;
+  --fs-body: 15px;
+  --fs-sm:   14px;
+  --fs-xs:   13px;
+  --fs-2xs:  12px;
+  --fs-3xs:  11px;
+
+  /* ── Spacing · 4px base ───────────────────────────────────── */
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-7:  28px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+
+  /* ── Radius · 7 steps ─────────────────────────────────────── */
+  --r-xs:    4px;
+  --r-sm:    6px;
+  --r-md:   12px;    /* 기본 CTA / 카드 — dumb보다 살짝 더 둥글게 (소프트 톤) */
+  --r-lg:   16px;
+  --r-xl:   22px;
+  --r-2xl:  28px;    /* 바텀시트 */
+  --r-full: 999px;   /* 칩, 검색바, 채팅 입력 */
+
+  /* ── Shadow · 4 steps + aurora glow ───────────────────────── */
+  --sh-1: 0 1px 2px rgba(15,18,38,.04), 0 1px 2px rgba(15,18,38,.04);
+  --sh-2: 0 6px 12px rgba(15,18,38,.06), 0 2px 4px rgba(15,18,38,.04);
+  --sh-3: 0 14px 28px rgba(15,18,38,.10), 0 4px 8px rgba(15,18,38,.04);
+  --sh-4: 0 28px 56px rgba(15,18,38,.18);
+  --glow-aurora: 0 0 0 4px rgba(107,91,255,.18);
+  --glow-urgent: 0 0 0 4px rgba(255,59,92,.18);
+
+  /* ── Motion ───────────────────────────────────────────────── */
+  --d-fast:   120ms;
+  --d-base:   200ms;
+  --d-slow:   320ms;
+  --ease:      cubic-bezier(.22,.61,.36,1);
+  --ease-emph: cubic-bezier(.2,0,0,1);
+
+  /* ── Aurora Gradient (브리핑 헤더, 환영 배너 한정) ────────── */
+  --grad-aurora:
+    linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────── */
+[data-theme='dark'], .theme-dark {
+  --ink:        #F2F3FA;
+  --ink-2:      #DCDDEA;
+  --gray-900:   #C7C9D8;
+  --gray-800:   #A6A9BD;
+  --gray-700:   #888BA0;
+  --gray-600:   #6E7185;
+  --gray-500:   #54576A;
+  --gray-400:   #3D4054;
+  --gray-300:   #2D3045;
+  --gray-200:   #20223A;
+  --gray-150:   #181A30;
+  --gray-100:   #121430;
+  --gray-50:    #0C0E26;
+  --white:      #0F1226;       /* 다크 모드의 "표면" */
+  --aurora-50:  #1E1B40;
+  --aurora-100: #2A256B;
+  --aurora-soft:#1E1B40;
+  --calm-50:    #0E2C3A;
+  --warm-50:    #2D1A12;
+}

@@ -88,7 +88,7 @@ async function generateSnapshot(
 
     const categories = preferences.newsCategories as NewsArticle["category"][];
     const newsArticles = await fetchTopNewsArticles(categories, 4);
-    const newsBriefing = await summarizeNewsArticles(newsArticles, language);
+    const newsBriefing = await summarizeNewsArticles(newsArticles, language, userId);
 
     let emailDigest: { headline: string; bullets: string[] } | null = null;
     let emailMessages = [] as Awaited<ReturnType<typeof fetchDailyGmailMessages>>;
@@ -96,7 +96,7 @@ async function generateSnapshot(
     if (user.gmailConnected) {
       try {
         emailMessages = await fetchDailyGmailMessages(userId, 20);
-        emailDigest = await summarizeGmailMessages(emailMessages, language);
+        emailDigest = await summarizeGmailMessages(emailMessages, language, userId);
       } catch {
         emailMessages = [];
         emailDigest = null;
@@ -118,7 +118,7 @@ async function generateSnapshot(
     };
 
     snapshotsByKey.set(key, snapshot);
-    await briefingsRepository.saveSnapshot(user.googleUserId, language, snapshot);
+    await briefingsRepository.saveSnapshot(user.id, language, snapshot);
     return snapshot;
   })();
 
@@ -206,7 +206,7 @@ export const briefingsService = {
     let existing = snapshotsByKey.get(key);
 
     if (!existing) {
-      const fromDb = await briefingsRepository.getSnapshot(user.googleUserId, language);
+      const fromDb = await briefingsRepository.getSnapshot(user.id, language);
       if (fromDb) {
         existing = patchSnapshotUser(fromDb, userId);
         snapshotsByKey.set(key, existing);

@@ -31,6 +31,9 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || "development",
   enableBriefingScheduler: process.env.ENABLE_BRIEFING_SCHEDULER === "true",
   databaseUrl: process.env.DATABASE_URL || "",
+  databaseSsl:
+    process.env.DATABASE_SSL === "true" ||
+    (process.env.NODE_ENV === "production" && process.env.DATABASE_SSL !== "false"),
   redisUrl: process.env.REDIS_URL || "",
   googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID || "",
   googleIosClientId: process.env.GOOGLE_IOS_CLIENT_ID || "",
@@ -38,7 +41,18 @@ export const config = {
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
   openWeatherMapApiKey: process.env.OPENWEATHERMAP_API_KEY || "",
+  supabaseUrl: process.env.SUPABASE_URL || "",
+  supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET || "",
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
   anthropicModel: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514",
-  appEncryptionKey: process.env.APP_ENCRYPTION_KEY || ""
+  anthropicInputCostPerMtok: Number(process.env.ANTHROPIC_INPUT_COST_PER_MTOK || 3),
+  anthropicOutputCostPerMtok: Number(process.env.ANTHROPIC_OUTPUT_COST_PER_MTOK || 15),
+  usageDailyTokenBudget: Number(process.env.USAGE_DAILY_TOKEN_BUDGET || 0),
+  appEncryptionKey: process.env.APP_ENCRYPTION_KEY || "",
+  corsAllowedOrigins: (process.env.CORS_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map(value => value.trim())
+    .filter(value => value.length > 0),
+  ipRateLimitPerMinute: Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 120)
 };

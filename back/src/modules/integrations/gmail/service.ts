@@ -132,7 +132,7 @@ export const gmailService = {
       await fetchRecentGmailMessages(userId, { limit }),
       ignoredSenderKeys
     );
-    const digest = await summarizeGmailMessages(messages, language);
+    const digest = await summarizeGmailMessages(messages, language, userId);
 
     return {
       digest,
@@ -154,7 +154,7 @@ export const gmailService = {
       await fetchDailyGmailMessages(userId, 20),
       ignoredSenderKeys
     );
-    const digest = await summarizeGmailMessages(messages, language);
+    const digest = await summarizeGmailMessages(messages, language, userId);
 
     return {
       digest,
@@ -169,7 +169,7 @@ export const gmailService = {
     }
 
     const context = await fetchGmailMessageForReply(userId, messageId);
-    const generated = await generateReplyDraft(context, language);
+    const generated = await generateReplyDraft(context, language, userId);
     const draft = await createGmailReplyDraft(userId, context, generated.body);
 
     return {

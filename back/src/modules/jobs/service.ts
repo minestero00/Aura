@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { config } from "../../config/env.js";
+import { createPgPool } from "../../lib/db/pool.js";
 import { createId } from "../../lib/ids.js";
 import { briefingsService } from "../briefings/service.js";
 
@@ -43,9 +44,7 @@ function getPool() {
   }
 
   if (!pool) {
-    pool = new Pool({
-      connectionString: config.databaseUrl
-    });
+    pool = createPgPool();
   }
 
   return pool;
@@ -128,7 +127,7 @@ async function enqueueDailyBriefPrecompute(userId: string, source: "schedule" | 
   };
 
   await db.query(
-    "INSERT INTO background_jobs (id, job_type, user_id, job_key, status, attempt_count, max_attempts, available_at, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, 'queued', 0, 5, now(), $5, now(), now()) ON CONFLICT (job_type, job_key) WHERE job_key IS NOT NULL DO NOTHING",
+    "INSERT INTO aura.background_jobs (id, job_type, user_id, job_key, status, attempt_count, max_attempts, available_at, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, 'queued', 0, 5, now(), $5, now(), now()) ON CONFLICT (job_type, job_key) WHERE job_key IS NOT NULL DO NOTHING",
     [createId(), jobType, userId, jobKey, JSON.stringify(payload)]
   );
 }
@@ -143,14 +142,14 @@ async function claimNextJob() {
     `
     WITH next_job AS (
       SELECT id
-      FROM background_jobs
+      FROM aura.background_jobs
       WHERE status IN ('queued', 'failed')
         AND available_at <= now()
       ORDER BY available_at ASC
       FOR UPDATE SKIP LOCKED
       LIMIT 1
     )
-    UPDATE background_jobs
+    UPDATE aura.background_jobs
     SET status = 'processing',
         started_at = now(),
         attempt_count = attempt_count + 1,
@@ -170,7 +169,7 @@ async function markCompleted(jobId: string) {
   }
 
   await db.query(
-    "UPDATE background_jobs SET status = 'completed', completed_at = now(), error_code = NULL, error_message = NULL, updated_at = now() WHERE id = $1",
+    "UPDATE aura.background_jobs SET status = 'completed', completed_at = now(), error_code = NULL, error_message = NULL, updated_at = now() WHERE id = $1",
     [jobId]
   );
 }
@@ -189,14 +188,14 @@ async function markFailed(job: BackgroundJobRow, error: unknown) {
 
   if (exhausted) {
     await db.query(
-      "UPDATE background_jobs SET status = 'dead_letter', error_code = $2, error_message = $3, completed_at = now(), updated_at = now() WHERE id = $1",
+      "UPDATE aura.background_jobs SET status = 'dead_letter', error_code = $2, error_message = $3, completed_at = now(), updated_at = now() WHERE id = $1",
       [job.id, "MAX_ATTEMPTS_EXCEEDED", errorMessage]
     );
     return;
   }
 
   await db.query(
-    "UPDATE background_jobs SET status = 'failed', error_code = $2, error_message = $3, available_at = $4, updated_at = now() WHERE id = $1",
+    "UPDATE aura.background_jobs SET status = 'failed', error_code = $2, error_message = $3, available_at = $4, updated_at = now() WHERE id = $1",
     [job.id, "JOB_PROCESSING_FAILED", errorMessage, availableAt]
   );
 }
@@ -268,7 +267,7 @@ async function cleanupOldJobs() {
     const deleted = await db.query<{ count: string }>(
       `
         WITH removed AS (
-          DELETE FROM background_jobs
+          DELETE FROM aura.background_jobs
           WHERE (status = 'completed' AND completed_at IS NOT NULL AND completed_at < $1)
             OR (status IN ('failed', 'dead_letter') AND updated_at < $2)
           RETURNING id

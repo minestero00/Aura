@@ -2,6 +2,19 @@ import { config } from "../../config/env.js";
 
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
+export interface AnthropicUsage {
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  latencyMs: number;
+  model: string;
+}
+
+export interface AnthropicCallResult<T> {
+  data: T;
+  usage: AnthropicUsage | null;
+}
+
 interface AnthropicJsonRequest<T> {
   maxTokens: number;
   system: string;
@@ -48,15 +61,24 @@ function extractJsonObject<T>(text: string): T | null {
   return null;
 }
 
+export function computeAnthropicCostUsd(inputTokens: number, outputTokens: number) {
+  const inputCost = (inputTokens / 1_000_000) * config.anthropicInputCostPerMtok;
+  const outputCost = (outputTokens / 1_000_000) * config.anthropicOutputCostPerMtok;
+  return Number((inputCost + outputCost).toFixed(6));
+}
+
 export async function createAnthropicJsonSummary<T>({
   maxTokens,
   system,
   payload,
   fallback
-}: AnthropicJsonRequest<T>) {
+}: AnthropicJsonRequest<T>): Promise<AnthropicCallResult<T>> {
   if (!config.anthropicApiKey) {
-    return fallback;
+    return { data: fallback, usage: null };
   }
+
+  const model = config.anthropicModel || DEFAULT_ANTHROPIC_MODEL;
+  const startedAt = Date.now();
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -66,7 +88,7 @@ export async function createAnthropicJsonSummary<T>({
       "anthropic-version": "2023-06-01"
     },
     body: JSON.stringify({
-      model: config.anthropicModel || DEFAULT_ANTHROPIC_MODEL,
+      model,
       max_tokens: maxTokens,
       system,
       messages: [
@@ -80,18 +102,38 @@ export async function createAnthropicJsonSummary<T>({
 
   const body = (await response.json().catch(() => null)) as
     | {
-        content?: Array<{
-          type?: string;
-          text?: string;
-        }>;
+        content?: Array<{ type?: string; text?: string }>;
+        usage?: {
+          input_tokens?: number;
+          output_tokens?: number;
+          cache_creation_input_tokens?: number;
+          cache_read_input_tokens?: number;
+        };
       }
     | null;
 
   const text = body?.content?.find(item => item.type === "text")?.text;
+  const latencyMs = Date.now() - startedAt;
 
   if (!response.ok || !text) {
-    return fallback;
+    return { data: fallback, usage: null };
   }
 
-  return extractJsonObject<T>(text) ?? fallback;
+  const inputTokens =
+    (body?.usage?.input_tokens ?? 0) +
+    (body?.usage?.cache_creation_input_tokens ?? 0) +
+    (body?.usage?.cache_read_input_tokens ?? 0);
+  const outputTokens = body?.usage?.output_tokens ?? 0;
+  const usage: AnthropicUsage = {
+    inputTokens,
+    outputTokens,
+    costUsd: computeAnthropicCostUsd(inputTokens, outputTokens),
+    latencyMs,
+    model
+  };
+
+  return {
+    data: extractJsonObject<T>(text) ?? fallback,
+    usage
+  };
 }
