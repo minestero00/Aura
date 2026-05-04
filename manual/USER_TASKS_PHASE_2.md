@@ -14,7 +14,7 @@
 A. Supabase 프로젝트 키 수집 (5분)
 B. Google OAuth — Supabase Auth provider 설정 (10분)
 C. Kakao Developers 앱 + Supabase Auth provider (30분)
-D. 한국 SMS provider 가입 + Supabase Phone Auth (30분)
+D. Solapi(SMS) + Supabase Phone Auth Hook 연결 (30분)
 E. 백엔드 환경변수 입력 + 재배포 (15분)
 F. 모바일 앱 .env 채우기 (5분)
 G. iOS 네이티브 설정 (Xcode, 20분)
@@ -115,35 +115,81 @@ Supabase Dashboard → **Authentication → Providers → Kakao**:
 
 ---
 
-## D. 한국 SMS provider 가입 + Supabase Phone Auth (30분)
+## D. Solapi(SMS) + Supabase Phone Auth Hook 연결 (30분)
 
-### D-1. SMS provider 선택
+⚠️ Supabase Phone Provider는 Twilio/MessageBird/Vonage/TextLocal만 공식 지원합니다. Solapi(=Coolsms 후속)는 직접 못 붙이지만, **Supabase Send SMS Hook + Edge Function**으로 우회합니다 — Edge Function은 이미 제가 deploy 해둔 상태이니 사용자는 환경변수만 채우면 됩니다.
 
-| Provider | 한국 발송 비용 | 가입 난이도 | 권장 |
-|---|---|---|---|
-| **Coolsms** ([Nurigo](https://nurigo.net/)) | 건당 ~10원 | 사업자 인증 필요 | ✅ 가장 저렴 |
-| **Aligo** ([Aligo](https://smartsms.aligo.in/)) | 건당 ~10원 | 사업자 인증 필요 | ✅ |
-| **Twilio** | 건당 ~$0.075 (~100원) | 카드만 있으면 즉시 | 글로벌만 |
+```
+사용자 "코드 받기" 누름
+  ↓ supabase.auth.signInWithOtp({ phone })
+Supabase가 OTP 6자리 생성 + Send SMS Hook(=우리 Edge Function) 호출
+  ↓
+Edge Function이 Solapi API로 SMS 발송
+  ↓ 사용자가 6자리 입력
+Supabase가 OTP 검증 → JWT 발급 + auth.users.phone 채움
+```
 
-> Coolsms 권장. 가입 후 발신번호 등록 (사업자등록증 또는 본인 휴대폰 인증 필요).
+### D-1. Solapi 발신번호 + API Key 확보 (15분)
 
-### D-2. Supabase Phone Auth 활성화
+Solapi 콘솔에 가입은 완료된 상태 ([dashboard](https://console.solapi.com/dashboard) — README.md에 메모됨).
 
-Supabase Dashboard → **Authentication → Providers → Phone**:
+1. **발신번호 등록**:
+   - 메뉴 → **발신번호** → "발신번호 등록"
+   - 본인 또는 사업자 명의 휴대전화로 인증 → 등록
+   - 등록된 번호를 메모 (예: `01012345678`)
+2. **API Key 발급**:
+   - 메뉴 → **개발 → API Key** → "+ 새 API Key 발급"
+   - 권한: `messages:write` (또는 전체) 선택
+   - 발급되는 두 값을 즉시 메모 (Secret은 발급 시에만 표시됨, 분실 시 재발급):
+     - **API Key** (`NCS...`)
+     - **API Secret Key** (`...`)
+3. **충전**: 메뉴 → **충전** → 신용카드로 1만원 정도 충전 (1건 당 ~8.5원, 1만원 ≈ 1170건)
+
+### D-2. Supabase Auth Hook 활성화 + Hook Secret 받기 (5분)
+
+[Supabase Dashboard](https://supabase.com/dashboard/project/rfxvaektikhjrfiphkgz/auth/hooks) → **Authentication → Hooks**:
+
+1. **Send SMS Hook** 카드의 **Enable** 토글 ON
+2. **Hook type**: `HTTPS`
+3. **Hook URL**: `https://rfxvaektikhjrfiphkgz.supabase.co/functions/v1/send-sms`
+4. **Save** 누르면 화면에 **Webhook secret** (`v1,whsec_...` 형태)이 표시됨 — **즉시 복사**해두세요
+
+> **표시 후 한 번만 보입니다.** 잃어버리면 Hook secret을 rotate해야 함.
+
+### D-3. Edge Function 환경변수 입력 (5분)
+
+[Functions Dashboard](https://supabase.com/dashboard/project/rfxvaektikhjrfiphkgz/functions) → **send-sms** → **Manage Secrets** → 4개 입력:
+
+| 키 | 값 |
+|---|---|
+| `SOLAPI_API_KEY` | D-1의 API Key (`NCS...`) |
+| `SOLAPI_API_SECRET` | D-1의 API Secret Key |
+| `SMS_SENDER` | D-1의 등록된 발신번호 (예: `01012345678`) |
+| `SEND_SMS_HOOK_SECRET` | D-2의 `v1,whsec_...` 전체 문자열 |
+
+저장 후 1~2초면 Edge Function이 새 환경변수를 픽업합니다 (재배포 불필요).
+
+### D-4. Phone Provider 활성화 (1분)
+
+[Supabase Dashboard](https://supabase.com/dashboard/project/rfxvaektikhjrfiphkgz/auth/providers) → **Authentication → Providers → Phone**:
 - **Enabled** ON
-- **SMS Provider**: 위에서 가입한 provider 선택
-- **API key / API secret**: provider에서 발급받은 값
-- **Sender ID** (Coolsms는 "발신번호") 입력
+- **SMS Provider**: `Custom` (Send SMS Hook을 사용하므로 — 자동 선택될 수도 있음)
 - **OTP Length**: 6
 - **OTP Expiry**: 600 (10분)
-- **Save**
 
-### D-3. SMS 템플릿 (선택)
+> Twilio/MessageBird 같은 provider 선택란은 **무시**. Hook이 활성화되어 있으면 Supabase는 자동으로 Hook을 우선 사용합니다.
 
-Supabase Dashboard → **Authentication → Templates → Phone confirm** 에 한국어 메시지로 변경 권장:
-```
-[AURA] 인증번호: {{ .Code }} (10분 안에 입력)
-```
+### D-5. 동작 테스트 (선택, 5분)
+
+**가장 빠른 테스트**: 모바일 앱 빌드 전에 dashboard에서 직접:
+
+[Authentication → Users](https://supabase.com/dashboard/project/rfxvaektikhjrfiphkgz/auth/users) → "Invite user" → **Sign in with Phone** → 본인 번호 입력 → SMS 도착 확인
+
+도착 안 하면:
+- Functions → **send-sms → Logs** 에서 에러 메시지 확인
+  - `configuration_missing` → D-3 환경변수 빠짐
+  - `signature verification failed` → D-2 Hook Secret이 잘못 복사됨 (재발급 후 다시)
+  - `solapi rejected` → 발신번호가 미등록되었거나 충전 잔액 부족
 
 ---
 
@@ -388,7 +434,9 @@ npx react-native run-ios
 |---|---|
 | `KAKAO_NO_ID_TOKEN` 에러 | C-3 OpenID Connect 활성화 누락 |
 | Kakao 로그인은 되는데 Supabase가 거부 | C-5의 Client Secret이 Supabase에 안 들어감 또는 Redirect URI 누락 |
-| Phone OTP가 영원히 안 옴 | D-2의 SMS provider 키 잘못 입력 또는 발신번호 미등록 |
+| Phone OTP가 영원히 안 옴 | D-3 Edge Function 환경변수 누락 또는 D-1 발신번호 미등록. Functions → send-sms → Logs 확인 |
+| signature verification failed (Edge Function 로그) | D-2의 SEND_SMS_HOOK_SECRET을 잘못 복사. Hook 토글 OFF→ON으로 재발급 |
+| solapi rejected (4xx) | 발신번호 미등록이거나 잔액 부족. Solapi 콘솔 확인 |
 | Google 로그인 후 401 | B의 Web Client ID가 Supabase에 등록되지 않음 (모바일 SDK는 web client로 idToken을 발급) |
 | dumb 사용자가 AURA에서 다시 가입됨 | 같은 Supabase 프로젝트가 아닌 별 프로젝트를 가리키고 있음 — `SUPABASE_URL` 확인 |
 | Android Kakao 안됨 | H-1의 키 해시가 production keystore와 다름. 새로 추출해서 Kakao 콘솔에 다시 등록 |
