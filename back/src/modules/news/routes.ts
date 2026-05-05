@@ -2,7 +2,8 @@ import { Router } from "express";
 import { asyncHandler } from "../../lib/http/async-handler.js";
 import { requireAuth } from "../auth/middleware/require-auth.js";
 import { usageService } from "../usage/service.js";
-import { listNewsBriefingSchema } from "./schemas.js";
+import { newsClickStore } from "./click-store.js";
+import { listNewsBriefingSchema, recordNewsClickSchema } from "./schemas.js";
 import { newsService } from "./service.js";
 
 export const newsRouter = Router();
@@ -17,5 +18,28 @@ newsRouter.get(
       feature: "news_briefing"
     });
     res.json(await newsService.getDailyBriefing(input.categories, input.language, req.authUser!.id));
+  })
+);
+
+newsRouter.post(
+  "/clicks",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const input = recordNewsClickSchema.parse(req.body);
+    await newsClickStore.recordClick({
+      userId: req.authUser!.id,
+      category: input.category,
+      articleUrl: input.articleUrl
+    });
+    res.status(204).end();
+  })
+);
+
+newsRouter.get(
+  "/recommended-categories",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const categories = await newsClickStore.recommendCategories(req.authUser!.id);
+    res.json({ categories });
   })
 );

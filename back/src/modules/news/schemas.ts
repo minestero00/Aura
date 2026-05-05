@@ -32,3 +32,8 @@ export const listNewsBriefingSchema = z.object({
   }, z.array(categorySchema).min(1).max(5).default(["world", "business", "tech"])),
   language: z.enum(["en", "ko"]).default("en")
 });
+
+export const recordNewsClickSchema = z.object({
+  category: categorySchema,
+  articleUrl: z.string().url().max(2000).optional()
+});

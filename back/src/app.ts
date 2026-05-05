@@ -49,7 +49,7 @@ export function createApp() {
   app.use(requestLogger);
   app.use(express.json({ limit: "1mb" }));
 
-  const limiter = rateLimit({
+  const minuteLimiter = rateLimit({
     windowMs: 60_000,
     limit: Math.max(10, config.ipRateLimitPerMinute),
     standardHeaders: "draft-7",
@@ -62,7 +62,23 @@ export function createApp() {
       return req.path === "/health" || req.path.startsWith("/api/v1/health");
     }
   });
-  app.use(limiter);
+
+  const fiveMinuteLimiter = rateLimit({
+    windowMs: 5 * 60_000,
+    limit: Math.max(50, config.ipRateLimitPer5Minute),
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    keyGenerator(req) {
+      const fromAuth = (req as { authUser?: { id?: string } }).authUser?.id;
+      return fromAuth ?? ipKeyGenerator(req.ip ?? "");
+    },
+    skip(req) {
+      return req.path === "/health" || req.path.startsWith("/api/v1/health");
+    }
+  });
+
+  app.use(minuteLimiter);
+  app.use(fiveMinuteLimiter);
 
   app.use("/api/v1", apiRouter);
   app.use(notFoundHandler);

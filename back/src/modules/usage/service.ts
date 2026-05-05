@@ -5,8 +5,16 @@ import { AppError } from "../../lib/errors/app-error.js";
 import { createId } from "../../lib/ids.js";
 import { getRedisClient } from "../../lib/cache/redis.js";
 import { closeRedisClient } from "../../lib/cache/redis.js";
+import { dispatchOpsAlert } from "../../lib/ops/alerts.js";
 
-export type UsageFeature = "news_briefing" | "email_summary" | "daily_overview" | "chat";
+const TOKEN_BUDGET_WARN_RATIO = 0.8;
+
+export type UsageFeature =
+  | "news_briefing"
+  | "email_summary"
+  | "daily_overview"
+  | "chat"
+  | "transit_eta";
 
 interface QuotaRow {
   id: string;
@@ -369,12 +377,64 @@ export const usageService = {
       });
 
     if (totalTokens > 0) {
-      await db
-        .query(
-          "INSERT INTO aura.quota_counters (id, user_id, period_type, period_start, briefings_generated, chat_requests, tokens_used, refresh_requests, updated_at) VALUES ($1, $2, 'day', $3, 0, 0, $4, 0, now()) ON CONFLICT (user_id, period_type, period_start) DO UPDATE SET tokens_used = aura.quota_counters.tokens_used + EXCLUDED.tokens_used, updated_at = now()",
+      const updateResult = await db
+        .query<{
+          previous_tokens: number;
+          tokens_used: number;
+        }>(
+          `WITH prev AS (
+             SELECT tokens_used AS previous_tokens
+             FROM aura.quota_counters
+             WHERE user_id = $2 AND period_type = 'day' AND period_start = $3
+           ), upserted AS (
+             INSERT INTO aura.quota_counters
+               (id, user_id, period_type, period_start, briefings_generated, chat_requests, tokens_used, refresh_requests, updated_at)
+               VALUES ($1, $2, 'day', $3, 0, 0, $4, 0, now())
+             ON CONFLICT (user_id, period_type, period_start)
+               DO UPDATE SET tokens_used = aura.quota_counters.tokens_used + EXCLUDED.tokens_used, updated_at = now()
+             RETURNING tokens_used
+           )
+           SELECT COALESCE(prev.previous_tokens, 0) AS previous_tokens, upserted.tokens_used
+           FROM upserted
+           LEFT JOIN prev ON true`,
           [createId(), input.userId, periodStart, totalTokens]
         )
-        .catch(() => undefined);
+        .catch(() => null);
+
+      const row = updateResult?.rows?.[0];
+      const tokenBudget = config.usageDailyTokenBudget;
+      if (row && tokenBudget > 0) {
+        const previous = Number(row.previous_tokens ?? 0);
+        const next = Number(row.tokens_used ?? 0);
+        const warnAt = Math.ceil(tokenBudget * TOKEN_BUDGET_WARN_RATIO);
+        if (previous < warnAt && next >= warnAt && next < tokenBudget) {
+          void dispatchOpsAlert({
+            level: "warning",
+            title: "Daily token budget at 80%",
+            message: `User ${input.userId} crossed the 80% token threshold for today.`,
+            fields: {
+              userId: input.userId,
+              feature: input.feature,
+              tokens_used: next,
+              budget: tokenBudget,
+              ratio: `${Math.round((next / tokenBudget) * 100)}%`
+            }
+          });
+        }
+        if (previous < tokenBudget && next >= tokenBudget) {
+          void dispatchOpsAlert({
+            level: "critical",
+            title: "Daily token budget exhausted",
+            message: `User ${input.userId} has hit the daily token budget. New AI calls will be blocked until reset.`,
+            fields: {
+              userId: input.userId,
+              feature: input.feature,
+              tokens_used: next,
+              budget: tokenBudget
+            }
+          });
+        }
+      }
     }
 
     return { eventId };

@@ -1,4 +1,6 @@
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * AURA Theme. Values mirror ../../../../../aura-app-design-system/assets/tokens.css.
@@ -71,7 +73,62 @@ const darkTheme: AuraTheme = {
   }
 };
 
+export type ThemePreference = "system" | "light" | "dark";
+
+const THEME_PREFERENCE_STORAGE_KEY = "aura.theme.preference";
+
+interface ThemeControl {
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
+}
+
+const ThemeControlContext = createContext<ThemeControl | null>(null);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [preference, setPreferenceState] = useState<ThemePreference>("system");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const stored = (await AsyncStorage.getItem(THEME_PREFERENCE_STORAGE_KEY)) as
+          | ThemePreference
+          | null;
+        if (!cancelled && stored && ["system", "light", "dark"].includes(stored)) {
+          setPreferenceState(stored);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const setPreference = useCallback((next: ThemePreference) => {
+    setPreferenceState(next);
+    AsyncStorage.setItem(THEME_PREFERENCE_STORAGE_KEY, next).catch(() => undefined);
+  }, []);
+
+  const value = useMemo(() => ({ preference, setPreference }), [preference, setPreference]);
+
+  return <ThemeControlContext.Provider value={value}>{children}</ThemeControlContext.Provider>;
+}
+
+export function useThemePreference(): ThemeControl {
+  const ctx = useContext(ThemeControlContext);
+  if (ctx) return ctx;
+  return {
+    preference: "system",
+    setPreference: () => undefined
+  };
+}
+
 export function useAuraTheme() {
   const scheme = useColorScheme();
+  const { preference } = useThemePreference();
+  if (preference === "dark") return darkTheme;
+  if (preference === "light") return lightTheme;
   return scheme === "dark" ? darkTheme : lightTheme;
 }

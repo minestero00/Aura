@@ -54,6 +54,16 @@
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Aura uses your location to calculate departure times for upcoming schedules.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Aura tracks your route in the background while you are on a bus or subway, so it can alert you one stop before your destination even when the screen is off.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Aura tracks your route in the background to alert you one stop before your destination.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

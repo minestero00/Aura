@@ -1,6 +1,7 @@
 import { AppError } from "../../../lib/errors/app-error.js";
 import { authStore } from "../../auth/store.js";
 import { refreshGoogleAccessToken } from "./google-oauth.js";
+import { gmailRefreshFailureTracker } from "./refresh-failure-tracker.js";
 
 export interface GmailMessageSummary {
   id: string;
@@ -88,13 +89,19 @@ async function getAuthorizedAccessToken(userId: string, forceRefresh = false) {
     return connection.accessToken;
   }
 
-  const refreshed = await refreshGoogleAccessToken(connection.refreshToken);
-  authStore.updateGmailAccessToken(userId, {
-    accessToken: refreshed.accessToken,
-    expiresAt: refreshed.expiresAt
-  });
-
-  return refreshed.accessToken;
+  try {
+    const refreshed = await refreshGoogleAccessToken(connection.refreshToken);
+    authStore.updateGmailAccessToken(userId, {
+      accessToken: refreshed.accessToken,
+      expiresAt: refreshed.expiresAt
+    });
+    void gmailRefreshFailureTracker.recordSuccess(userId);
+    return refreshed.accessToken;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    await gmailRefreshFailureTracker.recordFailure(userId, reason);
+    throw error;
+  }
 }
 
 async function gmailRequest<T>(userId: string, path: string) {

@@ -1,4 +1,4 @@
-import { createAnthropicJsonSummary } from "../../lib/ai/anthropic.js";
+import { createAnthropicJsonSummary, streamAnthropicText } from "../../lib/ai/anthropic.js";
 import { AppError } from "../../lib/errors/app-error.js";
 import { authStore } from "../auth/store.js";
 import { briefingsService } from "../briefings/service.js";
@@ -165,5 +165,104 @@ export const chatService = {
       citations,
       messages
     } satisfies ChatReply;
+  },
+
+  async streamReply(
+    userId: string,
+    input: { message: string; language: "en" | "ko"; sessionId?: string },
+    handlers: {
+      onDelta: (text: string) => void;
+      onMeta: (meta: { sessionId: string }) => void;
+      onComplete: (final: { answer: string; citations: ChatCitation[] }) => void;
+      onError: (error: Error) => void;
+    }
+  ) {
+    const user = authStore.findUserById(userId);
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
+    }
+
+    const sessionId = await chatRepository.ensureSession(userId, input.sessionId);
+    handlers.onMeta({ sessionId });
+
+    const recentMessages = await chatRepository.listRecentMessages(userId, sessionId, 8);
+    const dailyBrief = await briefingsService.getDailyBrief(userId, input.language);
+    const emailDigest = dailyBrief.snapshot.email.digest;
+    const newsBriefing = dailyBrief.snapshot.news.briefing;
+    const topEmailMessages = dailyBrief.snapshot.email.messages.slice(0, 4);
+    const topNews = dailyBrief.snapshot.news.articles.slice(0, 4);
+
+    const system =
+      input.language === "ko"
+        ? "당신은 사용자의 일일 브리핑 앱 안에서 동작하는 개인 비서다. 답변은 반드시 한국어로 3~6문장 안에서 핵심만 말하라. 사용자의 질문 문장을 반복하거나 그대로 재출력하지 말고 답변만 작성하라. 답변 본문 외에 메타데이터/JSON은 출력하지 마라."
+        : "You are a personal assistant inside a daily briefing app. Reply in concise English within 3 to 6 sentences. Do not repeat or restate the user's question; provide answer-only output. Do not include metadata or JSON.";
+
+    const userMessageText = JSON.stringify({
+      language: input.language,
+      question: input.message,
+      history: recentMessages.map(m => ({ role: m.role, content: m.content })),
+      dailyBrief: {
+        emailDigest,
+        newsBriefing,
+        topEmailMessages: topEmailMessages.map(m => ({
+          from: m.from,
+          subject: m.subject,
+          snippet: m.snippet
+        })),
+        topNews: topNews.map(article => ({
+          title: article.title,
+          source: article.source,
+          category: article.category,
+          link: article.link
+        }))
+      }
+    });
+
+    const userPersisted = await chatRepository.addMessage(userId, sessionId, "user", input.message, []);
+
+    let usage: Awaited<ReturnType<typeof streamAnthropicText>>["usage"] = null;
+    let fullText = "";
+    try {
+      const result = await streamAnthropicText(
+        { maxTokens: 500, system, userMessage: userMessageText },
+        {
+          onTextDelta: delta => {
+            fullText += delta;
+            handlers.onDelta(delta);
+          },
+          onError: handlers.onError
+        }
+      );
+      usage = result.usage;
+    } catch (error) {
+      handlers.onError(error instanceof Error ? error : new Error(String(error)));
+    }
+
+    if (usage) {
+      await usageService.recordModelUsage({
+        userId,
+        feature: "chat",
+        ...usage
+      });
+    }
+
+    const finalAnswer = sanitizeAnswer(fullText.trim() || "", input.message);
+    if (!finalAnswer) {
+      const fallback = buildFallbackAnswer(
+        input.message,
+        input.language,
+        emailDigest?.headline ?? null,
+        newsBriefing?.headline ?? null
+      );
+      handlers.onComplete({ answer: fallback.answer, citations: fallback.citations });
+      await chatRepository.addMessage(userId, sessionId, "assistant", fallback.answer, []);
+      void userPersisted;
+      return;
+    }
+
+    const citations: ChatCitation[] = [];
+    handlers.onComplete({ answer: finalAnswer, citations });
+    await chatRepository.addMessage(userId, sessionId, "assistant", finalAnswer, citations);
+    void userPersisted;
   }
 };

@@ -4,8 +4,9 @@ import { useAuraApp } from "@features/app/hooks/use-aura-app";
 import { InteractiveSplashScreen } from "@features/app/screens/interactive-splash-screen";
 import { LoadingScreen } from "@features/app/screens/loading-screen";
 import { SignInScreen } from "@features/app/screens/sign-in-screen";
+import { ThemeProvider } from "@features/app/styles/theme";
 
-function App(): React.JSX.Element {
+function AppContent(): React.JSX.Element {
   const app = useAuraApp();
   const [isInteractiveSplashVisible, setIsInteractiveSplashVisible] = React.useState(true);
 
@@ -38,6 +39,14 @@ function App(): React.JSX.Element {
   }
 
   return <AppShell app={app} />;
+}
+
+function App(): React.JSX.Element {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 export default App;

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { AppError } from "../errors/app-error.js";
+import { dispatchOpsAlert } from "../ops/alerts.js";
 
 export function notFoundHandler(_req: Request, _res: Response, next: NextFunction) {
   next(new AppError(404, "NOT_FOUND", "Route not found."));
@@ -40,9 +41,32 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     });
   }
 
-  console.error("Unhandled error", {
-    requestId: req.requestId,
-    err
+  const errorMessage = err instanceof Error ? err.message : String(err);
+  const errorName = err instanceof Error ? err.name : "UnknownError";
+
+  console.log(
+    JSON.stringify({
+      level: "error",
+      service: "aura-back",
+      message: "unhandled error",
+      requestId: req.requestId,
+      path: req.path,
+      method: req.method,
+      errorName,
+      errorMessage
+    })
+  );
+
+  void dispatchOpsAlert({
+    level: "critical",
+    title: `5xx on ${req.method} ${req.path}`,
+    message: errorMessage,
+    fields: {
+      requestId: req.requestId ?? "unknown",
+      method: req.method,
+      path: req.path,
+      errorName
+    }
   });
 
   return res.status(500).json({

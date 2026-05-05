@@ -17,7 +17,8 @@
     "db:rebuild": "npm run db:reset && npm run db:seed",
     "preflight:prod": "node scripts/preflight.mjs",
     "smoke:worker": "node scripts/smoke-worker-queue.mjs",
-    "smoke:usage": "tsx scripts/smoke-usage.ts"
+    "smoke:usage": "tsx scripts/smoke-usage.ts",
+    "smoke:transit": "tsx scripts/smoke-transit.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",

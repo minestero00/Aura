@@ -1,5 +1,9 @@
 import { AppError } from "../../lib/errors/app-error.js";
 import { config } from "../../config/env.js";
+import { getRedisClient } from "../../lib/cache/redis.js";
+
+const WEATHER_CACHE_TTL_SECONDS = 30 * 60;
+const WEATHER_CACHE_GRID_DEG = 0.01;
 
 interface OpenWeatherCurrentResponse {
   weather?: Array<{
@@ -91,6 +95,32 @@ function deriveWeatherAdvice(input: {
   };
 }
 
+function buildWeatherCacheKey(lat: number, lng: number, language: "ko" | "en") {
+  const gridLat = (Math.round(lat / WEATHER_CACHE_GRID_DEG) * WEATHER_CACHE_GRID_DEG).toFixed(2);
+  const gridLng = (Math.round(lng / WEATHER_CACHE_GRID_DEG) * WEATHER_CACHE_GRID_DEG).toFixed(2);
+  return `weather:today:${language}:${gridLat},${gridLng}`;
+}
+
+async function readCachedWeather(key: string) {
+  const redis = await getRedisClient();
+  if (!redis) return null;
+  const raw = await redis.get(key).catch(() => null);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function writeCachedWeather(key: string, payload: unknown) {
+  const redis = await getRedisClient();
+  if (!redis) return;
+  await redis
+    .set(key, JSON.stringify(payload), { EX: WEATHER_CACHE_TTL_SECONDS })
+    .catch(() => undefined);
+}
+
 export const weatherService = {
   async getTodayWeather(input: { lat: number; lng: number; language: "ko" | "en" }) {
     if (!config.openWeatherMapApiKey) {
@@ -99,6 +129,12 @@ export const weatherService = {
         "WEATHER_NOT_CONFIGURED",
         "Weather service is not configured on the server."
       );
+    }
+
+    const cacheKey = buildWeatherCacheKey(input.lat, input.lng, input.language);
+    const cached = await readCachedWeather(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     const params = new URLSearchParams({
@@ -148,7 +184,7 @@ export const weatherService = {
         precipitationMm
       });
 
-      return {
+      const result = {
         locationName: payload.name || (input.language === "ko" ? "현재 위치" : "Current location"),
         observedAt: new Date((payload.dt ?? Math.floor(Date.now() / 1000)) * 1000).toISOString(),
         condition: {
@@ -167,6 +203,10 @@ export const weatherService = {
         precipitationMm,
         advice
       };
+
+      await writeCachedWeather(cacheKey, result);
+
+      return result;
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         throw new AppError(504, "WEATHER_API_TIMEOUT", "OpenWeatherMap API request timed out.");

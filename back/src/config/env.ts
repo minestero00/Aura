@@ -54,5 +54,6 @@ export const config = {
     .split(",")
     .map(value => value.trim())
     .filter(value => value.length > 0),
-  ipRateLimitPerMinute: Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 120)
+  ipRateLimitPerMinute: Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 120),
+  ipRateLimitPer5Minute: Number(process.env.IP_RATE_LIMIT_PER_5MIN || 400)
 };
