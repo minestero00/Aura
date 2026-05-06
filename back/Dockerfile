@@ -3,7 +3,8 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY back/package*.json back/
-RUN npm ci
+COPY front/package*.json front/
+RUN npm ci --ignore-scripts
 
 COPY . .
 RUN npm run build --workspace back
@@ -15,7 +16,8 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY back/package*.json back/
-RUN npm ci --omit=dev
+COPY front/package*.json front/
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=builder /app/back/dist ./back/dist
 COPY --from=builder /app/back/db ./back/db

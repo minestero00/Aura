@@ -26,27 +26,34 @@ async function main() {
   });
 
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS schema_migrations (
-        version VARCHAR(255) PRIMARY KEY,
-        applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    const client = await pool.connect();
+    try {
+      await client.query("CREATE SCHEMA IF NOT EXISTS aura");
+      await client.query("SET search_path TO aura, public");
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS schema_migrations (
+          version VARCHAR(255) PRIMARY KEY,
+          applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        );
+      `);
+
+      const appliedRows = await client.query<{ version: string }>(
+        "SELECT version FROM schema_migrations"
       );
-    `);
+      const appliedSet = new Set(appliedRows.rows.map(row => row.version));
 
-    const appliedRows = await pool.query<{ version: string }>(
-      "SELECT version FROM schema_migrations"
-    );
-    const appliedSet = new Set(appliedRows.rows.map(row => row.version));
+      for (const file of files) {
+        if (appliedSet.has(file)) {
+          continue;
+        }
 
-    for (const file of files) {
-      if (appliedSet.has(file)) {
-        continue;
+        const sql = await fs.readFile(path.join(migrationsDir, file), "utf8");
+        await client.query(sql);
+        await client.query("INSERT INTO schema_migrations(version) VALUES ($1)", [file]);
+        console.log(`Applied migration: ${file}`);
       }
-
-      const sql = await fs.readFile(path.join(migrationsDir, file), "utf8");
-      await pool.query(sql);
-      await pool.query("INSERT INTO schema_migrations(version) VALUES ($1)", [file]);
-      console.log(`Applied migration: ${file}`);
+    } finally {
+      client.release();
     }
   } finally {
     await pool.end();

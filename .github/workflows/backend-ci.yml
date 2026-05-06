@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - "back/**"
+      - "!back/**/*.md"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     paths:
       - "back/**"
+      - "!back/**/*.md"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/backend-ci.yml"
