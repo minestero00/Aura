@@ -4,7 +4,7 @@ export const EN_COPY: AppCopy = {
   common: {
     backToSettings: 'Back to settings',
     close: 'Close',
-    loadingSession: 'Restoring your Aura session...',
+    loadingSession: 'Starting Aura...',
     ok: 'OK',
   },
   tabs: {

@@ -7,6 +7,7 @@ import {
 } from "@features/app/notifications";
 import { loadAppLanguage } from "@features/app/storage";
 import { fetchMe } from "@features/auth/api";
+import { presentLoginError } from "@features/auth/error-presenter";
 import { clearMeCache, loadMeCache, saveMeCache } from "@features/auth/storage";
 import type { SessionPayload } from "@features/auth/types";
 import { checkDeviceCalendarPermission, isCalendarPermissionGranted } from "@features/calendar/device";
@@ -70,8 +71,11 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
           if (me.preferences) {
             deps.setMorningBriefTimeDraft(toTimeDraft(me.preferences.morningBriefTime));
           }
-        } catch {
-          // Network / 401 — Supabase listener below will rehydrate when fixed.
+        } catch (error) {
+          if (!cachedMe) {
+            // No cache to fall back to — surface the error so the user knows why.
+            presentLoginError(error, { contextLabel: "세션 복원" });
+          }
         }
       } finally {
         if (isMounted) {
@@ -80,7 +84,15 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
       }
     }
 
-    void bootstrapSession();
+    // Safety net: even if bootstrapSession hangs (storage lock, network stuck),
+    // unblock the loading screen after 8s so user reaches SignIn instead of staring forever.
+    const bootstrapSafetyTimer = setTimeout(() => {
+      if (isMounted) {
+        deps.setIsBootstrapping(false);
+      }
+    }, 8000);
+
+    void bootstrapSession().finally(() => clearTimeout(bootstrapSafetyTimer));
 
     // Live updates: react to Supabase sign-in / sign-out / token refresh.
     const authSub = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -104,8 +116,11 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
               me
             });
           });
-        } catch {
-          // ignore — bootstrap will retry on next reload
+        } catch (error) {
+          // SIGNED_IN ran (Supabase OK) but our backend failed — tell user.
+          if (event === "SIGNED_IN") {
+            presentLoginError(error, { contextLabel: "로그인" });
+          }
         }
       }
     });

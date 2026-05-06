@@ -80,7 +80,12 @@ export function createAuthHandlers(context: AuraHandlersContext) {
     context.setErrorMessage(null);
     try {
       await signInWithGoogle();
-      await postSignIn();
+      // postSignIn 의 gmail scope 동의 / brief precompute 는 시간이 오래 걸릴 수 있어
+      // 사용자 진행을 막지 않도록 background 로 실행한다. 화면 전환은 onAuthStateChange
+      // listener 가 fetchMe 성공 시 setAuthState 로 처리.
+      void postSignIn().catch(error => {
+        console.warn("postSignIn background work failed:", error);
+      });
     } catch (error) {
       if (isGooglePlayServicesError(error)) {
         context.setErrorMessage("Google Play Services를 사용할 수 없는 기기입니다.");

@@ -20,6 +20,8 @@ export class ApiError extends Error {
 
 interface RequestOptions extends RequestInit {
   accessToken?: string;
+  /** Per-request timeout in ms. Default 15000. Prevents hung connections from freezing UI. */
+  timeoutMs?: number;
   retry?: {
     maxAttempts?: number;
     retryOn429?: boolean;
@@ -29,13 +31,14 @@ interface RequestOptions extends RequestInit {
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { accessToken, headers, retry, ...rest } = options;
+  const { accessToken, headers, retry, timeoutMs, ...rest } = options;
   const method = (rest.method ?? "GET").toUpperCase();
   const isSafeMethod = method === "GET" || method === "HEAD";
   const maxAttempts = Math.max(1, retry?.maxAttempts ?? (isSafeMethod ? 3 : 1));
   const retryOn429 = retry?.retryOn429 ?? true;
   const retryOn5xx = retry?.retryOn5xx ?? true;
   const baseDelayMs = Math.max(100, retry?.baseDelayMs ?? 350);
+  const requestTimeoutMs = timeoutMs ?? 15000;
 
   async function sleep(ms: number) {
     await new Promise<void>(resolve => setTimeout(() => resolve(), ms));
@@ -71,10 +74,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     let response: Response;
 
+    const abortController = new AbortController();
+    const timeoutHandle = setTimeout(() => abortController.abort(), requestTimeoutMs);
+
     try {
       response = await fetch(`${API_BASE_URL}${path}`, {
         ...rest,
         method,
+        signal: abortController.signal,
         headers: {
           "Content-Type": "application/json",
           "Cache-Control": "no-cache, no-store, max-age=0",
@@ -84,12 +91,22 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
         }
       });
     } catch (error) {
-      if (attempt < maxAttempts && isSafeMethod) {
+      clearTimeout(timeoutHandle);
+      const isAbort = error instanceof Error && error.name === "AbortError";
+      if (attempt < maxAttempts && isSafeMethod && !isAbort) {
         await sleep(jitterDelay(attempt));
         continue;
       }
+      if (isAbort) {
+        throw new ApiError(
+          `요청이 ${requestTimeoutMs}ms 안에 완료되지 않았어요.`,
+          0,
+          "REQUEST_TIMEOUT"
+        );
+      }
       throw error;
     }
+    clearTimeout(timeoutHandle);
 
     if (response.ok) {
       if (response.status === 204) {

@@ -20,7 +20,23 @@ export async function signInWithGoogle(): Promise<void> {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
   }
 
-  const response = await GoogleSignin.signIn();
+  // race 로 native dialog hang 방지. 시뮬레이터에서 GoogleSignin native flow 가
+  // 가끔 응답을 안 돌려주는 케이스 대응.
+  const response = await Promise.race([
+    GoogleSignin.signIn(),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new SignInError(
+              "GOOGLE_TIMEOUT",
+              "Google 로그인이 응답하지 않아요. 다시 시도해주세요."
+            )
+          ),
+        30_000
+      )
+    )
+  ]);
 
   if (response.type !== "success") {
     throw new SignInError("GOOGLE_CANCELLED", "Google 로그인이 취소되었습니다.");

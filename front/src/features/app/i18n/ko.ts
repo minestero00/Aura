@@ -4,7 +4,7 @@ export const KO_COPY: AppCopy = {
   common: {
     backToSettings: '설정으로 돌아가기',
     close: '닫기',
-    loadingSession: 'Aura 세션을 복원하는 중...',
+    loadingSession: 'Aura를 시작하는 중...',
     ok: '확인',
   },
   tabs: {

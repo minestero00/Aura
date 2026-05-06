@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { UsageResponse } from "@features/usage/types";
 import type { AppLanguage } from "@features/app/i18n";
+import { detectSystemLanguage } from "@features/app/storage";
 import type { AppTabKey, AuthSessionState, SettingsSectionKey } from "@features/app/types";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import type { ChatMessage } from "@features/chat/types";
@@ -11,7 +12,7 @@ import type { TodayWeatherAdvice } from "@features/weather/types";
 
 export function useAuraAppState() {
   const [authState, setAuthState] = useState<AuthSessionState | null>(null);
-  const [language, setLanguage] = useState<AppLanguage>("en");
+  const [language, setLanguage] = useState<AppLanguage>(detectSystemLanguage);
   const [selectedTab, setSelectedTab] = useState<AppTabKey>("mail");
   const [selectedSettingsSection, setSelectedSettingsSection] =
     useState<SettingsSectionKey>("menu");
