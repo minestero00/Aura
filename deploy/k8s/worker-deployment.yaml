@@ -71,3 +71,10 @@ spec:
                 secretKeyRef:
                   name: aura-secrets
                   key: app_encryption_key
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 384Mi

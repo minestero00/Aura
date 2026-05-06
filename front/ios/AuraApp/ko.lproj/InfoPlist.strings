@@ -1,0 +1,5 @@
+"NSCalendarsFullAccessUsageDescription" = "오늘과 내일 일정을 보여주려고 AURA가 기기 캘린더를 읽어요.";
+"NSCalendarsUsageDescription" = "오늘과 내일 일정을 보여주려고 AURA가 기기 캘린더를 읽어요.";
+"NSLocationWhenInUseUsageDescription" = "다음 일정에 늦지 않게 출발 시간을 계산하려고 AURA가 위치를 써요.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "버스나 지하철을 타는 동안에도 AURA가 위치를 따라가서, 화면이 꺼져 있어도 한 정거장 전에 알려줘요.";
+"NSLocationAlwaysUsageDescription" = "내릴 정거장 한 정거장 전에 알려주려고 AURA가 백그라운드에서 위치를 따라가요.";

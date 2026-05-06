@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Aura</string>
+    <string name="permission_calendar_rationale">Aura needs calendar access to show today and tomorrow schedules.</string>
+    <string name="permission_location_when_in_use_rationale">Aura uses your location to calculate departure times for upcoming schedules.</string>
+    <string name="permission_location_always_rationale">Aura tracks your route in the background while you are on a bus or subway, so it can alert you one stop before your destination.</string>
+    <string name="permission_notification_rationale">Aura sends notifications to alert you about upcoming schedules and arrivals.</string>
+    <string name="permission_settings_link_label">Open Settings</string>
 </resources>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Aura</string>
+    <string name="permission_calendar_rationale">오늘과 내일 일정을 보여주려고 AURA가 캘린더 권한이 필요해요.</string>
+    <string name="permission_location_when_in_use_rationale">다음 일정에 늦지 않게 출발 시간을 계산하려고 AURA가 위치를 써요.</string>
+    <string name="permission_location_always_rationale">버스나 지하철을 타는 동안에도 AURA가 위치를 따라가서, 한 정거장 전에 알려줘요.</string>
+    <string name="permission_notification_rationale">다가오는 일정과 도착 알림을 보내드리려고 알림 권한이 필요해요.</string>
+    <string name="permission_settings_link_label">설정 열기</string>
+</resources>
