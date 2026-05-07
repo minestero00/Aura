@@ -52,19 +52,21 @@ export async function signInWithGoogle(): Promise<void> {
   // 받은 뒤 내부 후처리(AsyncStorage write / lock chain)에서 promise를
   // 늦게 settle시키는 hang 패턴이 있다. 네트워크 응답이 도착하면 세션은
   // SDK 내부 state에 진입하므로 getSession()으로 직접 확인해 우회한다.
+  // poll 시작 지연은 600ms — SDK가 정상 빠른 응답일 때는 race 영향 없음,
+  // 느릴 때는 빠르게 fallback 진입.
   const startedAt = Date.now();
   const signInPromise = supabase.auth
     .signInWithIdToken({ provider: "google", token: idToken })
     .then(result => ({ kind: "sdk" as const, result }));
 
   const sessionPolledPromise = (async () => {
-    await new Promise<void>(r => setTimeout(r, 1_500));
+    await new Promise<void>(r => setTimeout(r, 600));
     while (Date.now() - startedAt < 12_000) {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         return { kind: "polled" as const, session: data.session };
       }
-      await new Promise<void>(r => setTimeout(r, 400));
+      await new Promise<void>(r => setTimeout(r, 250));
     }
     throw new SignInError(
       "SUPABASE_GOOGLE_TIMEOUT",
@@ -73,6 +75,12 @@ export async function signInWithGoogle(): Promise<void> {
   })();
 
   const winner = await Promise.race([signInPromise, sessionPolledPromise]);
+  const elapsed = Date.now() - startedAt;
+  if (elapsed > 1_500) {
+    console.warn(
+      `[auth] signIn slow path — ${elapsed}ms via ${winner.kind}. SDK 후처리 지연.`
+    );
+  }
 
   if (winner.kind === "sdk" && winner.result.error) {
     throw new SignInError("SUPABASE_GOOGLE_FAILED", winner.result.error.message);
