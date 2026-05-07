@@ -11,11 +11,34 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { SvgXml } from "react-native-svg";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
 import { HeroGradient } from "@features/app/components/hero-gradient";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
+const DUMB_LOGO = require("@features/app/assets/dumb-logo.jpg");
+
+// 공식 Google G 로고(멀티컬러) — Google branding guide의 4-arc 형태
+const GOOGLE_G_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+  <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+  <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+  <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+</svg>`;
+
+// KakaoTalk speech bubble — 공식 마크와 동일 형태(검정 채우기, 컨테이너의 노랑이 배경)
+const KAKAO_BUBBLE_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.91 1.96 5.45 4.84 6.84L5.5 21l4.36-2.86c.7.1 1.41.16 2.14.16 5.52 0 10-3.48 10-7.8S17.52 3 12 3z" fill="#191600"/>
+</svg>`;
+
+// 휴대전화 글리프
+const PHONE_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" fill="#FFFFFF"/>
+</svg>`;
 
 type SignInMode = "menu" | "phone" | "email";
 type PhoneStep = "request" | "verify";
@@ -209,7 +232,7 @@ function SignInMenu({
           border={theme.colors.lineStrong}
           disabled={isSubmitting}
           onPress={onPickEmail}
-          leadingIcon={<EmailIcon />}
+          leadingIcon={<DumbIcon />}
         />
       </View>
 
@@ -426,77 +449,31 @@ function PrimaryButton({
   );
 }
 
-// ── Provider 로고 (의존성 없는 인라인 마크) ───────────────────────────────────
-// react-native-svg 미사용 환경 대응 — View + Text 조합으로 인지 가능한 마크.
-// 각 24×24 원형 컨테이너에 브랜드 색 + 식별자 글자/심볼.
+// ── Provider 로고 (공식 마크) ────────────────────────────────────────────────
+// Google: 4-arc multicolor G (Google branding guide).
+// Kakao: 검정 speech bubble (배경 노랑이 컨테이너에서 채움).
+// Phone: 시스템 phone 글리프.
+// Dumb: image/dumbicon/dumb_logo.svg에서 추출한 raster.
 
 function GoogleIcon() {
-  return (
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#E0E0E0",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      <Text style={{ color: "#4285F4", fontSize: 16, fontWeight: "800", lineHeight: 18 }}>G</Text>
-    </View>
-  );
+  return <SvgXml xml={GOOGLE_G_SVG} width={22} height={22} />;
 }
 
 function KakaoIcon() {
-  return (
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-        backgroundColor: "#191600",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      <Text style={{ color: "#FEE500", fontSize: 13, fontWeight: "900", lineHeight: 14 }}>K</Text>
-    </View>
-  );
+  return <SvgXml xml={KAKAO_BUBBLE_SVG} width={22} height={22} />;
 }
 
 function PhoneIcon() {
-  return (
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: "rgba(255,255,255,0.22)",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      <Text style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 16 }}>✆</Text>
-    </View>
-  );
+  return <SvgXml xml={PHONE_SVG} width={22} height={22} />;
 }
 
-function EmailIcon() {
+function DumbIcon() {
   return (
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: "rgba(0,0,0,0.06)",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      <Text style={{ color: "#4A4E66", fontSize: 14, fontWeight: "700", lineHeight: 16 }}>@</Text>
-    </View>
+    <Image
+      source={DUMB_LOGO}
+      style={{ width: 22, height: 22, borderRadius: 6 }}
+      resizeMode="cover"
+    />
   );
 }
 

@@ -34,10 +34,12 @@ export interface AuraTheme {
 const lightTheme: AuraTheme = {
   isDark: false,
   colors: {
-    background: "#F7F8FB",
-    backgroundSecondary: "#F4F2FF",
+    // Aurora-tinted off-white — 새벽 분위기. mockup 느낌의 순수 #F7F8FB 대신
+    // 살짝 보라/시안 끝이 도는 #F0EFF8로 브랜드 톤을 배경에 스며들게.
+    background: "#F0EFF8",
+    backgroundSecondary: "#E9E6F4",
     surface: "#FFFFFF",
-    surfaceMuted: "#F4F4F8",
+    surfaceMuted: "#F1F0F7",
     elevated: "#FFFFFF",
     textPrimary: "#0F1226",
     textSecondary: "#4A4E66",
