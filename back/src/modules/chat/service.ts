@@ -102,34 +102,36 @@ export const chatService = {
       newsBriefing?.headline ?? null
     );
 
+    const cachedDailyBrief = {
+      emailDigest,
+      newsBriefing,
+      topEmailMessages: topEmailMessages.map(message => ({
+        from: message.from,
+        subject: message.subject,
+        snippet: message.snippet
+      })),
+      topNews: topNews.map(article => ({
+        title: article.title,
+        source: article.source,
+        category: article.category,
+        link: article.link
+      }))
+    };
+
     const result = await createAnthropicJsonSummary<ChatModelOutput>({
       maxTokens: 500,
       system:
         input.language === "ko"
           ? "당신은 사용자의 일일 브리핑 앱 안에서 동작하는 개인 비서다. 답변은 반드시 한국어로, 3~6문장 안에서 핵심만 말하라. 사용자의 질문 문장을 반복하거나 그대로 재출력하지 말고 답변만 작성하라. JSON 객체만 반환하고 키는 answer, citations를 사용한다. citations는 근거 항목 배열이며 각 항목은 type(news|mail|briefing), title, url(옵션) 구조를 따른다."
           : "You are a personal assistant inside a daily briefing app. Reply in concise English within 3 to 6 sentences. Do not repeat or restate the user's question; provide answer-only output. Return JSON only with keys answer and citations. citations must be an array of objects using type(news|mail|briefing), title, and optional url.",
+      cachedPayload: { dailyBrief: cachedDailyBrief },
       payload: {
         language: input.language,
         question: input.message,
         history: recentMessages.map(message => ({
           role: message.role,
           content: message.content
-        })),
-        dailyBrief: {
-          emailDigest,
-          newsBriefing,
-          topEmailMessages: topEmailMessages.map(message => ({
-            from: message.from,
-            subject: message.subject,
-            snippet: message.snippet
-          })),
-          topNews: topNews.map(article => ({
-            title: article.title,
-            source: article.source,
-            category: article.category,
-            link: article.link
-          }))
-        }
+        }))
       },
       fallback
     });
@@ -197,10 +199,7 @@ export const chatService = {
         ? "당신은 사용자의 일일 브리핑 앱 안에서 동작하는 개인 비서다. 답변은 반드시 한국어로 3~6문장 안에서 핵심만 말하라. 사용자의 질문 문장을 반복하거나 그대로 재출력하지 말고 답변만 작성하라. 답변 본문 외에 메타데이터/JSON은 출력하지 마라."
         : "You are a personal assistant inside a daily briefing app. Reply in concise English within 3 to 6 sentences. Do not repeat or restate the user's question; provide answer-only output. Do not include metadata or JSON.";
 
-    const userMessageText = JSON.stringify({
-      language: input.language,
-      question: input.message,
-      history: recentMessages.map(m => ({ role: m.role, content: m.content })),
+    const cachedDailyBriefStream = JSON.stringify({
       dailyBrief: {
         emailDigest,
         newsBriefing,
@@ -218,13 +217,23 @@ export const chatService = {
       }
     });
 
+    const freshTurnPayload = JSON.stringify({
+      language: input.language,
+      question: input.message,
+      history: recentMessages.map(m => ({ role: m.role, content: m.content }))
+    });
+
     const userPersisted = await chatRepository.addMessage(userId, sessionId, "user", input.message, []);
 
     let usage: Awaited<ReturnType<typeof streamAnthropicText>>["usage"] = null;
     let fullText = "";
     try {
       const result = await streamAnthropicText(
-        { maxTokens: 500, system, userMessage: userMessageText },
+        {
+          maxTokens: 500,
+          system,
+          userMessage: { cached: cachedDailyBriefStream, fresh: freshTurnPayload }
+        },
         {
           onTextDelta: delta => {
             fullText += delta;

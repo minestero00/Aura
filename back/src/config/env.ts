@@ -46,6 +46,7 @@ export const config = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
   anthropicModel: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514",
+  anthropicModelLight: process.env.ANTHROPIC_MODEL_LIGHT || "",
   anthropicInputCostPerMtok: Number(process.env.ANTHROPIC_INPUT_COST_PER_MTOK || 3),
   anthropicOutputCostPerMtok: Number(process.env.ANTHROPIC_OUTPUT_COST_PER_MTOK || 15),
   usageDailyTokenBudget: Number(process.env.USAGE_DAILY_TOKEN_BUDGET || 0),

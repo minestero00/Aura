@@ -1,4 +1,5 @@
 import { createAnthropicJsonSummary } from "../../lib/ai/anthropic.js";
+import { config } from "../../config/env.js";
 import { usageService } from "../usage/service.js";
 import type { NewsArticle, NewsBriefing } from "./types.js";
 
@@ -67,6 +68,7 @@ export async function summarizeNewsArticles(
 
   const fallback = buildFallbackNewsBriefing(articles, language);
   const result = await createAnthropicJsonSummary<NewsBriefing>({
+    model: config.anthropicModelLight || undefined,
     maxTokens: 500,
     system:
       language === "ko"

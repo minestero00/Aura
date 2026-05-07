@@ -1,4 +1,5 @@
 import { createAnthropicJsonSummary } from "../../../lib/ai/anthropic.js";
+import { config } from "../../../config/env.js";
 import { usageService } from "../../usage/service.js";
 import type { GmailMessageSummary, GmailReplyContext } from "./gmail-api.js";
 
@@ -50,6 +51,7 @@ export async function summarizeGmailMessages(
 
   const fallback = buildFallbackDigest(messages, language);
   const result = await createAnthropicJsonSummary<GmailDigest>({
+    model: config.anthropicModelLight || undefined,
     maxTokens: 250,
     system:
       language === "ko"

@@ -16,10 +16,34 @@ export interface AnthropicCallResult<T> {
 }
 
 interface AnthropicJsonRequest<T> {
+  /** Model override. Falls back to config.anthropicModel. */
+  model?: string;
   maxTokens: number;
   system: string;
   payload: unknown;
+  /**
+   * Stable prefix attached as a separately cached user content block.
+   * Used when payload has a large reusable section (e.g. session-stable
+   * context). Anthropic prompt cache only triggers ≥ 1024 input tokens —
+   * smaller cachedPayload silently skips caching.
+   */
+  cachedPayload?: unknown;
   fallback: T;
+}
+
+function buildUserContent(payload: unknown, cachedPayload: unknown | undefined) {
+  const fresh = JSON.stringify(payload);
+  if (cachedPayload === undefined) {
+    return fresh;
+  }
+  return [
+    {
+      type: "text",
+      text: JSON.stringify(cachedPayload),
+      cache_control: { type: "ephemeral" }
+    },
+    { type: "text", text: fresh }
+  ];
 }
 
 function tryParseJson<T>(value: string): T | null {
@@ -68,16 +92,18 @@ export function computeAnthropicCostUsd(inputTokens: number, outputTokens: numbe
 }
 
 export async function createAnthropicJsonSummary<T>({
+  model: modelOverride,
   maxTokens,
   system,
   payload,
+  cachedPayload,
   fallback
 }: AnthropicJsonRequest<T>): Promise<AnthropicCallResult<T>> {
   if (!config.anthropicApiKey) {
     return { data: fallback, usage: null };
   }
 
-  const model = config.anthropicModel || DEFAULT_ANTHROPIC_MODEL;
+  const model = modelOverride || config.anthropicModel || DEFAULT_ANTHROPIC_MODEL;
   const startedAt = Date.now();
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -94,7 +120,7 @@ export async function createAnthropicJsonSummary<T>({
       messages: [
         {
           role: "user",
-          content: JSON.stringify(payload)
+          content: buildUserContent(payload, cachedPayload)
         }
       ]
     })
@@ -139,9 +165,16 @@ export async function createAnthropicJsonSummary<T>({
 }
 
 interface StreamRequest {
+  /** Model override. Falls back to config.anthropicModel. */
+  model?: string;
   maxTokens: number;
   system: string;
-  userMessage: string;
+  /**
+   * String form for simple calls. Object form to enable prompt caching:
+   * `cached` block (≥1024 tokens) is cached and reused across calls within
+   * 5 minutes; `fresh` block is the per-call variable input.
+   */
+  userMessage: string | { cached: string; fresh: string };
 }
 
 export interface AnthropicStreamEvents {
@@ -160,12 +193,24 @@ export async function streamAnthropicText(
     return { fullText: "", usage: null };
   }
 
-  const model = config.anthropicModel || DEFAULT_ANTHROPIC_MODEL;
+  const model = request.model || config.anthropicModel || DEFAULT_ANTHROPIC_MODEL;
   const startedAt = Date.now();
 
   let fullText = "";
   let inputTokens = 0;
   let outputTokens = 0;
+
+  const userContent =
+    typeof request.userMessage === "string"
+      ? request.userMessage
+      : [
+          {
+            type: "text",
+            text: request.userMessage.cached,
+            cache_control: { type: "ephemeral" }
+          },
+          { type: "text", text: request.userMessage.fresh }
+        ];
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -179,7 +224,7 @@ export async function streamAnthropicText(
       max_tokens: request.maxTokens,
       stream: true,
       system: request.system,
-      messages: [{ role: "user", content: request.userMessage }]
+      messages: [{ role: "user", content: userContent }]
     })
   });
 
