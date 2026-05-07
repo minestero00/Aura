@@ -127,7 +127,16 @@ export function buildShellStyles(theme: AuraTheme) {
     chipButtonActive: { backgroundColor: colors.accent, borderColor: colors.accent },
     chipButtonLabel: { color: colors.textSecondary, fontSize: 14, fontWeight: "700" },
     chipButtonLabelActive: { color: colors.accentText },
-    loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14, paddingHorizontal: 24 },
+    loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 22, paddingHorizontal: 24 },
+    loadingLogoWrap: { width: 120, height: 120, alignItems: "center", justifyContent: "center" },
+    loadingLogo: { width: 96, height: 96 },
+    loadingLogoHalo: {
+      position: "absolute",
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.accent
+    },
     loadingText: { color: colors.textSecondary, fontSize: 16, lineHeight: 24 },
     container: { flex: 1, justifyContent: "center", padding: 20, gap: 16, backgroundColor: colors.background },
     heroCard: {
