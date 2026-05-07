@@ -55,7 +55,13 @@ function main() {
   requireEnv("GOOGLE_MAPS_API_KEY", missing);
   requireEnv("ANTHROPIC_API_KEY", missing);
   requireEnv("ANTHROPIC_MODEL", missing);
-  requireEnv("CORS_ALLOWED_ORIGINS", missing);
+  // CORS_ALLOWED_ORIGINS는 모바일 전용 API에서 비워둘 수 있다.
+  // app.ts의 CORS 핸들러는 origin 헤더 없는 요청(모바일/서버 간)은 통과시키고,
+  // 비어 있으면 web 브라우저 기반 호출만 차단된다 — 현 운영 형태에 맞음.
+  // 향후 web admin 추가 시 origin 등록 안 하면 자동 차단되므로 안전.
+  if (isEmpty(process.env.CORS_ALLOWED_ORIGINS)) {
+    console.warn("preflight: CORS_ALLOWED_ORIGINS is empty — only mobile/no-origin requests will pass.");
+  }
 
   if (!missing.includes("APP_ENCRYPTION_KEY") && !isValidEncryptionKey(process.env.APP_ENCRYPTION_KEY)) {
     invalid.push("APP_ENCRYPTION_KEY (must be 64 hex chars or base64 of 32 bytes)");
