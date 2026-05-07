@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,14 +45,33 @@ export function AskScreen({
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
   const userLabel = currentUserName?.trim() || copy.ask.userLabel;
+  const listRef = useRef<FlatList<ChatMessage>>(null);
+  const trimmedDraft = chatInputDraft.trim();
+  const sendDisabled = isChatLoading || trimmedDraft.length === 0;
+
+  // 새 메시지 / 스트리밍 텍스트 성장에 맞춰 자동으로 맨 아래까지 스크롤.
+  // onContentSizeChange는 리스트 콘텐츠 크기 변화마다 호출됨 — 사용자
+  // 메시지 추가, assistant placeholder 추가, delta 누적 모두 커버.
+  const handleContentSizeChange = useCallback(() => {
+    listRef.current?.scrollToEnd({ animated: true });
+  }, []);
+
+  const handleQuickPrompt = useCallback(
+    (prompt: string) => {
+      onChatInputChange(prompt);
+      void onSendChatMessage(prompt);
+    },
+    [onChatInputChange, onSendChatMessage]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={8}
-        style={styles.askScreen}
-      >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} accessible={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={8}
+          style={styles.askScreen}
+        >
         <View style={styles.askTopBar}>
           <Text style={styles.askTopBarTitle}>{copy.tabs.ask}</Text>
           <Text style={styles.askTopBarSubtitle}>{copy.ask.subtitle}</Text>
@@ -60,12 +82,37 @@ export function AskScreen({
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
           <FlatList
+            ref={listRef}
             contentContainerStyle={styles.askConversationContent}
             data={chatMessages}
             inverted={false}
             keyExtractor={item => item.id}
+            onContentSizeChange={handleContentSizeChange}
+            keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
-              <Text style={styles.helperText}>{copy.ask.empty}</Text>
+              <View style={styles.askEmptyWrap}>
+                <Text style={styles.helperText}>{copy.ask.empty}</Text>
+                {copy.ask.quickPrompts.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.askQuickPromptsRow}
+                  >
+                    {copy.ask.quickPrompts.map(prompt => (
+                      <Pressable
+                        key={prompt}
+                        onPress={() => handleQuickPrompt(prompt)}
+                        style={styles.askQuickPromptChip}
+                        disabled={isChatLoading}
+                      >
+                        <Text style={styles.askQuickPromptText} numberOfLines={2}>
+                          {prompt}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                ) : null}
+              </View>
             }
             renderItem={({ item: message, index }) => {
               const previousUser = [...chatMessages]
@@ -201,9 +248,12 @@ export function AskScreen({
           />
           <View style={styles.askComposerActions}>
             <Pressable
-              disabled={isChatLoading}
+              disabled={sendDisabled}
               onPress={() => void onSendChatMessage()}
-              style={styles.primaryButton}
+              style={[
+                styles.primaryButton,
+                sendDisabled ? styles.primaryButtonDisabled : null,
+              ]}
             >
               {isChatLoading ? (
                 <ActivityIndicator color={theme.colors.accentText} />
@@ -213,7 +263,8 @@ export function AskScreen({
             </Pressable>
           </View>
         </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }

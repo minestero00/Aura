@@ -23,6 +23,7 @@ export function buildShellStyles(theme: AuraTheme) {
       borderColor: colors.line
     },
     askQuickPromptText: { color: colors.textSecondary, fontSize: 12, fontWeight: "700" },
+    askEmptyWrap: { gap: 16, paddingTop: 8 },
     askConversationWrap: { flex: 1, marginHorizontal: 20, marginBottom: 6 },
     askConversationList: { flex: 1 },
     askConversationContent: { paddingBottom: 10, paddingTop: 6, gap: 8 },

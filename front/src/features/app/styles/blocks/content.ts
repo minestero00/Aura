@@ -67,6 +67,7 @@ export function buildContentStyles(theme: AuraTheme) {
       elevation: 2
     },
     primaryButtonText: { color: colors.accentText, fontSize: 16, fontWeight: "700" },
+    primaryButtonDisabled: { backgroundColor: colors.lineStrong, shadowOpacity: 0, elevation: 0 },
     buttonRow: { marginTop: 18, gap: 12 },
     outlineButton: {
       minHeight: 52,
