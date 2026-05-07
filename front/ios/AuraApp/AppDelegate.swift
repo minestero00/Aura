@@ -3,6 +3,7 @@ import UserNotifications
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import GoogleSignIn
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -32,6 +33,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     )
 
     return true
+  }
+
+  func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+  ) -> Bool {
+    return GIDSignIn.sharedInstance.handle(url)
   }
 
   func application(
