@@ -32,10 +32,19 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
     if (error instanceof AppError) {
       return next(error);
     }
-    return next(
-      new AppError(401, "UNAUTHORIZED", "Access token is invalid or expired.", {
-        reason: error instanceof Error ? error.message : String(error)
+    const reason = error instanceof Error ? error.message : String(error);
+    console.log(
+      JSON.stringify({
+        level: "warn",
+        service: "aura-back",
+        module: "require-auth",
+        message: "JWT verification failed",
+        reason,
+        path: req.path
       })
+    );
+    return next(
+      new AppError(401, "UNAUTHORIZED", "Access token is invalid or expired.", { reason })
     );
   }
 };
