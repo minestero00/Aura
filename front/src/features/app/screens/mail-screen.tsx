@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
 import { HeroGradient } from "@features/app/components/hero-gradient";
+import { EmptyStateHero } from "@features/app/components/empty-state-hero";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
@@ -56,8 +57,10 @@ export function MailScreen({
 
         {!gmailConnected ? (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{copy.mail.gmailNotConnectedTitle}</Text>
-            <Text style={styles.helperText}>{copy.mail.gmailNotConnectedBody}</Text>
+            <EmptyStateHero
+              title={copy.mail.gmailNotConnectedTitle}
+              body={copy.mail.gmailNotConnectedBody}
+            />
           </View>
         ) : null}
 

@@ -79,7 +79,7 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
 | **3** ✅ | Bottom Tab 리프레시 | 활성 탭 위 22×3 accent 인디케이터 바 + 활성 아이콘/라벨 accent 컬러 |
 | **4** ✅ | Card / Button 톤 강화 | Aurora-tinted soft shadow(`#9b8fe0` light / `#1a1456` dark), formCard·sectionCard 일관, padding 22 + radius 28 통일 |
 | **5** ✅ | Hero pattern 화면별 적용 | mail/todo/news/settings hero를 HeroWaveDecoration → HeroGradient 교체 |
-| 6 | Empty state 일러스트 | 메일 0건/뉴스 0건 등에서 simple SVG/이모지 hero |
+| **6** ✅ | Empty state 일러스트 | `<EmptyStateHero>` 컴포넌트(Aura 아이콘 펄스 + 큰 타이틀 + 보조 설명). chat 빈 대화, mail Gmail 미연결에 적용. 추후 news/todo의 비어있는 상태에도 동일 패턴. |
 
 각 phase는 독립 PR로 가능.
 
@@ -115,4 +115,5 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
   - `colors.background`/`backgroundSecondary`/`surfaceMuted`을 미세 aurora 톤(F0EFF8/E9E6F4/F1F0F7)으로 이동
   - `<ScreenAtmosphere>` 컴포넌트 신설 — AppShell/SignIn 상단 360px에 매우 낮은 alpha의 aurora→calm→투명 그라데이션 wash. 카드 위로 비치지 않을 정도지만 화면 진입 시 새벽 분위기.
   - formCard/sectionCard shadow를 aurora-tinted로(#9b8fe0 light / #1a1456 dark) + radius/padding 통일 (Phase 4 적용).
+- 2026-05-07: Phase 6 적용 — `<EmptyStateHero>` 컴포넌트(Aura 아이콘 펄스 + 타이틀 + 보조 설명, useNativeDriver 60fps). chat 빈 대화 상태와 mail Gmail 미연결 상태에 적용. 빈 화면이 "방치된 mockup"이 아닌 brand atmosphere를 유지.
 - Aurora 브랜드 보라를 유지하기로 결정 (참조 이미지의 단순 블루로 갈지 두고 보았으나, 기존 토큰/마케팅 자산과의 정합 우선).

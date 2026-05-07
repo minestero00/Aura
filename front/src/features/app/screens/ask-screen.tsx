@@ -18,6 +18,7 @@ import { createAppStyles, useAuraTheme } from '@features/app/styles';
 import type { ChatMessage } from '@features/chat/types';
 import type { GmailMessage } from '@features/gmail/types';
 import { isUrgentMailQuestion } from '@features/chat/intent';
+import { EmptyStateHero } from '@features/app/components/empty-state-hero';
 
 interface AskScreenProps {
   chatInputDraft: string;
@@ -91,7 +92,7 @@ export function AskScreen({
             keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
               <View style={styles.askEmptyWrap}>
-                <Text style={styles.helperText}>{copy.ask.empty}</Text>
+                <EmptyStateHero title={copy.ask.empty} body={copy.ask.subtitle} />
                 {copy.ask.quickPrompts.length > 0 ? (
                   <ScrollView
                     horizontal
