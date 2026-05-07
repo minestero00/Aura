@@ -25,12 +25,19 @@ export class SignInError extends Error {
 // regardless of which app — dumb or AURA — signed in first).
 export async function signInWithGoogle(): Promise<void> {
   mark("start");
-  if (Platform.OS === "android") {
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-  }
+  await ensureGooglePlayServicesIfAndroid();
+  const idToken = await acquireGoogleIdToken();
+  await exchangeIdTokenWithSupabase(idToken);
+}
 
-  // race 로 native dialog hang 방지. 시뮬레이터에서 GoogleSignin native flow 가
-  // 가끔 응답을 안 돌려주는 케이스 대응.
+async function ensureGooglePlayServicesIfAndroid(): Promise<void> {
+  if (Platform.OS !== "android") return;
+  await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+}
+
+/** 네이티브 Google 모달을 열어 idToken을 받음. 시뮬레이터에서 native dialog가
+ * hang하는 케이스 대응으로 timeout race. */
+async function acquireGoogleIdToken(): Promise<string> {
   const response = await Promise.race([
     GoogleSignin.signIn(),
     new Promise<never>((_, reject) =>
@@ -51,28 +58,28 @@ export async function signInWithGoogle(): Promise<void> {
   if (response.type !== "success") {
     throw new SignInError("GOOGLE_CANCELLED", "Google 로그인이 취소되었습니다.");
   }
-
   const idToken = response.data.idToken;
   if (!idToken) {
     throw new SignInError("GOOGLE_NO_TOKEN", "Google에서 idToken을 받지 못했습니다.");
   }
+  return idToken;
+}
 
-  // Supabase JS의 signInWithIdToken은 RN 환경에서 가끔 네트워크 응답을
-  // 받은 뒤 내부 후처리(AsyncStorage write / lock chain)에서 promise를
-  // 늦게 settle시키는 hang 패턴이 있다. 네트워크 응답이 도착하면 세션은
-  // SDK 내부 state에 진입하므로 getSession()으로 직접 확인해 우회한다.
-  // poll 시작 지연은 600ms — SDK가 정상 빠른 응답일 때는 race 영향 없음,
-  // 느릴 때는 빠르게 fallback 진입.
+/** Supabase로 idToken 전달해 세션 발급. RN 환경에서 SDK 후처리(AsyncStorage
+ * write / lock chain)가 늦게 settle하는 hang 패턴이 있어, 네트워크 응답이
+ * 도착하면 SDK 내부 state에 진입한 세션을 getSession()으로 직접 확인해 우회. */
+async function exchangeIdTokenWithSupabase(idToken: string): Promise<void> {
   mark("sb-call");
   const startedAt = Date.now();
-  const signInPromise = supabase.auth
+
+  const sdkPath = supabase.auth
     .signInWithIdToken({ provider: "google", token: idToken })
     .then(result => {
       mark("sb-resolve");
       return { kind: "sdk" as const, result };
     });
 
-  const sessionPolledPromise = (async () => {
+  const polledPath = (async () => {
     await new Promise<void>(r => setTimeout(r, SUPABASE_POLL_START_DELAY_MS));
     while (Date.now() - startedAt < SUPABASE_POLL_OVERALL_TIMEOUT_MS) {
       const { data } = await supabase.auth.getSession();
@@ -88,7 +95,7 @@ export async function signInWithGoogle(): Promise<void> {
     );
   })();
 
-  const winner = await Promise.race([signInPromise, sessionPolledPromise]);
+  const winner = await Promise.race([sdkPath, polledPath]);
   const elapsed = Date.now() - startedAt;
   if (elapsed > SLOW_PATH_THRESHOLD_MS) {
     console.log(
