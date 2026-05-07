@@ -5,6 +5,14 @@ import { getCurrentAccessToken } from "@lib/supabase/client";
 export const API_BASE_URL =
   Platform.OS === "android" ? API_BASE_URL_ANDROID : API_BASE_URL_IOS;
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+const DEFAULT_RETRY_BASE_DELAY_MS = 350;
+const DEFAULT_SAFE_METHOD_MAX_ATTEMPTS = 3;
+const DEFAULT_UNSAFE_METHOD_MAX_ATTEMPTS = 1;
+const RETRY_EXPONENT_CAP = 4;
+const RETRY_JITTER_MIN = 0.8;
+const RETRY_JITTER_RANGE = 0.4;
+
 export class ApiError extends Error {
   readonly status: number;
   readonly code?: string;
@@ -34,19 +42,23 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const { accessToken, headers, retry, timeoutMs, ...rest } = options;
   const method = (rest.method ?? "GET").toUpperCase();
   const isSafeMethod = method === "GET" || method === "HEAD";
-  const maxAttempts = Math.max(1, retry?.maxAttempts ?? (isSafeMethod ? 3 : 1));
+  const maxAttempts = Math.max(
+    1,
+    retry?.maxAttempts ??
+      (isSafeMethod ? DEFAULT_SAFE_METHOD_MAX_ATTEMPTS : DEFAULT_UNSAFE_METHOD_MAX_ATTEMPTS)
+  );
   const retryOn429 = retry?.retryOn429 ?? true;
   const retryOn5xx = retry?.retryOn5xx ?? true;
-  const baseDelayMs = Math.max(100, retry?.baseDelayMs ?? 350);
-  const requestTimeoutMs = timeoutMs ?? 15000;
+  const baseDelayMs = Math.max(100, retry?.baseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS);
+  const requestTimeoutMs = timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
 
   async function sleep(ms: number) {
     await new Promise<void>(resolve => setTimeout(() => resolve(), ms));
   }
 
   function jitterDelay(attempt: number) {
-    const exp = Math.min(4, attempt - 1);
-    const jitter = 0.8 + Math.random() * 0.4;
+    const exp = Math.min(RETRY_EXPONENT_CAP, attempt - 1);
+    const jitter = RETRY_JITTER_MIN + Math.random() * RETRY_JITTER_RANGE;
     return Math.round(baseDelayMs * 2 ** exp * jitter);
   }
 

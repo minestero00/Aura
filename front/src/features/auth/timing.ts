@@ -21,6 +21,8 @@ interface MarkRecord {
   at: number;
 }
 
+const MARK_LABEL_WIDTH = 14;
+
 let baseline = 0;
 let lastMark = 0;
 const records: MarkRecord[] = [];
@@ -32,14 +34,14 @@ export function mark(label: string) {
     lastMark = now;
     records.length = 0;
     records.push({ label, at: now });
-    console.log(`[timing] ${label.padEnd(14)} 0ms (start)`);
+    console.log(`[timing] ${label.padEnd(MARK_LABEL_WIDTH)} 0ms (start)`);
     return;
   }
   const fromStart = now - baseline;
   const delta = now - lastMark;
   lastMark = now;
   records.push({ label, at: now });
-  console.log(`[timing] ${label.padEnd(14)} ${fromStart}ms (+${delta}ms)`);
+  console.log(`[timing] ${label.padEnd(MARK_LABEL_WIDTH)} ${fromStart}ms (+${delta}ms)`);
 }
 
 export function summarize(reason = "complete") {
@@ -50,7 +52,7 @@ export function summarize(reason = "complete") {
   const lines = records.map((r, i) => {
     const fromStart = r.at - records[0].at;
     const delta = i === 0 ? 0 : r.at - records[i - 1].at;
-    return `  ${r.label.padEnd(14)} ${String(fromStart).padStart(5)}ms  (+${delta}ms)`;
+    return `  ${r.label.padEnd(MARK_LABEL_WIDTH)} ${String(fromStart).padStart(5)}ms  (+${delta}ms)`;
   });
   console.log(`[timing] === SUMMARY (${reason}) ===\n${lines.join("\n")}`);
   // 다음 sign-in을 위해 초기화

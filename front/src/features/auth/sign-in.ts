@@ -5,6 +5,12 @@ import { KAKAO_LOGIN_ENABLED } from "@env";
 import { supabase } from "@lib/supabase/client";
 import { mark } from "@features/auth/timing";
 
+const GOOGLE_NATIVE_HANG_TIMEOUT_MS = 30_000;
+const SUPABASE_POLL_OVERALL_TIMEOUT_MS = 12_000;
+const SUPABASE_POLL_START_DELAY_MS = 600;
+const SUPABASE_POLL_INTERVAL_MS = 250;
+const SLOW_PATH_THRESHOLD_MS = 1_500;
+
 export class SignInError extends Error {
   readonly code: string;
   constructor(code: string, message: string) {
@@ -36,7 +42,7 @@ export async function signInWithGoogle(): Promise<void> {
               "Google 로그인이 응답하지 않아요. 다시 시도해주세요."
             )
           ),
-        30_000
+        GOOGLE_NATIVE_HANG_TIMEOUT_MS
       )
     )
   ]);
@@ -67,14 +73,14 @@ export async function signInWithGoogle(): Promise<void> {
     });
 
   const sessionPolledPromise = (async () => {
-    await new Promise<void>(r => setTimeout(r, 600));
-    while (Date.now() - startedAt < 12_000) {
+    await new Promise<void>(r => setTimeout(r, SUPABASE_POLL_START_DELAY_MS));
+    while (Date.now() - startedAt < SUPABASE_POLL_OVERALL_TIMEOUT_MS) {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         mark("sb-polled");
         return { kind: "polled" as const, session: data.session };
       }
-      await new Promise<void>(r => setTimeout(r, 250));
+      await new Promise<void>(r => setTimeout(r, SUPABASE_POLL_INTERVAL_MS));
     }
     throw new SignInError(
       "SUPABASE_GOOGLE_TIMEOUT",
@@ -84,7 +90,7 @@ export async function signInWithGoogle(): Promise<void> {
 
   const winner = await Promise.race([signInPromise, sessionPolledPromise]);
   const elapsed = Date.now() - startedAt;
-  if (elapsed > 1_500) {
+  if (elapsed > SLOW_PATH_THRESHOLD_MS) {
     console.log(
       `[auth] signIn slow path — ${elapsed}ms via ${winner.kind}. SDK 후처리 지연.`
     );

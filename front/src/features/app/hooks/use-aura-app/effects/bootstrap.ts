@@ -10,6 +10,8 @@ import { fetchMe } from "@features/auth/api";
 import { presentLoginError } from "@features/auth/error-presenter";
 import { clearMeCache, loadMeCache, saveMeCache } from "@features/auth/storage";
 import { mark, summarize } from "@features/auth/timing";
+
+const BOOTSTRAP_SAFETY_TIMEOUT_MS = 8_000;
 import type { SessionPayload } from "@features/auth/types";
 import { checkDeviceCalendarPermission, isCalendarPermissionGranted } from "@features/calendar/device";
 import { loadIgnoredSenderRules } from "@features/gmail/storage";
@@ -86,12 +88,12 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
     }
 
     // Safety net: even if bootstrapSession hangs (storage lock, network stuck),
-    // unblock the loading screen after 8s so user reaches SignIn instead of staring forever.
+    // unblock the loading screen so user reaches SignIn instead of staring forever.
     const bootstrapSafetyTimer = setTimeout(() => {
       if (isMounted) {
         deps.setIsBootstrapping(false);
       }
-    }, 8000);
+    }, BOOTSTRAP_SAFETY_TIMEOUT_MS);
 
     void bootstrapSession().finally(() => clearTimeout(bootstrapSafetyTimer));
 
