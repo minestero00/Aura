@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
-import { HeroWaveDecoration } from "@components/hero-wave-decoration";
+import { HeroGradient } from "@features/app/components/hero-gradient";
 
 type SignInMode = "menu" | "phone" | "email";
 type PhoneStep = "request" | "verify";
@@ -57,14 +57,13 @@ export function SignInScreen({
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.heroCard}>
-            <HeroWaveDecoration />
+          <HeroGradient>
             <View style={styles.heroForeground}>
-              <Text style={styles.eyebrow}>{copy.signIn.eyebrow}</Text>
-              <Text style={styles.title}>{copy.signIn.title}</Text>
-              <Text style={styles.subtitle}>{copy.signIn.subtitle}</Text>
+              <Text style={styles.eyebrowOnGradient}>{copy.signIn.eyebrow}</Text>
+              <Text style={styles.titleOnGradient}>{copy.signIn.title}</Text>
+              <Text style={styles.subtitleOnGradient}>{copy.signIn.subtitle}</Text>
             </View>
-          </View>
+          </HeroGradient>
 
           <View style={styles.formCard}>
             {mode === "menu" ? (

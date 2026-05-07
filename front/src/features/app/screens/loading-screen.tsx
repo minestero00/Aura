@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import { HeroGradient } from "@features/app/components/hero-gradient";
 import type { AppCopy } from "@features/app/i18n";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
@@ -42,22 +43,24 @@ export function LoadingScreen({ copy }: LoadingScreenProps) {
   const haloOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.32, 0] });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.loadingContainer}>
-        <View style={styles.loadingLogoWrap}>
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              styles.loadingLogoHalo,
-              { transform: [{ scale: haloScale }], opacity: haloOpacity }
-            ]}
-          />
-          <Animated.View style={{ transform: [{ scale }], opacity }}>
-            <Image source={AURA_ICON} style={styles.loadingLogo} resizeMode="contain" />
-          </Animated.View>
+    <HeroGradient variant="fill">
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingLogoWrap}>
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.loadingLogoHaloOnGradient,
+                { transform: [{ scale: haloScale }], opacity: haloOpacity }
+              ]}
+            />
+            <Animated.View style={{ transform: [{ scale }], opacity }}>
+              <Image source={AURA_ICON} style={styles.loadingLogo} resizeMode="contain" />
+            </Animated.View>
+          </View>
+          <Text style={styles.loadingTextOnGradient}>{copy.common.loadingSession}</Text>
         </View>
-        <Text style={styles.loadingText}>{copy.common.loadingSession}</Text>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </HeroGradient>
   );
 }

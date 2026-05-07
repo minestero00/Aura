@@ -4,6 +4,16 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!--
+	  Placeholder for RNKakaoLogins native init. KAKAO_LOGIN_ENABLED env가 false라
+	  실제 Kakao 호출은 일어나지 않지만, 네이티브 모듈은 앱 부팅 시 자동
+	  생성되어 Bundle.main.object(forInfoDictionaryKey: "KAKAO_APP_KEY")를
+	  강제 언래핑한다. nil이면 앱 즉시 크래시 — 빈 문자열은 안 됨(KakaoSDK
+	  내부에서 별도 검증). 카카오 출시 검수 통과 시 이 값을 실제 native
+	  app key로 교체.
+	-->
+	<key>KAKAO_APP_KEY</key>
+	<string>placeholder-not-used</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

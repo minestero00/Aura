@@ -74,11 +74,11 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
 
 | Phase | 범위 | 변경 |
 |---|---|---|
-| **1 (지금)** | LoadingScreen | 로고 펄스 애니메이션 (Animated only, 의존성 추가 X) |
-| 2 | LinearGradient 도입 | `react-native-linear-gradient` deps 추가, hero/sign-in/splash 그라데이션 배경 |
+| **1** ✅ | LoadingScreen | 로고 펄스 애니메이션 (Animated only, 의존성 추가 X) |
+| **2** ✅ | LinearGradient 도입 | `react-native-linear-gradient` deps + `<HeroGradient>` 컴포넌트, SignIn hero + LoadingScreen full-fill 적용 |
 | 3 | Bottom Tab 리프레시 | 활성 탭 강조 + 부드러운 인디케이터, 라벨 위치 정렬 |
 | 4 | Card / Button 톤 강화 | Primary CTA 그림자/사이즈 통일, card 라운드 22로 통일 |
-| 5 | Hero pattern 화면별 적용 | mail/news/ask 상단 hero 그라데이션 + 흰 타이틀 |
+| 5 | Hero pattern 화면별 적용 | mail/news/ask 상단 hero 그라데이션 + 흰 타이틀 (현재 HeroWaveDecoration 대체) |
 | 6 | Empty state 일러스트 | 메일 0건/뉴스 0건 등에서 simple SVG/이모지 hero |
 
 각 phase는 독립 PR로 가능.
@@ -103,6 +103,7 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
 
 ## 7. 결정 로그
 
-- 2026-05-07: 본 문서 신설 + Phase 1 (LoadingScreen 로고 펄스) 적용. Phase 2-6은 이후 세션에서 진행.
-- LinearGradient 도입은 deps 추가가 필요해 별도 phase 분리.
+- 2026-05-07: 본 문서 신설 + Phase 1 (LoadingScreen 로고 펄스) 적용.
+- 2026-05-07: Phase 2 적용 — `react-native-linear-gradient ^2.8.3` + `<HeroGradient>` 컴포넌트 신설 (`features/app/components/hero-gradient.tsx`). SignIn hero(panel variant) + LoadingScreen 풀 fill 적용. tokens.css의 `--grad-aurora`(aurora→aurora-light→calm)를 RN으로 미러. Hero 위 텍스트는 흰색/반투명 흰색 톤(`*OnGradient` 스타일).
+- 2026-05-07: Kakao 네이티브 init 크래시 회피 — Info.plist에 `KAKAO_APP_KEY` placeholder 추가. RNKakaoLogins.swift는 부팅 시 자동 init되며 nil 강제 언래핑이 발생. 검수 통과 시 실제 native app key로 교체.
 - Aurora 브랜드 보라를 유지하기로 결정 (참조 이미지의 단순 블루로 갈지 두고 보았으나, 기존 토큰/마케팅 자산과의 정합 우선).

@@ -128,8 +128,8 @@ export function buildShellStyles(theme: AuraTheme) {
     chipButtonLabel: { color: colors.textSecondary, fontSize: 14, fontWeight: "700" },
     chipButtonLabelActive: { color: colors.accentText },
     loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center", gap: 22, paddingHorizontal: 24 },
-    loadingLogoWrap: { width: 120, height: 120, alignItems: "center", justifyContent: "center" },
-    loadingLogo: { width: 96, height: 96 },
+    loadingLogoWrap: { width: 140, height: 140, alignItems: "center", justifyContent: "center" },
+    loadingLogo: { width: 104, height: 104 },
     loadingLogoHalo: {
       position: "absolute",
       width: 120,
@@ -137,7 +137,22 @@ export function buildShellStyles(theme: AuraTheme) {
       borderRadius: 60,
       backgroundColor: colors.accent
     },
+    // Hero 그라데이션 배경 위에서는 흰빛 halo가 더 자연스럽다
+    loadingLogoHaloOnGradient: {
+      position: "absolute",
+      width: 140,
+      height: 140,
+      borderRadius: 70,
+      backgroundColor: "rgba(255,255,255,0.65)"
+    },
     loadingText: { color: colors.textSecondary, fontSize: 16, lineHeight: 24 },
+    loadingTextOnGradient: {
+      color: "rgba(255,255,255,0.92)",
+      fontSize: 16,
+      lineHeight: 24,
+      letterSpacing: 0.2,
+      fontWeight: "600"
+    },
     container: { flex: 1, justifyContent: "center", padding: 20, gap: 16, backgroundColor: colors.background },
     heroCard: {
       padding: 24,
@@ -182,6 +197,27 @@ export function buildShellStyles(theme: AuraTheme) {
     eyebrow: { color: colors.textMuted, fontSize: 12, fontWeight: "700", letterSpacing: 1.4, marginBottom: 10, textTransform: "uppercase" },
     title: { color: colors.textPrimary, fontSize: 31, fontWeight: "800", lineHeight: 38 },
     subtitle: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: 12 },
+    // Hero 그라데이션 위 텍스트(흰색 톤) — design.md §3.3
+    eyebrowOnGradient: {
+      color: "rgba(255,255,255,0.78)",
+      fontSize: 12,
+      fontWeight: "700",
+      letterSpacing: 1.6,
+      marginBottom: 10,
+      textTransform: "uppercase"
+    },
+    titleOnGradient: {
+      color: "#FFFFFF",
+      fontSize: 31,
+      fontWeight: "800",
+      lineHeight: 38
+    },
+    subtitleOnGradient: {
+      color: "rgba(255,255,255,0.86)",
+      fontSize: 16,
+      lineHeight: 24,
+      marginTop: 12
+    },
     formCard: {
       padding: 20,
       borderRadius: 28,
