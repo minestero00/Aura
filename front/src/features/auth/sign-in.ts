@@ -48,13 +48,34 @@ export async function signInWithGoogle(): Promise<void> {
     throw new SignInError("GOOGLE_NO_TOKEN", "Google에서 idToken을 받지 못했습니다.");
   }
 
-  const { error } = await supabase.auth.signInWithIdToken({
-    provider: "google",
-    token: idToken
-  });
+  // Supabase JS의 signInWithIdToken은 RN 환경에서 가끔 네트워크 응답을
+  // 받은 뒤 내부 후처리(AsyncStorage write / lock chain)에서 promise를
+  // 늦게 settle시키는 hang 패턴이 있다. 네트워크 응답이 도착하면 세션은
+  // SDK 내부 state에 진입하므로 getSession()으로 직접 확인해 우회한다.
+  const startedAt = Date.now();
+  const signInPromise = supabase.auth
+    .signInWithIdToken({ provider: "google", token: idToken })
+    .then(result => ({ kind: "sdk" as const, result }));
 
-  if (error) {
-    throw new SignInError("SUPABASE_GOOGLE_FAILED", error.message);
+  const sessionPolledPromise = (async () => {
+    await new Promise<void>(r => setTimeout(r, 1_500));
+    while (Date.now() - startedAt < 12_000) {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        return { kind: "polled" as const, session: data.session };
+      }
+      await new Promise<void>(r => setTimeout(r, 400));
+    }
+    throw new SignInError(
+      "SUPABASE_GOOGLE_TIMEOUT",
+      "Supabase 응답이 너무 늦어요. 다시 시도해주세요."
+    );
+  })();
+
+  const winner = await Promise.race([signInPromise, sessionPolledPromise]);
+
+  if (winner.kind === "sdk" && winner.result.error) {
+    throw new SignInError("SUPABASE_GOOGLE_FAILED", winner.result.error.message);
   }
 }
 
