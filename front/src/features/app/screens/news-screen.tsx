@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { HeroWaveDecoration } from "@components/hero-wave-decoration";
+import { HeroGradient } from "@features/app/components/hero-gradient";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
@@ -31,14 +31,13 @@ export function NewsScreen({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
-        <View style={styles.heroCard}>
-          <HeroWaveDecoration />
+        <HeroGradient>
           <View style={styles.heroForeground}>
-            <Text style={styles.eyebrow}>{copy.news.eyebrow}</Text>
-            <Text style={styles.title}>{copy.news.title}</Text>
-            <Text style={styles.subtitle}>{copy.news.subtitle}</Text>
+            <Text style={styles.eyebrowOnGradient}>{copy.news.eyebrow}</Text>
+            <Text style={styles.titleOnGradient}>{copy.news.title}</Text>
+            <Text style={styles.subtitleOnGradient}>{copy.news.subtitle}</Text>
           </View>
-        </View>
+        </HeroGradient>
 
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>{copy.news.todayBriefTitle}</Text>

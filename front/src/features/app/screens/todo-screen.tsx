@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { HeroWaveDecoration } from "@components/hero-wave-decoration";
+import { HeroGradient } from "@features/app/components/hero-gradient";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { mergeAgendaDays } from "@features/calendar/merge";
@@ -74,14 +74,13 @@ export function TodoScreen({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
-        <View style={styles.heroCard}>
-          <HeroWaveDecoration />
+        <HeroGradient>
           <View style={styles.heroForeground}>
-            <Text style={styles.eyebrow}>{copy.todo.eyebrow}</Text>
-            <Text style={styles.title}>{copy.todo.title}</Text>
-            <Text style={styles.subtitle}>{copy.todo.subtitle}</Text>
+            <Text style={styles.eyebrowOnGradient}>{copy.todo.eyebrow}</Text>
+            <Text style={styles.titleOnGradient}>{copy.todo.title}</Text>
+            <Text style={styles.subtitleOnGradient}>{copy.todo.subtitle}</Text>
           </View>
-        </View>
+        </HeroGradient>
 
         {!isDeviceCalendarPermissionGranted ? (
           <View style={styles.sectionCard}>
