@@ -108,7 +108,7 @@ This file checks current implementation against:
 - ~~News RSS Redis 캐싱~~ ✅ 완료 (2026-05-07) — `back/src/modules/news/provider.ts` 카테고리별 5분 TTL.
 - ~~5xx alert dedup (5분 윈도우)~~ ✅ 완료 (2026-05-07) — `back/src/lib/ops/alerts.ts`. Redis 우선/in-memory fallback, `suppressedInLastWindow` 노출.
 - ActiveTripBanner 색상 토큰화.
-- Docker layer cache (CI 빌드 시간 단축).
+- ~~Docker layer cache (CI 빌드 시간 단축)~~ ✅ 완료 (2026-05-07) — `backend-ci.yml`/`backend-staging-auto.yml`에 `type=gha,scope=aura-back` 추가.
 
 ### P2 (1개월)
 - `use-aura-app/state.ts` 25+ useState → Context 분리.

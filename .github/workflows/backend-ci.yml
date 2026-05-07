@@ -71,5 +71,16 @@ jobs:
       - name: Typecheck frontend
         run: npm run typecheck --workspace front
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build backend Docker image
-        run: docker build -f back/Dockerfile -t aura-back:ci .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: back/Dockerfile
+          push: false
+          load: true
+          tags: aura-back:ci
+          cache-from: type=gha,scope=aura-back
+          cache-to: type=gha,scope=aura-back,mode=max

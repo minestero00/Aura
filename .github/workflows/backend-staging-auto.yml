@@ -52,3 +52,5 @@ jobs:
           file: back/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/aura-back:${{ steps.meta.outputs.image_tag }}
+          cache-from: type=gha,scope=aura-back
+          cache-to: type=gha,scope=aura-back,mode=max
