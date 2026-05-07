@@ -218,6 +218,38 @@ export function buildShellStyles(theme: AuraTheme) {
       lineHeight: 24,
       marginTop: 12
     },
+    // SignIn hero — 첫 인상 강조용 큰 panel + 로고/워드마크
+    signInHero: {
+      paddingVertical: 36,
+      paddingHorizontal: 24,
+      borderRadius: 36
+    },
+    signInHeroContent: { gap: 14, position: "relative", zIndex: 1 },
+    signInHeroIconRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 },
+    signInHeroIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 14,
+      backgroundColor: "rgba(255,255,255,0.18)"
+    },
+    signInHeroWordmark: {
+      color: "rgba(255,255,255,0.92)",
+      fontSize: 13,
+      fontWeight: "800",
+      letterSpacing: 3
+    },
+    signInHeroTitle: {
+      color: "#FFFFFF",
+      fontSize: 26,
+      fontWeight: "800",
+      lineHeight: 34
+    },
+    signInHeroSubtitle: {
+      color: "rgba(255,255,255,0.9)",
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 6
+    },
     formCard: {
       padding: 20,
       borderRadius: 28,

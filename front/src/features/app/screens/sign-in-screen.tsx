@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,6 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
 import { HeroGradient } from "@features/app/components/hero-gradient";
+
+const AURA_ICON = require("@features/app/assets/aura-icon.png");
 
 type SignInMode = "menu" | "phone" | "email";
 type PhoneStep = "request" | "verify";
@@ -57,11 +60,14 @@ export function SignInScreen({
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <HeroGradient>
-            <View style={styles.heroForeground}>
-              <Text style={styles.eyebrowOnGradient}>{copy.signIn.eyebrow}</Text>
-              <Text style={styles.titleOnGradient}>{copy.signIn.title}</Text>
-              <Text style={styles.subtitleOnGradient}>{copy.signIn.subtitle}</Text>
+          <HeroGradient style={styles.signInHero}>
+            <View style={styles.signInHeroContent}>
+              <View style={styles.signInHeroIconRow}>
+                <Image source={AURA_ICON} style={styles.signInHeroIcon} resizeMode="contain" />
+                <Text style={styles.signInHeroWordmark}>AURA</Text>
+              </View>
+              <Text style={styles.signInHeroTitle}>{copy.signIn.title}</Text>
+              <Text style={styles.signInHeroSubtitle}>{copy.signIn.subtitle}</Text>
             </View>
           </HeroGradient>
 
