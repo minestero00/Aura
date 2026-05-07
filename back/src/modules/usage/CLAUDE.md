@@ -28,5 +28,5 @@
 - alert webhook 페이로드 변경 시 `OPS_SLACK_WEBHOOK_URL` 수신 측 schema 동기화.
 
 ## 최적화 포인트
-- **#6 (P1)**: 5xx alert dedup — 동일 에러 5분 내 중복 발송 방지.
+- **#6 (P1)**: ✅ 완료 (2026-05-07) — `lib/ops/alerts.ts`에 dedup 추가 (Redis 우선, in-memory fallback). 5분 윈도우 + `suppressedInLastWindow` 누적 카운트.
 - **#17 (P2)**: 5분 윈도우 IP rate limit 추가 (현재 1분).
