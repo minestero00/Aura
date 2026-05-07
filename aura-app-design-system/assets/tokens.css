@@ -47,6 +47,7 @@
   --error:         #FF3B5C;
   --info:          var(--calm);
   --urgent:        #FF3B5C;   /* "지금 출발해야 함" 같은 긴급 알림 */
+  --urgent-soft:   #FFEAEE;   /* urgent surface (banner 배경) */
 
   /* ── Provider · Google 만 (소셜 로그인) ─────────────────── */
   --google-bg:     #FFFFFF;
@@ -134,4 +135,6 @@
   --aurora-soft:#1E1B40;
   --calm-50:    #0E2C3A;
   --warm-50:    #2D1A12;
+  --urgent:     #FF8FA3;
+  --urgent-soft:#3A1A26;
 }

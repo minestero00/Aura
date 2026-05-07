@@ -8,7 +8,7 @@
 
 ## 핵심 파일
 - `screens/StartTrip.tsx`
-- `screens/ActiveTripBanner.tsx:26` — **색상 하드코딩 (#7 토큰화 필요)**
+- `screens/ActiveTripBanner.tsx` — `theme.colors.urgent/urgentSoft` 사용 (light/dark)
 - `hooks/use-trip-tracker.ts:122-160` — 폴링 간격 동적 조정
 - `components/PushOnboardingModal.tsx` — AsyncStorage 1회 표시
 
@@ -28,5 +28,5 @@
 - trip 종료 시 GPS 폴링 즉시 stop.
 
 ## 최적화 포인트
-- **#7 (P1)**: ActiveTripBanner 색상 토큰화 (`theme.colors.alert*`).
+- **#7 (P1)**: ✅ 완료 (2026-05-07) — `theme.colors.urgent` + `urgentSoft` 추가, light/dark variant 모두 정의. `tokens.css`에도 dark `--urgent`/`--urgent-soft` 추가.
 - **#13 (P2)**: 백그라운드 위치 권한 사전 요청 (Settings 화면에서).

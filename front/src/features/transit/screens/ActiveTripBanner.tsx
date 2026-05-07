@@ -23,8 +23,8 @@ function buildStyles(theme: AuraTheme) {
       backgroundColor: colors.surface
     },
     containerUrgent: {
-      borderColor: "#FF3B5C",
-      backgroundColor: "#FFEAEE"
+      borderColor: colors.urgent,
+      backgroundColor: colors.urgentSoft
     },
     label: {
       color: colors.textMuted,
@@ -42,7 +42,7 @@ function buildStyles(theme: AuraTheme) {
       fontWeight: "800",
       fontVariant: ["tabular-nums"]
     },
-    statValueUrgent: { color: "#FF3B5C" },
+    statValueUrgent: { color: colors.urgent },
     statUnit: { color: colors.textSecondary, fontSize: 14, fontWeight: "700" },
     actions: { flexDirection: "row", gap: 8, marginTop: 8 },
     cancelButton: {

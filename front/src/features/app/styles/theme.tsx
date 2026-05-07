@@ -25,6 +25,8 @@ export interface AuraTheme {
     accentText: string;
     dangerSoft: string;
     dangerText: string;
+    urgent: string;
+    urgentSoft: string;
     overlay: string;
   };
 }
@@ -47,6 +49,8 @@ const lightTheme: AuraTheme = {
     accentText: "#FFFFFF",
     dangerSoft: "#FFEAEE",
     dangerText: "#FF3B5C",
+    urgent: "#FF3B5C",
+    urgentSoft: "#FFEAEE",
     overlay: "rgba(15, 18, 38, 0.45)"
   }
 };
@@ -69,6 +73,8 @@ const darkTheme: AuraTheme = {
     accentText: "#0F1226",
     dangerSoft: "#3A1A26",
     dangerText: "#FF8FA3",
+    urgent: "#FF8FA3",
+    urgentSoft: "#3A1A26",
     overlay: "rgba(0, 0, 0, 0.6)"
   }
 };
