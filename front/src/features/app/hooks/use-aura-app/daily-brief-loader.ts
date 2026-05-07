@@ -1,4 +1,5 @@
 import { fetchDailyBrief } from "@features/briefings/api";
+import { loadCachedDailyBrief, saveDailyBriefCache } from "@features/briefings/cache";
 import { fetchDailyGmailSummary } from "@features/gmail/api";
 import { filterIgnoredMessages } from "@features/gmail/filtering";
 import { fetchDailyNewsBriefing } from "@features/news/api";
@@ -14,6 +15,23 @@ export async function prepareDailyBriefForSession(
   session: AuthSessionState["session"],
   gmailConnected: boolean
 ) {
+  const userId = deps.authState?.me.user.id ?? null;
+
+  // 1) 로컬 캐시(오늘 날짜 매칭)가 있으면 네트워크 호출 없이 즉시 사용.
+  //    하루 1회 자동 fetch + 그 후 launches는 캐시에서. 사용자 수동 새로고침
+  //    은 refreshDailyBrief가 처리.
+  if (userId) {
+    const cached = await loadCachedDailyBrief(userId, deps.language);
+    if (cached) {
+      deps.setIsDailyBriefModalVisible(true);
+      deps.setNewsBriefing(cached.news.briefing);
+      deps.setNewsArticles(cached.news.articles);
+      deps.setDailyEmailDigest(gmailConnected ? cached.email.digest : null);
+      deps.setDailyEmailMessages(gmailConnected ? cached.email.messages : []);
+      return;
+    }
+  }
+
   deps.setIsDailyBriefModalVisible(true);
   deps.setIsDailyBriefPreparing(true);
   deps.setErrorMessage(null);
@@ -28,6 +46,9 @@ export async function prepareDailyBriefForSession(
     deps.setNewsArticles(snapshot.news.articles);
     deps.setDailyEmailDigest(gmailConnected ? snapshot.email.digest : null);
     deps.setDailyEmailMessages(gmailConnected ? snapshot.email.messages : []);
+    if (userId) {
+      void saveDailyBriefCache(userId, deps.language, snapshot);
+    }
   } catch (error: unknown) {
     deps.setErrorMessage(
       getLocalizedErrorMessage(
@@ -96,6 +117,8 @@ export async function refreshDailyBrief(deps: DailyBriefModuleDeps) {
     return;
   }
 
+  const userId = deps.authState.me.user.id;
+
   deps.setIsDailyBriefPreparing(true);
   deps.setErrorMessage(null);
 
@@ -109,6 +132,7 @@ export async function refreshDailyBrief(deps: DailyBriefModuleDeps) {
     deps.setNewsArticles(snapshot.news.articles);
     deps.setDailyEmailDigest(gmailConnected ? snapshot.email.digest : null);
     deps.setDailyEmailMessages(gmailConnected ? snapshot.email.messages : []);
+    void saveDailyBriefCache(userId, deps.language, snapshot);
   } catch (error: unknown) {
     deps.setErrorMessage(
       getLocalizedErrorMessage(error, "Unable to refresh the daily brief right now.", deps.language)
