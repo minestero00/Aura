@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import * as KakaoLogin from "@react-native-seoul/kakao-login";
+import { KAKAO_LOGIN_ENABLED } from "@env";
 import { supabase } from "@lib/supabase/client";
 
 export class SignInError extends Error {
@@ -123,7 +124,11 @@ export async function signInWithEmailPassword(email: string, password: string): 
 export async function signOutEverywhere(): Promise<void> {
   await supabase.auth.signOut().catch(() => undefined);
   await GoogleSignin.signOut().catch(() => undefined);
-  await KakaoLogin.logout().catch(() => undefined);
+  // Kakao SDK가 초기화되지 않은 상태에서 logout 호출하면 native segfault.
+  // initializeKakaoSDK는 KAKAO_LOGIN_ENABLED=true일 때만 실행된다.
+  if (KAKAO_LOGIN_ENABLED === "true") {
+    await KakaoLogin.logout().catch(() => undefined);
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
