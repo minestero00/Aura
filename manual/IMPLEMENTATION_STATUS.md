@@ -45,7 +45,7 @@ This file checks current implementation against:
   - GitHub Actions backend CI workflow (build + migrate + usage smoke)
   - GitHub Actions manual image deploy workflow
   - GitHub Actions manual release rollout workflow (k8s apply + migration job + rollout wait)
-  - GitHub Actions main-branch auto staging release workflow
+  - GitHub Actions main-branch auto image build to GHCR (K8s 자동 배포는 마이그레이션 트리거 도달 시 manual workflow_dispatch — `DEPLOY_DECISION.md`)
   - GitHub Actions manual production promote workflow
   - Kubernetes API/worker/service manifests under `deploy/k8s`
   - Kubernetes migration job manifest under `deploy/k8s`
