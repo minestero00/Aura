@@ -26,5 +26,5 @@
 - 요약 결과는 `briefings`에 저장 (재요약 방지).
 
 ## 최적화 포인트
-- **#4 (P1)**: RSS 응답 Redis 5~10분 캐시. 현재 매 요청 fetch — billing 무관(무료)이지만 latency ~300ms.
+- **#4 (P1)**: ✅ 완료 (2026-05-07) — `provider.ts`에서 카테고리별 글로벌 Redis 캐시 (`news:rss:{category}:limit:{N}`, 5분 TTL). Redis 미설정이면 자연스럽게 bypass.
 - **#11 (P2)**: 클릭 추천 점수 → 프론트 노출. 학습은 되나 UI 미반영.

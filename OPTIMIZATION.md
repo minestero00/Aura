@@ -12,7 +12,7 @@
 | 1 | iOS/Android 한국어 권한 문자열 | 출시 | App Store 심사 거절 위험 | 1h | ✅ 완료 (2026-05-06) | `front/ios/AuraApp/{en,ko}.lproj/InfoPlist.strings`, `front/android/app/src/main/res/values-ko/strings.xml` |
 | 2 | K8s `resources.requests/limits` 미설정 | 인프라 | OOM kill, noisy neighbor | 30m | ✅ 완료 (2026-05-06) | `deploy/k8s/{api,worker}-deployment.yaml`, `migrate-job.yaml` |
 | 3 | `APP_ENCRYPTION_KEY` production guard | 보안 | 토큰 평문 저장 | 0 (이미 가드) | ✅ 검증 완료 (2026-05-06) | `back/src/server.ts:9` + `back/.env.example` 코멘트 보강 |
-| 4 | News RSS 캐싱 (Redis 5분 TTL, 카테고리 키) | billing/지연 | 매 요청 외부 fetch | 1h | 🟡 P1 | `back/src/modules/news/service.ts` |
+| 4 | News RSS 캐싱 (Redis 5분 TTL, 카테고리 키) | billing/지연 | 매 요청 외부 fetch | 1h | ✅ 완료 (2026-05-07) | `back/src/modules/news/provider.ts` |
 | 5 | Sentry SDK 통합 (back+front) | 관측성 | 프로덕션 장애 진단 불가 | 2h | 🟡 P1 | `back/src/server.ts`, `front/index.js` |
 | 6 | 5xx alert dedup (5분 윈도우) | 운영 | 알림 폭주 가능 | 1h | 🟡 P1 | `back/src/lib/ops/alert.ts` |
 | 7 | ActiveTripBanner 색상 토큰화 | 디자인 일관성 | 다크모드 깨짐 | 30m | 🟡 P1 | `front/src/features/transit/screens/ActiveTripBanner.tsx:26` |
@@ -51,7 +51,7 @@
 - 5xx ops alert (Slack/Discord webhook)
 
 **작업 필요**
-- News RSS 캐싱 (#4) — 카테고리 RSS는 5~10분 캐시해도 사용자 체감 차이 없음
+- ~~News RSS 캐싱 (#4)~~ ✅ 완료 — 카테고리별 글로벌 Redis 캐시 5분 TTL (`provider.ts`)
 - 5xx alert dedup (#6) — 동일 에러 N회 발송 방지
 - `chat` 트랜잭션 (#19) — 메시지 insert + 세션 updated_at update 분리
 - News 클릭 추천 노출 (#11) — 학습 데이터는 쌓이는데 UI 반영 안 됨
@@ -153,7 +153,7 @@ manual/IMPLEMENTATION_STATUS.md             (갱신 — 최근 5개 커밋 반�
 
 **스프린트 2 (출시 직후 첫 주 — P1)**
 5. Sentry 통합 (#5)
-6. News RSS 캐싱 (#4)
+6. ~~News RSS 캐싱 (#4)~~ ✅ 완료 (2026-05-07)
 7. 5xx alert dedup (#6)
 8. ActiveTripBanner 토큰화 (#7)
 9. Docker layer cache (#9)

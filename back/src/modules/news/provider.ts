@@ -1,5 +1,8 @@
 import { AppError } from "../../lib/errors/app-error.js";
+import { getRedisClient } from "../../lib/cache/redis.js";
 import type { NewsArticle } from "./types.js";
+
+const NEWS_FEED_CACHE_TTL_SECONDS = 5 * 60;
 
 const GOOGLE_NEWS_FEEDS: Record<NewsArticle["category"], string> = {
   world: "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en",
@@ -58,7 +61,38 @@ function parseItem(category: NewsArticle["category"], item: string) {
   } satisfies NewsArticle;
 }
 
+function buildFeedCacheKey(category: NewsArticle["category"], limit: number) {
+  return `news:rss:${category}:limit:${limit}`;
+}
+
+async function readCachedFeed(key: string): Promise<NewsArticle[] | null> {
+  const redis = await getRedisClient();
+  if (!redis) return null;
+  const raw = await redis.get(key).catch(() => null);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as NewsArticle[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeCachedFeed(key: string, articles: NewsArticle[]) {
+  const redis = await getRedisClient();
+  if (!redis) return;
+  await redis
+    .set(key, JSON.stringify(articles), { EX: NEWS_FEED_CACHE_TTL_SECONDS })
+    .catch(() => undefined);
+}
+
 async function fetchFeed(category: NewsArticle["category"], limit: number) {
+  const cacheKey = buildFeedCacheKey(category, limit);
+  const cached = await readCachedFeed(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const response = await fetch(GOOGLE_NEWS_FEEDS[category]);
   const xml = await response.text();
 
@@ -70,6 +104,8 @@ async function fetchFeed(category: NewsArticle["category"], limit: number) {
     .map(match => parseItem(category, match[1]))
     .filter(article => article.title && article.link)
     .slice(0, limit);
+
+  await writeCachedFeed(cacheKey, items);
 
   return items;
 }

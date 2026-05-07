@@ -105,7 +105,7 @@ This file checks current implementation against:
 
 ### P1 (출시 첫 주)
 - Sentry SDK 통합 (back + front).
-- News RSS Redis 캐싱 (현재 매 요청 fetch).
+- ~~News RSS Redis 캐싱~~ ✅ 완료 (2026-05-07) — `back/src/modules/news/provider.ts` 카테고리별 5분 TTL.
 - 5xx alert dedup (5분 윈도우).
 - ActiveTripBanner 색상 토큰화.
 - Docker layer cache (CI 빌드 시간 단축).
