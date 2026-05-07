@@ -273,22 +273,29 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       elevation: 7
     },
     bottomNavItem: {
-      minHeight: 46,
+      minHeight: 52,
       minWidth: 62,
       borderRadius: 16,
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "flex-start",
+      paddingTop: 4,
       paddingHorizontal: 8,
-      gap: 4
+      gap: 2
     },
-    bottomNavItemActive: {
-      backgroundColor: colors.accentSoft,
-      borderWidth: 1,
-      borderColor: colors.lineStrong
+    bottomNavIndicatorRow: { height: 4, marginBottom: 4, alignItems: "center", justifyContent: "center" },
+    bottomNavIndicator: {
+      width: 0,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: "transparent"
     },
-    bottomNavIcon: { color: colors.textMuted, fontSize: 15, lineHeight: 18 },
-    bottomNavIconActive: { color: colors.textPrimary },
-    bottomNavLabel: { color: colors.textMuted, fontSize: 11, fontWeight: "700" },
-    bottomNavLabelActive: { color: colors.textPrimary }
+    bottomNavIndicatorActive: {
+      width: 22,
+      backgroundColor: colors.accent
+    },
+    bottomNavIcon: { color: colors.textMuted, fontSize: 18, lineHeight: 22, fontWeight: "600" },
+    bottomNavIconActive: { color: colors.accent },
+    bottomNavLabel: { color: colors.textMuted, fontSize: 11, fontWeight: "700", letterSpacing: 0.2 },
+    bottomNavLabelActive: { color: colors.accent }
   } as const;
 }

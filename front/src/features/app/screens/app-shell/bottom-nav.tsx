@@ -22,12 +22,25 @@ export function BottomNav({ theme, selectedTab, navItems, onSelectTab }: BottomN
           <Pressable
             key={item.key}
             onPress={() => onSelectTab(item.key)}
-            style={[styles.bottomNavItem, isActive ? styles.bottomNavItemActive : null]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
+            style={styles.bottomNavItem}
           >
+            <View style={styles.bottomNavIndicatorRow}>
+              <View
+                style={[
+                  styles.bottomNavIndicator,
+                  isActive ? styles.bottomNavIndicatorActive : null
+                ]}
+              />
+            </View>
             <Text style={[styles.bottomNavIcon, isActive ? styles.bottomNavIconActive : null]}>
               {item.icon}
             </Text>
-            <Text style={[styles.bottomNavLabel, isActive ? styles.bottomNavLabelActive : null]}>
+            <Text
+              style={[styles.bottomNavLabel, isActive ? styles.bottomNavLabelActive : null]}
+              numberOfLines={1}
+            >
               {item.label}
             </Text>
           </Pressable>
