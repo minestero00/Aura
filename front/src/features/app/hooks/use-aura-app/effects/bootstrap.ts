@@ -9,6 +9,7 @@ import { loadAppLanguage } from "@features/app/storage";
 import { fetchMe } from "@features/auth/api";
 import { presentLoginError } from "@features/auth/error-presenter";
 import { clearMeCache, loadMeCache, saveMeCache } from "@features/auth/storage";
+import { mark, summarize } from "@features/auth/timing";
 import type { SessionPayload } from "@features/auth/types";
 import { checkDeviceCalendarPermission, isCalendarPermissionGranted } from "@features/calendar/device";
 import { loadIgnoredSenderRules } from "@features/gmail/storage";
@@ -103,8 +104,14 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
         return;
       }
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        if (event === "SIGNED_IN") mark("evt-signed-in");
         try {
+          if (event === "SIGNED_IN") mark("me-call");
           const me = await fetchMe();
+          if (event === "SIGNED_IN") {
+            mark("me-done");
+            summarize("sign-in complete");
+          }
           await saveMeCache(me);
           startTransition(() => {
             deps.setAuthState({

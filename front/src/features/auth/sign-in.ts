@@ -3,6 +3,7 @@ import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-si
 import * as KakaoLogin from "@react-native-seoul/kakao-login";
 import { KAKAO_LOGIN_ENABLED } from "@env";
 import { supabase } from "@lib/supabase/client";
+import { mark } from "@features/auth/timing";
 
 export class SignInError extends Error {
   readonly code: string;
@@ -17,6 +18,7 @@ export class SignInError extends Error {
 // Supabase which mints its own session JWT (auth.users gets the same user
 // regardless of which app — dumb or AURA — signed in first).
 export async function signInWithGoogle(): Promise<void> {
+  mark("start");
   if (Platform.OS === "android") {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
   }
@@ -38,6 +40,7 @@ export async function signInWithGoogle(): Promise<void> {
       )
     )
   ]);
+  mark("modal-done");
 
   if (response.type !== "success") {
     throw new SignInError("GOOGLE_CANCELLED", "Google 로그인이 취소되었습니다.");
@@ -54,16 +57,21 @@ export async function signInWithGoogle(): Promise<void> {
   // SDK 내부 state에 진입하므로 getSession()으로 직접 확인해 우회한다.
   // poll 시작 지연은 600ms — SDK가 정상 빠른 응답일 때는 race 영향 없음,
   // 느릴 때는 빠르게 fallback 진입.
+  mark("sb-call");
   const startedAt = Date.now();
   const signInPromise = supabase.auth
     .signInWithIdToken({ provider: "google", token: idToken })
-    .then(result => ({ kind: "sdk" as const, result }));
+    .then(result => {
+      mark("sb-resolve");
+      return { kind: "sdk" as const, result };
+    });
 
   const sessionPolledPromise = (async () => {
     await new Promise<void>(r => setTimeout(r, 600));
     while (Date.now() - startedAt < 12_000) {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        mark("sb-polled");
         return { kind: "polled" as const, session: data.session };
       }
       await new Promise<void>(r => setTimeout(r, 250));
@@ -77,7 +85,7 @@ export async function signInWithGoogle(): Promise<void> {
   const winner = await Promise.race([signInPromise, sessionPolledPromise]);
   const elapsed = Date.now() - startedAt;
   if (elapsed > 1_500) {
-    console.warn(
+    console.log(
       `[auth] signIn slow path — ${elapsed}ms via ${winner.kind}. SDK 후처리 지연.`
     );
   }
