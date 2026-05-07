@@ -235,6 +235,7 @@ export const EN_COPY: AppCopy = {
     send: 'Ask Aura',
     assistantLabel: 'Aura',
     userLabel: 'You',
+    typing: 'Aura is composing a reply...',
     quickPrompts: ['What is the most urgent email today?', 'Summarize today news in 3 lines.', 'What can be postponed until tomorrow?'],
   },
 };

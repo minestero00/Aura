@@ -220,6 +220,7 @@ export interface AppCopy {
     send: string;
     assistantLabel: string;
     userLabel: string;
+    typing: string;
     quickPrompts: string[];
   };
 }

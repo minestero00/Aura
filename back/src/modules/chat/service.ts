@@ -18,26 +18,32 @@ function buildFallbackAnswer(
   newsHeadline: string | null
 ) {
   if (language === "ko") {
-    const lines = [
-      "지금 저장된 브리핑 기준으로 답변합니다.",
-      emailHeadline ? `메일 핵심: ${emailHeadline}` : null,
-      newsHeadline ? `뉴스 핵심: ${newsHeadline}` : null
+    const contextLines = [
+      emailHeadline ? `오늘 메일 핵심: ${emailHeadline}` : null,
+      newsHeadline ? `오늘 뉴스 핵심: ${newsHeadline}` : null
     ].filter(Boolean);
 
+    const message =
+      "잠시 답변을 가져오지 못했어요. 잠시 후 다시 질문해주세요." +
+      (contextLines.length ? `\n\n참고로 ${contextLines.join(" / ")}` : "");
+
     return {
-      answer: lines.join("\n"),
+      answer: message,
       citations: [] as ChatCitation[]
     };
   }
 
-  const lines = [
-    "Answering from your current briefing context.",
-    emailHeadline ? `Mail: ${emailHeadline}` : null,
-    newsHeadline ? `News: ${newsHeadline}` : null
+  const contextLines = [
+    emailHeadline ? `Today's mail: ${emailHeadline}` : null,
+    newsHeadline ? `Today's news: ${newsHeadline}` : null
   ].filter(Boolean);
 
+  const message =
+    "I couldn't generate an answer right now. Please try again in a moment." +
+    (contextLines.length ? `\n\nFor reference — ${contextLines.join(" / ")}` : "");
+
   return {
-    answer: lines.join("\n"),
+    answer: message,
     citations: [] as ChatCitation[]
   };
 }

@@ -14,6 +14,8 @@ export interface ChatMessage {
   content: string;
   citations: ChatCitation[];
   createdAt: string;
+  /** 스트리밍 중인 assistant 메시지 — 응답 완료 시 false/제거. */
+  isStreaming?: boolean;
 }
 
 export interface ChatReplyResponse {

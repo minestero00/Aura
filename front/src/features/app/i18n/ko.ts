@@ -237,6 +237,7 @@ export const KO_COPY: AppCopy = {
     send: '질문 보내기',
     assistantLabel: 'Aura',
     userLabel: '나',
+    typing: 'Aura가 답변을 작성하는 중...',
     quickPrompts: ['오늘 가장 급한 메일은 뭐야?', '오늘 뉴스 핵심을 3줄로 알려줘.', '내일까지 미뤄도 되는 일은 뭐야?'],
   },
 };

@@ -108,16 +108,36 @@ export function AskScreen({
                           ? copy.ask.assistantLabel
                           : userLabel}
                       </Text>
-                      <Text
-                        style={[
-                          styles.chatBubbleText,
-                          message.role === 'assistant'
-                            ? styles.chatBubbleTextAssistant
-                            : styles.chatBubbleTextUser,
-                        ]}
-                      >
-                        {message.content}
-                      </Text>
+                      {message.role === 'assistant' &&
+                      message.isStreaming &&
+                      !message.content.trim() ? (
+                        <View style={styles.chatTypingRow}>
+                          <ActivityIndicator
+                            color={theme.colors.textMuted}
+                            size="small"
+                          />
+                          <Text
+                            style={[
+                              styles.chatBubbleText,
+                              styles.chatBubbleTextAssistant,
+                              styles.chatTypingText,
+                            ]}
+                          >
+                            {copy.ask.typing}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text
+                          style={[
+                            styles.chatBubbleText,
+                            message.role === 'assistant'
+                              ? styles.chatBubbleTextAssistant
+                              : styles.chatBubbleTextUser,
+                          ]}
+                        >
+                          {message.content}
+                        </Text>
+                      )}
                       {message.role === 'assistant' &&
                       message.citations.length > 0 ? (
                         <View style={styles.chatCitationRow}>

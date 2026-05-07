@@ -38,6 +38,8 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     chatBubbleTextUser: { color: colors.accentText },
     chatCitationRow: { marginTop: 8, gap: 4 },
     chatCitationText: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
+    chatTypingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    chatTypingText: { color: colors.textMuted, fontStyle: "italic" },
     urgentMailCardsWrap: { marginTop: 6, gap: 8, width: "100%" },
     urgentMailCard: {
       borderRadius: 16,
