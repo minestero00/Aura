@@ -2,14 +2,12 @@ import React, { useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
   TextInput,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -67,12 +65,11 @@ export function AskScreen({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} accessible={false}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={8}
-          style={styles.askScreen}
-        >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={8}
+        style={styles.askScreen}
+      >
         <View style={styles.askTopBar}>
           <Text style={styles.askTopBarTitle}>{copy.tabs.ask}</Text>
           <Text style={styles.askTopBarSubtitle}>{copy.ask.subtitle}</Text>
@@ -90,6 +87,7 @@ export function AskScreen({
             keyExtractor={item => item.id}
             onContentSizeChange={handleContentSizeChange}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
             ListEmptyComponent={
               <View style={styles.askEmptyWrap}>
                 <EmptyStateHero title={copy.ask.empty} body={copy.ask.subtitle} />
@@ -264,8 +262,7 @@ export function AskScreen({
             </Pressable>
           </View>
         </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
