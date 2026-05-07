@@ -182,6 +182,7 @@ function SignInMenu({
           color={theme.colors.textPrimary}
           disabled={isSubmitting}
           onPress={() => void onGoogleSignIn()}
+          leadingIcon={<GoogleIcon />}
         />
         <PrimaryButton
           label={copy.signIn.kakaoButton}
@@ -189,6 +190,7 @@ function SignInMenu({
           color="#191600"
           disabled={isSubmitting}
           onPress={() => void onKakaoSignIn()}
+          leadingIcon={<KakaoIcon />}
         />
         <PrimaryButton
           label={copy.signIn.phoneButton}
@@ -196,6 +198,7 @@ function SignInMenu({
           color={theme.colors.accentText}
           disabled={isSubmitting}
           onPress={onPickPhone}
+          leadingIcon={<PhoneIcon />}
         />
         <View style={{ height: 1, backgroundColor: theme.colors.line, marginVertical: 8 }} />
         <Text style={styles.helperText}>{copy.signIn.dumbHint}</Text>
@@ -206,6 +209,7 @@ function SignInMenu({
           border={theme.colors.lineStrong}
           disabled={isSubmitting}
           onPress={onPickEmail}
+          leadingIcon={<EmailIcon />}
         />
       </View>
 
@@ -387,7 +391,8 @@ function PrimaryButton({
   color,
   border,
   disabled,
-  onPress
+  onPress,
+  leadingIcon
 }: {
   label: string;
   background: string;
@@ -395,6 +400,7 @@ function PrimaryButton({
   border?: string;
   disabled?: boolean;
   onPress: () => void;
+  leadingIcon?: React.ReactNode;
 }) {
   return (
     <Pressable
@@ -407,12 +413,90 @@ function PrimaryButton({
         borderWidth: border ? 1 : 0,
         borderColor: border,
         opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+        flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        paddingHorizontal: 16,
+        gap: 10
       })}
     >
+      {leadingIcon}
       <Text style={{ color, fontSize: 16, fontWeight: "600" }}>{label}</Text>
     </Pressable>
+  );
+}
+
+// ── Provider 로고 (의존성 없는 인라인 마크) ───────────────────────────────────
+// react-native-svg 미사용 환경 대응 — View + Text 조합으로 인지 가능한 마크.
+// 각 24×24 원형 컨테이너에 브랜드 색 + 식별자 글자/심볼.
+
+function GoogleIcon() {
+  return (
+    <View
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#E0E0E0",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <Text style={{ color: "#4285F4", fontSize: 16, fontWeight: "800", lineHeight: 18 }}>G</Text>
+    </View>
+  );
+}
+
+function KakaoIcon() {
+  return (
+    <View
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        backgroundColor: "#191600",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <Text style={{ color: "#FEE500", fontSize: 13, fontWeight: "900", lineHeight: 14 }}>K</Text>
+    </View>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <View
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: "rgba(255,255,255,0.22)",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <Text style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 16 }}>✆</Text>
+    </View>
+  );
+}
+
+function EmailIcon() {
+  return (
+    <View
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: "rgba(0,0,0,0.06)",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <Text style={{ color: "#4A4E66", fontSize: 14, fontWeight: "700", lineHeight: 16 }}>@</Text>
+    </View>
   );
 }
 
