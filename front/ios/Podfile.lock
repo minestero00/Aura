@@ -32,8 +32,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - BVLinearGradient (2.8.3):
-    - React-Core
   - FBLazyVector (0.84.1)
   - GoogleSignIn (9.1.0):
     - AppAuth (~> 2.0)
@@ -1997,11 +1995,32 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNLinearGradient (3.0.0-beta.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
   - "AsyncStorage (from `../../node_modules/@react-native-async-storage/async-storage`)"
-  - BVLinearGradient (from `../../node_modules/react-native-linear-gradient`)
   - FBLazyVector (from `../../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - "kakao-login (from `../../node_modules/@react-native-seoul/kakao-login`)"
@@ -2083,6 +2102,7 @@ DEPENDENCIES:
   - "RNCPushNotificationIOS (from `../../node_modules/@react-native-community/push-notification-ios`)"
   - "RNDateTimePicker (from `../../node_modules/@react-native-community/datetimepicker`)"
   - "RNGoogleSignin (from `../../node_modules/@react-native-google-signin/google-signin`)"
+  - RNLinearGradient (from `../../node_modules/react-native-linear-gradient`)
   - Yoga (from `../../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2102,8 +2122,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   AsyncStorage:
     :path: "../../node_modules/@react-native-async-storage/async-storage"
-  BVLinearGradient:
-    :path: "../../node_modules/react-native-linear-gradient"
   FBLazyVector:
     :path: "../../node_modules/react-native/Libraries/FBLazyVector"
   hermes-engine:
@@ -2265,6 +2283,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@react-native-community/datetimepicker"
   RNGoogleSignin:
     :path: "../../node_modules/@react-native-google-signin/google-signin"
+  RNLinearGradient:
+    :path: "../../node_modules/react-native-linear-gradient"
   Yoga:
     :path: "../../node_modules/react-native/ReactCommon/yoga"
 
@@ -2273,7 +2293,6 @@ SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   AsyncStorage: 2e1d431842588f5af845737e6435c1fcbecdab51
-  BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   FBLazyVector: e97c19a5a442429d1988f182a1940fb08df514da
   GoogleSignIn: fcee2257188d5eda57a5e2b6a715550ffff9206d
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
@@ -2362,6 +2381,7 @@ SPEC CHECKSUMS:
   RNCPushNotificationIOS: 85957a0534fd1309b4c028ccbe5b1baf9ab5cf57
   RNDateTimePicker: 9025ccd219b382f246e9ceb85cd4095279b9bad1
   RNGoogleSignin: 104dd7238c56fe354e4b0a8fd267f866039ffdf3
+  RNLinearGradient: 8248d88b4bb978f47f5538630234d35f20df48b4
   Yoga: c0b3f2c7e8d3e327e450223a2414ca3fa296b9a2
 
 PODFILE CHECKSUM: 6b4515489f45ddbbe8b2261df93d96c6da5a6cec

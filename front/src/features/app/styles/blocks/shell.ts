@@ -220,16 +220,16 @@ export function buildShellStyles(theme: AuraTheme) {
     },
     // SignIn hero — 첫 인상 강조용 큰 panel + 로고/워드마크
     signInHero: {
-      paddingVertical: 36,
-      paddingHorizontal: 24,
-      borderRadius: 36
+      paddingVertical: 32,
+      paddingHorizontal: 22,
+      borderRadius: 32
     },
-    signInHeroContent: { gap: 14, position: "relative", zIndex: 1 },
-    signInHeroIconRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 },
+    signInHeroContent: { gap: 12, position: "relative", zIndex: 1, alignSelf: "stretch" },
+    signInHeroIconRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 6 },
     signInHeroIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 14,
+      width: 44,
+      height: 44,
+      borderRadius: 13,
       backgroundColor: "rgba(255,255,255,0.18)"
     },
     signInHeroWordmark: {
@@ -240,15 +240,15 @@ export function buildShellStyles(theme: AuraTheme) {
     },
     signInHeroTitle: {
       color: "#FFFFFF",
-      fontSize: 26,
+      fontSize: 22,
       fontWeight: "800",
-      lineHeight: 34
+      lineHeight: 30
     },
     signInHeroSubtitle: {
       color: "rgba(255,255,255,0.9)",
       fontSize: 14,
       lineHeight: 20,
-      marginTop: 6
+      marginTop: 4
     },
     formCard: {
       padding: 20,

@@ -108,4 +108,6 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
 - 2026-05-07: Kakao 네이티브 init 크래시 회피 — Info.plist에 `KAKAO_APP_KEY` placeholder 추가. RNKakaoLogins.swift는 부팅 시 자동 init되며 nil 강제 언래핑이 발생. 검수 통과 시 실제 native app key로 교체.
 - 2026-05-07: Phase 3 적용 — Bottom Tab 활성 인디케이터(22×3 accent 바) + 활성 탭 아이콘/라벨 accent 컬러. `bottomNavItemActive`(accentSoft pill) 제거하고 시각적으로 더 명확.
 - 2026-05-07: Phase 5 적용 — mail/todo/news/settings 4개 화면의 `HeroWaveDecoration`을 `HeroGradient`로 일괄 교체. 흰색 hero 텍스트 톤 일관성. SignIn/LoadingScreen 포함 5개 화면이 동일 그라데이션 언어 사용.
+- 2026-05-07: SignIn hero 사이즈 + 로고 inline 추가. `numberOfLines={2}` + `adjustsFontSizeToFit`로 한국어 타이틀 wrap 안정화. SignIn은 큰 panel(파라미터 별도), 본문 화면은 기존 작은 panel 유지.
+- 2026-05-07: `react-native-linear-gradient` 2.8.3 → 3.0.0-beta.2 업그레이드. 2.x는 RN 0.84의 New Architecture/Bridgeless에서 native 모듈이 렌더링되지 않아 그라데이션이 보이지 않던 문제 해결. 3.x는 Fabric 호환.
 - Aurora 브랜드 보라를 유지하기로 결정 (참조 이미지의 단순 블루로 갈지 두고 보았으나, 기존 토큰/마케팅 자산과의 정합 우선).

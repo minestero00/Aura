@@ -66,8 +66,17 @@ export function SignInScreen({
                 <Image source={AURA_ICON} style={styles.signInHeroIcon} resizeMode="contain" />
                 <Text style={styles.signInHeroWordmark}>AURA</Text>
               </View>
-              <Text style={styles.signInHeroTitle}>{copy.signIn.title}</Text>
-              <Text style={styles.signInHeroSubtitle}>{copy.signIn.subtitle}</Text>
+              <Text
+                style={styles.signInHeroTitle}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {copy.signIn.title}
+              </Text>
+              <Text style={styles.signInHeroSubtitle} numberOfLines={2}>
+                {copy.signIn.subtitle}
+              </Text>
             </View>
           </HeroGradient>
 
