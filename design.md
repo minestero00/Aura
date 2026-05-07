@@ -77,7 +77,7 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
 | **1** ✅ | LoadingScreen | 로고 펄스 애니메이션 (Animated only, 의존성 추가 X) |
 | **2** ✅ | LinearGradient 도입 | `react-native-linear-gradient` deps + `<HeroGradient>` 컴포넌트, SignIn hero + LoadingScreen full-fill 적용 |
 | **3** ✅ | Bottom Tab 리프레시 | 활성 탭 위 22×3 accent 인디케이터 바 + 활성 아이콘/라벨 accent 컬러 |
-| 4 | Card / Button 톤 강화 | Primary CTA 그림자/사이즈 통일, card 라운드 22로 통일 |
+| **4** ✅ | Card / Button 톤 강화 | Aurora-tinted soft shadow(`#9b8fe0` light / `#1a1456` dark), formCard·sectionCard 일관, padding 22 + radius 28 통일 |
 | **5** ✅ | Hero pattern 화면별 적용 | mail/todo/news/settings hero를 HeroWaveDecoration → HeroGradient 교체 |
 | 6 | Empty state 일러스트 | 메일 0건/뉴스 0건 등에서 simple SVG/이모지 hero |
 
@@ -110,4 +110,9 @@ linear-gradient(135deg, var(--aurora) 0%, #8E76FF 45%, var(--calm) 100%)
 - 2026-05-07: Phase 5 적용 — mail/todo/news/settings 4개 화면의 `HeroWaveDecoration`을 `HeroGradient`로 일괄 교체. 흰색 hero 텍스트 톤 일관성. SignIn/LoadingScreen 포함 5개 화면이 동일 그라데이션 언어 사용.
 - 2026-05-07: SignIn hero 사이즈 + 로고 inline 추가. `numberOfLines={2}` + `adjustsFontSizeToFit`로 한국어 타이틀 wrap 안정화. SignIn은 큰 panel(파라미터 별도), 본문 화면은 기존 작은 panel 유지.
 - 2026-05-07: `react-native-linear-gradient` 2.8.3 → 3.0.0-beta.2 업그레이드. 2.x는 RN 0.84의 New Architecture/Bridgeless에서 native 모듈이 렌더링되지 않아 그라데이션이 보이지 않던 문제 해결. 3.x는 Fabric 호환.
+- 2026-05-07: 공식 SVG 로고 — `react-native-svg ^15.15.4` 도입(New Arch 호환). SignIn 4개 버튼에 Google 4-arc multicolor / Kakao speech bubble / Phone glyph / Dumb logo(Image/dumbicon에서 추출) 마크 적용.
+- 2026-05-07: 앱 톤 통일 (사용자 피드백 "흰색 mockup 느낌 강함, 앱 철학이 묻어나야"):
+  - `colors.background`/`backgroundSecondary`/`surfaceMuted`을 미세 aurora 톤(F0EFF8/E9E6F4/F1F0F7)으로 이동
+  - `<ScreenAtmosphere>` 컴포넌트 신설 — AppShell/SignIn 상단 360px에 매우 낮은 alpha의 aurora→calm→투명 그라데이션 wash. 카드 위로 비치지 않을 정도지만 화면 진입 시 새벽 분위기.
+  - formCard/sectionCard shadow를 aurora-tinted로(#9b8fe0 light / #1a1456 dark) + radius/padding 통일 (Phase 4 적용).
 - Aurora 브랜드 보라를 유지하기로 결정 (참조 이미지의 단순 블루로 갈지 두고 보았으나, 기존 토큰/마케팅 자산과의 정합 우선).

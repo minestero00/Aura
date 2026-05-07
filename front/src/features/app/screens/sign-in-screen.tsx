@@ -15,6 +15,7 @@ import { SvgXml } from "react-native-svg";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
 import { HeroGradient } from "@features/app/components/hero-gradient";
+import { ScreenAtmosphere } from "@features/app/components/screen-atmosphere";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
 const DUMB_LOGO = require("@features/app/assets/dumb-logo.jpg");
@@ -75,6 +76,7 @@ export function SignInScreen({
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <ScreenAtmosphere />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}

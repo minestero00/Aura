@@ -251,26 +251,27 @@ export function buildShellStyles(theme: AuraTheme) {
       marginTop: 4
     },
     formCard: {
-      padding: 20,
+      padding: 22,
       borderRadius: 28,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#223d7a" : "#b8c9ec",
-      shadowOpacity: theme.isDark ? 0.18 : 0.2,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 2
+      // Aurora-tinted soft shadow — 브랜드 분위기를 그림자에도 미세하게
+      shadowColor: theme.isDark ? "#1a1456" : "#9b8fe0",
+      shadowOpacity: theme.isDark ? 0.32 : 0.16,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 3
     },
     sectionCard: {
-      padding: 20,
+      padding: 22,
       borderRadius: 28,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#20386f" : "#c1cfea",
-      shadowOpacity: theme.isDark ? 0.18 : 0.2,
-      shadowRadius: 16,
+      shadowColor: theme.isDark ? "#1a1456" : "#9b8fe0",
+      shadowOpacity: theme.isDark ? 0.30 : 0.14,
+      shadowRadius: 20,
       shadowOffset: { width: 0, height: 8 },
       elevation: 3
     },
