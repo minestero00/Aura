@@ -35,7 +35,10 @@ gmailRouter.get(
   asyncHandler(async (req, res) => {
     const input = listGmailMessagesSchema.parse(req.query);
     res.json(
-      await gmailService.listRecentMessages(req.authUser!.id, input.limit, input.ignoredSenderKeys)
+      await gmailService.listRecentMessages(req.authUser!.id, {
+        limit: input.limit,
+        ignoredSenderKeys: input.ignoredSenderKeys
+      })
     );
   })
 );
@@ -50,12 +53,11 @@ gmailRouter.post(
       feature: "email_summary"
     });
     res.json(
-      await gmailService.summarizeRecentMessages(
-        req.authUser!.id,
-        input.limit ?? 10,
-        input.ignoredSenderKeys ?? [],
-        input.language ?? "en"
-      )
+      await gmailService.summarizeRecentMessages(req.authUser!.id, {
+        limit: input.limit,
+        ignoredSenderKeys: input.ignoredSenderKeys,
+        language: input.language
+      })
     );
   })
 );
@@ -70,11 +72,11 @@ gmailRouter.get(
       feature: "email_summary"
     });
     res.json(
-      await gmailService.summarizeDailyMessages(
-        req.authUser!.id,
-        input.ignoredSenderKeys,
-        (typeof req.query.language === "string" && req.query.language === "ko") ? "ko" : "en"
-      )
+      await gmailService.summarizeDailyMessages(req.authUser!.id, {
+        ignoredSenderKeys: input.ignoredSenderKeys,
+        language:
+          typeof req.query.language === "string" && req.query.language === "ko" ? "ko" : "en"
+      })
     );
   })
 );

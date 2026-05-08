@@ -41,11 +41,15 @@ function parseDate(value: string | null | undefined) {
   return parsed;
 }
 
-async function fetchDurationMinutesByMode(
-  origin: string,
-  destination: string,
-  departureTime: Date,
-  mode: RouteMode
+interface RouteQuery {
+  origin: string;
+  destination: string;
+  departureTime: Date;
+  mode: RouteMode;
+}
+
+async function fetchDurationMinutes(
+  query: RouteQuery
 ): Promise<{ durationMinutes: number; mode: RouteMode }> {
   if (!config.googleMapsApiKey) {
     throw new AppError(
@@ -56,10 +60,10 @@ async function fetchDurationMinutesByMode(
   }
 
   const params = new URLSearchParams({
-    origins: origin,
-    destinations: destination,
-    mode,
-    departure_time: `${Math.floor(departureTime.getTime() / 1000)}`,
+    origins: query.origin,
+    destinations: query.destination,
+    mode: query.mode,
+    departure_time: `${Math.floor(query.departureTime.getTime() / 1000)}`,
     key: config.googleMapsApiKey
   });
 
@@ -100,7 +104,7 @@ async function fetchDurationMinutesByMode(
 
     return {
       durationMinutes: toMinutes(durationSeconds),
-      mode
+      mode: query.mode
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -113,13 +117,25 @@ async function fetchDurationMinutesByMode(
   }
 }
 
-async function fetchDurationMinutes(
-  origin: string,
-  destination: string,
-  departureTime: Date,
-  preferredMode: "driving" | "transit"
-): Promise<{ durationMinutes: number; mode: RouteMode }> {
-  return fetchDurationMinutesByMode(origin, destination, departureTime, preferredMode);
+function logRouteFailure(input: {
+  source: "current-location" | "previous-event";
+  origin?: string;
+  destination: string;
+  error: unknown;
+}) {
+  console.log(
+    JSON.stringify({
+      level: "warn",
+      service: "aura-back",
+      message: "calendar travel-plan route failed",
+      source: input.source,
+      ...(input.origin !== undefined ? { origin: input.origin } : {}),
+      destination: input.destination,
+      errorCode: input.error instanceof AppError ? input.error.code : "UNKNOWN_ERROR",
+      errorMessage: input.error instanceof Error ? input.error.message : String(input.error),
+      errorDetails: input.error instanceof AppError ? input.error.details ?? null : null
+    })
+  );
 }
 
 function getUpcomingDayEvents(day: CalendarAgendaDay, now: Date) {
@@ -190,12 +206,12 @@ async function buildCalendarTravelHintsForMode(
       if (firstLocatedEvent && firstLocatedEvent.location && startsAt && requestsMade < maxRequests) {
         requestsMade += 1;
         try {
-          const travel = await fetchDurationMinutes(
-            `${input.currentLocation.lat},${input.currentLocation.lng}`,
-            firstLocatedEvent.location,
-            now,
-            preferredMode
-          );
+          const travel = await fetchDurationMinutes({
+            origin: `${input.currentLocation.lat},${input.currentLocation.lng}`,
+            destination: firstLocatedEvent.location,
+            departureTime: now,
+            mode: preferredMode
+          });
           const recommendedDepartureAt = new Date(
             startsAt.getTime() - travel.durationMinutes * 60_000
           );
@@ -215,18 +231,11 @@ async function buildCalendarTravelHintsForMode(
             isTightTransfer: recommendedDepartureAt.getTime() <= now.getTime()
           });
         } catch (error) {
-          console.log(
-            JSON.stringify({
-              level: "warn",
-              service: "aura-back",
-              message: "calendar travel-plan route failed",
-              source: "current-location",
-              destination: firstLocatedEvent.location,
-              errorCode: error instanceof AppError ? error.code : "UNKNOWN_ERROR",
-              errorMessage: error instanceof Error ? error.message : String(error),
-              errorDetails: error instanceof AppError ? error.details ?? null : null
-            })
-          );
+          logRouteFailure({
+            source: "current-location",
+            destination: firstLocatedEvent.location,
+            error
+          });
         }
       }
     }
@@ -248,12 +257,12 @@ async function buildCalendarTravelHintsForMode(
 
       requestsMade += 1;
       try {
-        const travel = await fetchDurationMinutes(
-          previous.location,
-          next.location,
-          previousEnd,
-          preferredMode
-        );
+        const travel = await fetchDurationMinutes({
+          origin: previous.location,
+          destination: next.location,
+          departureTime: previousEnd,
+          mode: preferredMode
+        });
         const recommendedDepartureAt = new Date(
           nextStart.getTime() - travel.durationMinutes * 60_000
         );
@@ -273,19 +282,12 @@ async function buildCalendarTravelHintsForMode(
           isTightTransfer: recommendedDepartureAt.getTime() < previousEnd.getTime()
         });
       } catch (error) {
-        console.log(
-          JSON.stringify({
-            level: "warn",
-            service: "aura-back",
-            message: "calendar travel-plan route failed",
-            source: "previous-event",
-            origin: previous.location,
-            destination: next.location,
-            errorCode: error instanceof AppError ? error.code : "UNKNOWN_ERROR",
-            errorMessage: error instanceof Error ? error.message : String(error),
-            errorDetails: error instanceof AppError ? error.details ?? null : null
-          })
-        );
+        logRouteFailure({
+          source: "previous-event",
+          origin: previous.location,
+          destination: next.location,
+          error
+        });
       }
     }
   }

@@ -1,6 +1,7 @@
 import { AppError } from "../../../lib/errors/app-error.js";
 import { briefingsService } from "../../briefings/service.js";
 import { authStore } from "../../auth/store.js";
+import { requireUser } from "../../auth/guards.js";
 import { filterIgnoredMessages } from "./filtering.js";
 import {
   createGmailReplyDraft,
@@ -30,11 +31,7 @@ export const gmailService = {
     email: string;
     scopes: string[];
   }) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     let exchanged: Awaited<ReturnType<typeof exchangeServerAuthCode>> | null = null;
 
@@ -75,11 +72,7 @@ export const gmailService = {
     };
   },
   disconnect(userId: string) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     authStore.deleteGmailConnection(userId);
     briefingsService.touchUserSchedule(userId);
@@ -90,26 +83,24 @@ export const gmailService = {
     };
   },
   getStatus(userId: string) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     return {
       integrations: toIntegrationPayload(userId)
     };
   },
-  async listRecentMessages(userId: string, limit = 10, ignoredSenderKeys: string[] = []) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+  async listRecentMessages(
+    userId: string,
+    options: {
+      limit?: number;
+      ignoredSenderKeys?: string[];
+    } = {}
+  ) {
+    requireUser(userId);
 
     const messages = filterIgnoredMessages(
-      await fetchRecentGmailMessages(userId, { limit }),
-      ignoredSenderKeys
+      await fetchRecentGmailMessages(userId, { limit: options.limit ?? 10 }),
+      options.ignoredSenderKeys ?? []
     );
 
     return {
@@ -118,21 +109,19 @@ export const gmailService = {
   },
   async summarizeRecentMessages(
     userId: string,
-    limit = 10,
-    ignoredSenderKeys: string[] = [],
-    language: "en" | "ko" = "en"
+    options: {
+      limit?: number;
+      ignoredSenderKeys?: string[];
+      language?: "en" | "ko";
+    } = {}
   ) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     const messages = filterIgnoredMessages(
-      await fetchRecentGmailMessages(userId, { limit }),
-      ignoredSenderKeys
+      await fetchRecentGmailMessages(userId, { limit: options.limit ?? 10 }),
+      options.ignoredSenderKeys ?? []
     );
-    const digest = await summarizeGmailMessages(messages, language, userId);
+    const digest = await summarizeGmailMessages(messages, options.language ?? "en", userId);
 
     return {
       digest,
@@ -141,20 +130,18 @@ export const gmailService = {
   },
   async summarizeDailyMessages(
     userId: string,
-    ignoredSenderKeys: string[] = [],
-    language: "en" | "ko" = "en"
+    options: {
+      ignoredSenderKeys?: string[];
+      language?: "en" | "ko";
+    } = {}
   ) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     const messages = filterIgnoredMessages(
       await fetchDailyGmailMessages(userId, 20),
-      ignoredSenderKeys
+      options.ignoredSenderKeys ?? []
     );
-    const digest = await summarizeGmailMessages(messages, language, userId);
+    const digest = await summarizeGmailMessages(messages, options.language ?? "en", userId);
 
     return {
       digest,
@@ -162,11 +149,7 @@ export const gmailService = {
     };
   },
   async createReplyDraft(userId: string, messageId: string, language: "en" | "ko" = "en") {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     const context = await fetchGmailMessageForReply(userId, messageId);
     const generated = await generateReplyDraft(context, language, userId);

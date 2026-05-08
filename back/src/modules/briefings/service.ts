@@ -1,6 +1,6 @@
-import { AppError } from "../../lib/errors/app-error.js";
 import { config } from "../../config/env.js";
 import { authStore } from "../auth/store.js";
+import { requireUserContext } from "../auth/guards.js";
 import { fetchDailyGmailMessages } from "../integrations/gmail/gmail-api.js";
 import { summarizeGmailMessages } from "../integrations/gmail/summarizer.js";
 import { fetchTopNewsArticles } from "../news/provider.js";
@@ -73,18 +73,7 @@ async function generateSnapshot(
   }
 
   const task = (async () => {
-    let user = authStore.findUserById(userId);
-    let preferences = authStore.getPreferences(userId);
-
-    if (!user || !preferences) {
-      const loaded = await authStore.ensureUserContext(userId);
-      user = loaded?.user ?? null;
-      preferences = loaded?.preferences ?? null;
-    }
-
-    if (!user || !preferences) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    const { user, preferences } = await requireUserContext(userId);
 
     const categories = preferences.newsCategories as NewsArticle["category"][];
     const newsArticles = await fetchTopNewsArticles(categories, 4);
@@ -189,18 +178,7 @@ export const briefingsService = {
     language: "en" | "ko",
     forceRefresh = false
   ): Promise<DailyBriefResponse> {
-    let user = authStore.findUserById(userId);
-    let preferences = authStore.getPreferences(userId);
-
-    if (!user || !preferences) {
-      const loaded = await authStore.ensureUserContext(userId);
-      user = loaded?.user ?? null;
-      preferences = loaded?.preferences ?? null;
-    }
-
-    if (!user || !preferences) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    const { user } = await requireUserContext(userId);
 
     const key = snapshotKey(userId, language);
     let existing = snapshotsByKey.get(key);

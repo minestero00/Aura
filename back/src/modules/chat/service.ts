@@ -1,6 +1,5 @@
 import { createAnthropicJsonSummary, streamAnthropicText } from "../../lib/ai/anthropic.js";
-import { AppError } from "../../lib/errors/app-error.js";
-import { authStore } from "../auth/store.js";
+import { requireUser } from "../auth/guards.js";
 import { briefingsService } from "../briefings/service.js";
 import { usageService } from "../usage/service.js";
 import { chatRepository } from "./repository.js";
@@ -87,11 +86,7 @@ function sanitizeCitations(citations: ChatCitation[]) {
 
 export const chatService = {
   async ask(userId: string, input: { message: string; language: "en" | "ko"; sessionId?: string }) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     const sessionId = await chatRepository.ensureSession(userId, input.sessionId);
     const recentMessages = await chatRepository.listRecentMessages(userId, sessionId, 8);
@@ -185,10 +180,7 @@ export const chatService = {
       onError: (error: Error) => void;
     }
   ) {
-    const user = authStore.findUserById(userId);
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     const sessionId = await chatRepository.ensureSession(userId, input.sessionId);
     handlers.onMeta({ sessionId });

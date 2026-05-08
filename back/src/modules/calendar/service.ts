@@ -1,27 +1,18 @@
-import { AppError } from "../../lib/errors/app-error.js";
-import { authStore } from "../auth/store.js";
+import { requireUser } from "../auth/guards.js";
 import { fetchCalendarAgenda } from "./calendar-api.js";
 import { buildCalendarTravelHintsByMode } from "./travel-plan.js";
 import type { CalendarTravelPlanRequest } from "./types.js";
 
 export const calendarService = {
   async getAgenda(userId: string) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     return {
       days: await fetchCalendarAgenda(userId)
     };
   },
   async getTravelPlan(userId: string, input: CalendarTravelPlanRequest) {
-    const user = authStore.findUserById(userId);
-
-    if (!user) {
-      throw new AppError(404, "USER_NOT_FOUND", "User could not be found.");
-    }
+    requireUser(userId);
 
     const hintsByMode = await buildCalendarTravelHintsByMode(input);
     console.log(

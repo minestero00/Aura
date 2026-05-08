@@ -37,16 +37,21 @@ interface GmailMessageResponse {
   };
 }
 
-function logGmailFailure(userId: string, path: string, status: number, payload: unknown) {
+function logGmailFailure(input: {
+  userId: string;
+  path: string;
+  status: number;
+  payload: unknown;
+}) {
   console.log(
     JSON.stringify({
       level: "warn",
       service: "aura-back",
       message: "gmail request failed",
-      userId,
-      path,
-      status,
-      payload
+      userId: input.userId,
+      path: input.path,
+      status: input.status,
+      payload: input.payload
     })
   );
 }
@@ -122,7 +127,12 @@ async function gmailRequest<T>(userId: string, path: string) {
   if (first.response.ok && first.payload) {
     return first.payload;
   }
-  logGmailFailure(userId, path, first.response.status, first.payload);
+  logGmailFailure({
+    userId,
+    path,
+    status: first.response.status,
+    payload: first.payload
+  });
 
   // Google occasionally rejects a cached token even before local expiry.
   if (first.response.status === 401) {
@@ -133,7 +143,12 @@ async function gmailRequest<T>(userId: string, path: string) {
       if (retried.response.ok && retried.payload) {
         return retried.payload;
       }
-      logGmailFailure(userId, path, retried.response.status, retried.payload);
+      logGmailFailure({
+        userId,
+        path,
+        status: retried.response.status,
+        payload: retried.payload
+      });
 
       if (retried.response.status === 401) {
         throw new AppError(
