@@ -86,13 +86,13 @@ Design부터 어플 이름까지 죄다 AI한테 맡겨서 신박한 경험임(A
 
 - 나중에 저 이름 길게 한 버전을 어플에 깔끔하게 넣으면 좀 멋있을 듯.
 
-#### 26/05/08 패치 노트
+## Changelog
 
-- Railway에 backend(`aura-api` + `aura-worker` + Redis) 정식 배포. preflight + auto-baseline migrate로 schema 외부 시드 상태에서도 자동 회복.
-- 화면 진입 모션 도입 — Splash → SignIn에서 위/아래 카드가 자연스럽게 슬라이드 인. 디자인 시스템에 motion 토큰 정식화.
-- ScreenAtmosphere 색감 강화 + 카드 그림자 elevation + 버튼 입체화 (Aurora glow, press feedback). "전체적으로 밋밋하다" 피드백 반영.
-- 5탭 하단 네비 아이콘을 유니코드 글리프 → react-native-svg line 아이콘 5종으로 교체.
-- supabase JS의 `processLock` 제거 — RN AsyncStorage에 stuck lock state가 남아 sign-in spinner가 영원히 도는 hang 원인이었음.
+날짜별 패치 노트는 `docs/versions/` 폴더. 새 패치를 합칠 때마다 같은 형식으로 한 파일씩 추가.
+
+| 날짜 | 핵심 | 링크 |
+|---|---|---|
+| 2026-05-08 | Railway 정식 배포 + 화면 진입 모션 + 2차 디자인 패스 + Sign-in lock fix | [docs/versions/2026-05-08.md](docs/versions/2026-05-08.md) |
 
 ---
 
