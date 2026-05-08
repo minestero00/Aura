@@ -19,11 +19,12 @@ _Ai assistant application for all users_
 
 내 성격이 이래서 내 문제를 해결하기 위해서 시작한 Application.
 
-## Features(26/04/10)
+## Features(26/05/08)
 
 1. 유저가 원하는 뉴스 토픽(최대 5가지)에 대한 요약을 받아볼 수 있음. 실제 뉴스 링크도 제공함.
 
    - briefing by anthropic api
+   - 일일 브리핑 스냅샷 30분 캐시 + 워커 사전 계산 (재요청 비용 절감)
 
 2. 유저의 로그인한 구글 계정 기반으로 하루치 메일 분석 및 답변 초안 작성해줌
 
@@ -31,23 +32,23 @@ _Ai assistant application for all users_
 
    - 다음 일정을 맞추기 위해 대중교통/자차로 언제 출발해야하는지 값 제공. + Google Maps 연동
 
-4. Aura Chat. 솔직히 쓸모가 있다고 생각하지는 않아서 뭘 해야할지 모르겠음..
+4. Aura Chat. 일일 브리핑(메일/뉴스) context를 그라운딩한 답변 + 스트리밍.
 
-   - 진짜 뭘 해야할지 모르겠음 감이 안잡힘. 뭔가 신박한 아이디어가 아직 안나옴
+   - 처음엔 "쓸모 모르겠다" 였는데 일일 브리핑을 자연어로 묻는 용도로 굳어지는 중.
 
 ## User Login
 
-현재는 Google 계정으로 Login.
+기본은 Google. Supabase Auth가 발급한 JWT를 백엔드가 검증.
 
-- Google Cloud Console (qww9363@gmail.com 으로 해놨음.)
+- Google (메인) — Gmail/Calendar 분석에 같은 토큰 사용해서 어차피 필요
+- Kakao — `KAKAO_LOGIN_ENABLED=true` 일 때만 노출 (Kakao 비즈앱 검수 통과 후에 켜는 가드)
+- 휴대전화 OTP — Supabase phone provider
+- Dumb 계정(이메일/비번) — 같은 Supabase project를 dumb이랑 공유하는 SSO 백업
 
-메일 분석을 Gmail 토대로 분석하기 때문에 유지할듯.
-
-### phone check
-
-<https://console.solapi.com/dashboard>
-
-- dumbteam2025@gmail.com 사용, 전화번호 인증하라해서 조민제 명의로 진행함
+설정 위치
+- Google Cloud Console (qww9363@gmail.com)
+- Supabase Auth → Providers
+- 휴대전화 인증: <https://console.solapi.com/dashboard> (dumbteam2025@gmail.com, 명의는 조민제)
 
 ## Language
 
@@ -55,19 +56,43 @@ _Ai assistant application for all users_
 
 - 설마 더 다른 언어가 필요할까. 필요하면 번역기 돌린다는 마인드
 
+## Stack
+
+- **Mobile**: React Native 0.84 (iOS / Android 단일 코드베이스)
+- **Backend**: Express + TypeScript, Railway 배포 (`aura-api` + `aura-worker` + Redis 같은 프로젝트, internal 통신)
+- **DB**: Supabase Postgres (Session pooler) — `aura` schema 단독 소유
+- **Cache**: Railway Redis (rate limit / 캐시 / dedup) — 미설정 시 in-memory fallback
+- **AI**: Anthropic Claude Sonnet 4.6 (`ANTHROPIC_MODEL`) + Haiku 4.5 (`ANTHROPIC_MODEL_LIGHT`, 단순 요약 절감용)
+
+## Design
+
+자체 디자인 시스템 `aura-app-design-system/` — tokens.css 기반, RN은 `front/src/features/app/styles/`에서 미러.
+
+- **색**: AURORA(#6B5BFF) + INK + CALM + WARM + URGENT 5역할 분담
+- **모션**: `auraMotion` 토큰 (duration/easing/screen-enter spec) — 화면 진입 시 위/아래 카드 슬라이드 인 (480ms, 80ms stagger)
+- **5탭 아이콘**: react-native-svg line 아이콘 (Phosphor 톤, stroke 1.75)
+
 ## Version
 
-### Alpha Version
+### Alpha → Beta 전환 중
 
-2026/04/10 update
+2026/05/08 update
 
-by. codex cli (plus)
+by. codex cli (plus) + claude code (opus)
 
 순수하게 내가 쓰려고 만들기 시작했는데 이왕 하는김에 할짓 없을때 하면 좋겠다라고 생각해서 만들기 시작한게 이렇게 됨
 
 Design부터 어플 이름까지 죄다 AI한테 맡겨서 신박한 경험임(Aura 라는 어플 이름도 AI가 정해준 것으로 기억남. **A**i, for **U**ser **R**eliable **A**ssistant << 방금 이거 쓰면서 대충 정해봤음. 왜 처음에 Aura라고 했는지 모르겠네?)
 
 - 나중에 저 이름 길게 한 버전을 어플에 깔끔하게 넣으면 좀 멋있을 듯.
+
+#### 26/05/08 패치 노트
+
+- Railway에 backend(`aura-api` + `aura-worker` + Redis) 정식 배포. preflight + auto-baseline migrate로 schema 외부 시드 상태에서도 자동 회복.
+- 화면 진입 모션 도입 — Splash → SignIn에서 위/아래 카드가 자연스럽게 슬라이드 인. 디자인 시스템에 motion 토큰 정식화.
+- ScreenAtmosphere 색감 강화 + 카드 그림자 elevation + 버튼 입체화 (Aurora glow, press feedback). "전체적으로 밋밋하다" 피드백 반영.
+- 5탭 하단 네비 아이콘을 유니코드 글리프 → react-native-svg line 아이콘 5종으로 교체.
+- supabase JS의 `processLock` 제거 — RN AsyncStorage에 stuck lock state가 남아 sign-in spinner가 영원히 도는 hang 원인이었음.
 
 ---
 
