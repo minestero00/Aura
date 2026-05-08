@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -12,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgXml } from "react-native-svg";
-import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import { auraMotion, createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
 import { HeroGradient } from "@features/app/components/hero-gradient";
 import { ScreenAtmosphere } from "@features/app/components/screen-atmosphere";
@@ -74,6 +75,38 @@ export function SignInScreen({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Screen entrance — top hero slides down, bottom form slides up (staggered).
+  // Spec: aura-app-design-system/references/patterns.md "화면 진입 모션".
+  const heroTranslate = useRef(new Animated.Value(-auraMotion.enter.topCardDistance)).current;
+  const heroOpacity = useRef(new Animated.Value(0)).current;
+  const formTranslate = useRef(new Animated.Value(auraMotion.enter.bottomCardDistance)).current;
+  const formOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const enterTrack = (translate: Animated.Value, opacity: Animated.Value, delay: number) =>
+      Animated.parallel([
+        Animated.timing(translate, {
+          toValue: 0,
+          duration: auraMotion.duration.slow,
+          easing: auraMotion.easing.standard,
+          delay,
+          useNativeDriver: true
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: auraMotion.duration.slow,
+          easing: auraMotion.easing.standard,
+          delay,
+          useNativeDriver: true
+        })
+      ]);
+
+    Animated.parallel([
+      enterTrack(heroTranslate, heroOpacity, 0),
+      enterTrack(formTranslate, formOpacity, auraMotion.enter.stagger)
+    ]).start();
+  }, [heroTranslate, heroOpacity, formTranslate, formOpacity]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScreenAtmosphere />
@@ -85,27 +118,42 @@ export function SignInScreen({
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <HeroGradient style={styles.signInHero}>
-            <View style={styles.signInHeroContent}>
-              <View style={styles.signInHeroIconRow}>
-                <Image source={AURA_ICON} style={styles.signInHeroIcon} resizeMode="contain" />
-                <Text style={styles.signInHeroWordmark}>AURA</Text>
+          <Animated.View
+            style={{
+              opacity: heroOpacity,
+              transform: [{ translateY: heroTranslate }]
+            }}
+          >
+            <HeroGradient style={styles.signInHero}>
+              <View style={styles.signInHeroContent}>
+                <View style={styles.signInHeroIconRow}>
+                  <Image source={AURA_ICON} style={styles.signInHeroIcon} resizeMode="contain" />
+                  <Text style={styles.signInHeroWordmark}>AURA</Text>
+                </View>
+                <Text
+                  style={styles.signInHeroTitle}
+                  numberOfLines={2}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                >
+                  {copy.signIn.title}
+                </Text>
+                <Text style={styles.signInHeroSubtitle} numberOfLines={2}>
+                  {copy.signIn.subtitle}
+                </Text>
               </View>
-              <Text
-                style={styles.signInHeroTitle}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-              >
-                {copy.signIn.title}
-              </Text>
-              <Text style={styles.signInHeroSubtitle} numberOfLines={2}>
-                {copy.signIn.subtitle}
-              </Text>
-            </View>
-          </HeroGradient>
+            </HeroGradient>
+          </Animated.View>
 
-          <View style={styles.formCard}>
+          <Animated.View
+            style={[
+              styles.formCard,
+              {
+                opacity: formOpacity,
+                transform: [{ translateY: formTranslate }]
+              }
+            ]}
+          >
             {mode === "menu" ? (
               <SignInMenu
                 copy={copy}
@@ -163,7 +211,7 @@ export function SignInScreen({
                 onSubmit={() => onEmailSignIn(email, password)}
               />
             ) : null}
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

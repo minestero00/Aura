@@ -281,3 +281,30 @@ AURA의 핵심 화면 5+α 가지 패턴. 모두 `templates/starter.html`(모바
 | 5 | 설정 | 톱니 |
 
 활성 탭은 `.tab.on` (color = aurora). 다른 라벨/순서로 바꾸지 마세요 — 탭 위치 학습 비용이 모든 화면 톤보다 비싼 비용입니다.
+
+---
+
+## 화면 진입 모션 (Screen Entrance)
+
+화면이 처음 마운트될 때 위/아래 두 카드가 각자 방향에서 슬라이드 인 + fade. 사용자에게 "이 화면이 새로 도착했다"는 신호를 주고, 두 카드의 역할(위 = 정체성/안내, 아래 = 행동)을 시각적으로 분리한다.
+
+| 트랙 | 시작 위치 | 끝 위치 | 시작 opacity | 끝 opacity | duration | easing | stagger |
+|---|---|---|---|---|---|---|---|
+| 위 카드 (hero/안내) | translateY -120 | 0 | 0 | 1 | 480ms | `--ease` | 0ms |
+| 아래 카드 (form/행동) | translateY +160 | 0 | 0 | 1 | 480ms | `--ease` | 80ms |
+
+> 화면 진입은 일반 transition(`--d-slow` 320ms)보다 길게 잡는다 — 두 카드가 동시에 움직이는 동안 사용자가 위/아래 역할을 시각적으로 인지할 시간을 준다.
+
+진입 직전 화면(예: splash)이 있으면 `--d-fast` (120ms) fade-out 후 새 화면 mount.
+
+**언제 적용**:
+- Splash → SignIn (위: HeroGradient, 아래: formCard)
+- Onboarding → 첫 브리핑 (위: AURA 인사 hero, 아래: 액션 카드)
+- 설정 → 데이터/프라이버시 같은 stack push 화면
+
+**언제 적용하지 않을 것**:
+- 5탭 전환 (탭은 즉시 swap — 학습된 위치라 모션이 오히려 산만)
+- 모달 (이건 별도 패턴, bottom sheet rise)
+- 리스트 안의 카드 (스크롤 페이드만)
+
+**RN 구현 토큰**: `auraMotion` (front/src/features/app/styles/theme.tsx).

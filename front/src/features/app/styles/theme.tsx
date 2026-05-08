@@ -1,6 +1,27 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { useColorScheme } from "react-native";
+import { Easing, useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+/**
+ * Motion tokens — mirror of tokens.css `--d-*` / `--ease*` plus screen-entrance
+ * pattern spec from references/patterns.md. Theme-independent (same in dark/light).
+ */
+export const auraMotion = {
+  duration: {
+    fast: 120,  // --d-fast: 짧은 fade-out / 작은 토글
+    base: 200,  // --d-base: 일반 transition (button press 등)
+    slow: 480   // 화면 진입 카드 슬라이드 인 (--d-slow보다 길게 — 카드가 자연스럽게 안착)
+  },
+  easing: {
+    standard: Easing.bezier(0.22, 0.61, 0.36, 1),  // --ease
+    emphasized: Easing.bezier(0.2, 0, 0, 1)        // --ease-emph
+  },
+  enter: {
+    topCardDistance: 120,    // 위 카드 시작 translateY (-120 → 0)
+    bottomCardDistance: 160, // 아래 카드 시작 translateY (+160 → 0)
+    stagger: 80              // 위 카드 → 아래 카드 지연 ms
+  }
+} as const;
 
 /**
  * AURA Theme. Values mirror ../../../../../aura-app-design-system/assets/tokens.css.
