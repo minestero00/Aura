@@ -458,6 +458,8 @@ function EmailSignIn({
 }
 
 // ── Buttons ──────────────────────────────────────────────────────────────────
+// 그림자 색은 background에 맞춰 — accent(aurora)는 보라 glow, 그 외는 잉크 톤.
+// press 시 살짝 scale-down + 그림자 약화 → "버튼이 눌렸다"는 햅틱적 인상.
 function PrimaryButton({
   label,
   background,
@@ -475,26 +477,44 @@ function PrimaryButton({
   onPress: () => void;
   leadingIcon?: React.ReactNode;
 }) {
+  const isAuroraTone = background.toLowerCase().startsWith("#6b5bff") || background.toLowerCase().startsWith("#8e76ff");
+  const isYellow = background.toLowerCase().startsWith("#fee500");
+  const shadowColor = isAuroraTone
+    ? "#6B5BFF"
+    : isYellow
+    ? "#C7B400"
+    : "#1A1F38";
+
   return (
-    <Pressable
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        height: 52,
-        borderRadius: 12,
-        backgroundColor: background,
-        borderWidth: border ? 1 : 0,
-        borderColor: border,
-        opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 16,
-        gap: 10
-      })}
-    >
-      {leadingIcon}
-      <Text style={{ color, fontSize: 16, fontWeight: "600" }}>{label}</Text>
+    <Pressable disabled={disabled} onPress={onPress}>
+      {({ pressed }) => (
+        <View
+          style={{
+            height: 54,
+            borderRadius: 14,
+            backgroundColor: background,
+            borderWidth: border ? 1 : 0,
+            borderColor: border,
+            opacity: disabled ? 0.5 : 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 16,
+            gap: 10,
+            transform: [{ scale: pressed && !disabled ? 0.97 : 1 }],
+            shadowColor,
+            shadowOpacity: disabled ? 0 : pressed ? 0.18 : 0.32,
+            shadowRadius: pressed ? 10 : 16,
+            shadowOffset: { width: 0, height: pressed ? 3 : 8 },
+            elevation: pressed ? 2 : 5
+          }}
+        >
+          {leadingIcon}
+          <Text style={{ color, fontSize: 16, fontWeight: "700", letterSpacing: 0.2 }}>
+            {label}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 }

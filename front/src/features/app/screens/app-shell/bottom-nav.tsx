@@ -2,11 +2,12 @@ import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { createAppStyles, type AuraTheme } from "@features/app/styles";
 import type { AppTabKey } from "@features/app/types";
+import { TAB_ICONS } from "@features/app/screens/app-shell/tab-icons";
 
 interface BottomNavProps {
   theme: AuraTheme;
   selectedTab: AppTabKey;
-  navItems: Array<{ key: AppTabKey; label: string; icon: string }>;
+  navItems: Array<{ key: AppTabKey; label: string }>;
   onSelectTab: (tab: AppTabKey) => void;
 }
 
@@ -17,6 +18,8 @@ export function BottomNav({ theme, selectedTab, navItems, onSelectTab }: BottomN
     <View style={styles.bottomNav}>
       {navItems.map(item => {
         const isActive = selectedTab === item.key;
+        const Icon = TAB_ICONS[item.key];
+        const iconColor = isActive ? theme.colors.accent : theme.colors.textMuted;
 
         return (
           <Pressable
@@ -34,9 +37,7 @@ export function BottomNav({ theme, selectedTab, navItems, onSelectTab }: BottomN
                 ]}
               />
             </View>
-            <Text style={[styles.bottomNavIcon, isActive ? styles.bottomNavIconActive : null]}>
-              {item.icon}
-            </Text>
+            <Icon color={iconColor} size={22} />
             <Text
               style={[styles.bottomNavLabel, isActive ? styles.bottomNavLabelActive : null]}
               numberOfLines={1}

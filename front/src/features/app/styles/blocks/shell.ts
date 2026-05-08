@@ -257,11 +257,11 @@ export function buildShellStyles(theme: AuraTheme) {
       borderWidth: 1,
       borderColor: colors.line,
       // Aurora-tinted soft shadow — 브랜드 분위기를 그림자에도 미세하게
-      shadowColor: theme.isDark ? "#1a1456" : "#9b8fe0",
-      shadowOpacity: theme.isDark ? 0.32 : 0.16,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 3
+      shadowColor: theme.isDark ? "#1a1456" : "#7d6fe0",
+      shadowOpacity: theme.isDark ? 0.40 : 0.22,
+      shadowRadius: 26,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 5
     },
     sectionCard: {
       padding: 22,
@@ -269,11 +269,11 @@ export function buildShellStyles(theme: AuraTheme) {
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#1a1456" : "#9b8fe0",
-      shadowOpacity: theme.isDark ? 0.30 : 0.14,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 3
+      shadowColor: theme.isDark ? "#1a1456" : "#7d6fe0",
+      shadowOpacity: theme.isDark ? 0.36 : 0.18,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 4
     },
     sectionTitle: { color: colors.textPrimary, fontSize: 19, fontWeight: "800", marginBottom: 12 },
     inputLabel: { color: colors.textPrimary, fontSize: 14, fontWeight: "700", marginBottom: 8 },

@@ -19,12 +19,12 @@ export function AppShell({ app }: AppShellProps) {
   const gmail = app.authState!.me.integrations;
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
-  const navItems: Array<{ key: "mail" | "todo" | "news" | "ask" | "settings"; label: string; icon: string }> = [
-    { key: "mail", label: app.copy.tabs.mail, icon: "✉︎" },
-    { key: "todo", label: app.copy.tabs.todo, icon: "◷" },
-    { key: "news", label: app.copy.tabs.news, icon: "☰" },
-    { key: "ask", label: app.copy.tabs.ask, icon: "◉" },
-    { key: "settings", label: app.copy.tabs.settings, icon: "⚙︎" }
+  const navItems: Array<{ key: "mail" | "todo" | "news" | "ask" | "settings"; label: string }> = [
+    { key: "mail", label: app.copy.tabs.mail },
+    { key: "todo", label: app.copy.tabs.todo },
+    { key: "news", label: app.copy.tabs.news },
+    { key: "ask", label: app.copy.tabs.ask },
+    { key: "settings", label: app.copy.tabs.settings }
   ];
 
   return (
