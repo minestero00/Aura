@@ -1,8 +1,7 @@
 BEGIN;
 
--- Minimal user_profiles for CI/dev. Production aura.user_profiles is managed
--- by dumb (this migration runner does not run against production aura schema).
--- Codebase references: back/src/modules/auth/store.ts (INSERT/UPDATE INTO aura.user_profiles).
+-- aura.user_profiles. aura는 이 schema의 단독 소유자다 (back/CLAUDE.md DB 연결 규칙 참조).
+-- 코드 참조: back/src/modules/auth/store.ts (INSERT/UPDATE INTO aura.user_profiles).
 
 CREATE TABLE IF NOT EXISTS user_profiles (
   user_id varchar(36) PRIMARY KEY,

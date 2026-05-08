@@ -33,6 +33,7 @@
 - 모든 `Pool` 생성은 반드시 `lib/db/pool.ts`의 `createPgPool()` 통과. `new Pool()` 직접 사용 금지.
 - `DATABASE_SSL=true`이면 자동으로 SSL on (Supabase/Neon/RDS). NODE_ENV=production이면 자동 활성.
 - Supabase 사용 시 connection string은 **Session Pooler URL** (port 5432 + `pooler.supabase.com` host) 사용. Direct connection은 마이그레이션 1회용.
+- **`aura` schema는 우리(aura backend)의 단독 소유**. 다른 시스템(dumb 등)과 공유 금지. `migrate.mjs`는 schema에 우리 테이블이 이미 있는데 `schema_migrations` 추적 테이블이 없으면 자동으로 baseline 처리 (모든 알려진 .sql을 applied로 마킹) — 외부 시드된 schema도 한 번에 정상화됨.
 
 ## Redis 정책 (현재 옵셔널)
 - `REDIS_URL` 미설정 시 `usage/service.ts`가 in-memory rate limit으로 자동 fallback.

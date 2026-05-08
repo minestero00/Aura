@@ -52,7 +52,8 @@ function main() {
   requireEnv("GOOGLE_WEB_CLIENT_ID", missing);
   requireEnv("GOOGLE_IOS_CLIENT_ID", missing);
   requireEnv("GOOGLE_ANDROID_CLIENT_ID", missing);
-  requireEnv("GOOGLE_MAPS_API_KEY", missing);
+  // GOOGLE_MAPS_API_KEY는 transit 모듈에서만 사용. 미설정 시 해당 라우트만 503,
+  // 나머지(news/email/chat/brief)는 정상 동작 — env.example의 [기능] 표기와 일치.
   requireEnv("ANTHROPIC_API_KEY", missing);
   requireEnv("ANTHROPIC_MODEL", missing);
   // CORS_ALLOWED_ORIGINS는 모바일 전용 API에서 비워둘 수 있다.
