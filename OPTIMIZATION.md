@@ -18,7 +18,7 @@
 | 7 | ActiveTripBanner 색상 토큰화 | 디자인 일관성 | 다크모드 깨짐 | 30m | ✅ 완료 (2026-05-07) | `front/src/features/transit/screens/ActiveTripBanner.tsx`, `theme.tsx`, `tokens.css` |
 | 8 | `use-aura-app` 상태 분리 (Context split) | 렌더 성능 | 25+ useState 한 곳 → 전체 리렌더 | 4h | 🟡 P1 | `front/src/features/app/hooks/use-aura-app/state.ts` |
 | 9 | Docker layer cache (`cache-from/cache-to`) | CI 시간 | 매 빌드 풀 리빌드 | 30m | ✅ 완료 (2026-05-07) | `.github/workflows/backend-ci.yml`, `backend-staging-auto.yml` |
-| 10 | `IMPLEMENTATION_STATUS.md` 갱신 (5개 커밋 누락) | 문서 정합성 | 신규 컨트리뷰터 혼란 | 30m | 🟡 P1 | `manual/IMPLEMENTATION_STATUS.md` |
+| 10 | `IMPLEMENTATION_STATUS.md` 갱신 (30개 커밋 누락) | 문서 정합성 | 신규 컨트리뷰터 혼란 | 30m | ✅ 완료 (2026-05-09) | `manual/IMPLEMENTATION_STATUS.md` |
 | 11 | News 클릭 → 카테고리 자동 추천 노출 | UX | 학습은 되나 UI에 미반영 | 2h | 🟢 P2 | `back/src/modules/news/click-store.ts` (구현 완료) → 프론트 hook 필요 |
 | 12 | `ask-screen` FlatList `useMemo` / `useCallback` | 렌더 성능 | 메시지 늘면 jank | 1h | 🟢 P2 | `front/src/features/app/screens/ask-screen.tsx:62-169` |
 | 13 | iOS background location permission 사전 요청 | UX | 첫 trip 시작 시 권한 다이얼로그 | 1h | 🟢 P2 | Settings 화면에서 명시 요청 |
@@ -95,7 +95,7 @@
 **작업 필요 (P1+)**
 - Sentry 통합 (#5)
 - ~~Docker layer cache (#9)~~ ✅ 완료 — `type=gha,scope=aura-back` 양 워크플로우 공유
-- IMPLEMENTATION_STATUS 갱신 (#10)
+- ~~IMPLEMENTATION_STATUS 갱신 (#10)~~ ✅ 완료 (2026-05-09) — 30개 commit 반영, 디자인 1~6차/2차 패스 + Auth 안정화 + Railway 정식 배포 + AI 비용 최적화 + CLEANCODE 가이드.
 - 백업 검증 cron 활성화 (#14)
 - Worker healthcheck (#15)
 
@@ -157,6 +157,7 @@ manual/IMPLEMENTATION_STATUS.md             (갱신 — 최근 5개 커밋 반�
 7. ~~5xx alert dedup (#6)~~ ✅ 완료 (2026-05-07)
 8. ~~ActiveTripBanner 토큰화 (#7)~~ ✅ 완료 (2026-05-07)
 9. ~~Docker layer cache (#9)~~ ✅ 완료 (2026-05-07)
+10. ~~IMPLEMENTATION_STATUS 갱신 (#10)~~ ✅ 완료 (2026-05-09)
 
 **스프린트 3 (1개월 — P2)**
 10. use-aura-app Context 분리 (#8)
