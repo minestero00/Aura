@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import {
   ScrollView,
+  StatusBar,
   View,
   useWindowDimensions,
   type NativeScrollEvent,
@@ -58,6 +59,11 @@ export function AppShell({ app }: AppShellProps) {
 
   return (
     <View style={styles.appShell}>
+      <StatusBar
+        barStyle={theme.isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <ScreenAtmosphere />
       <DailyBriefModal app={app} theme={theme} />
       <ActionAlertModal
