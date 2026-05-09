@@ -41,6 +41,10 @@ authRouter.get(
     const gmailReady =
       Boolean(gmail) &&
       gmailScopes.some(scope => scope.includes("gmail.readonly") || scope.includes("gmail.compose"));
+    // Google Calendar는 같은 OAuth 토큰을 공유한다(connect 시 calendar.readonly
+    // scope를 함께 요청). 별도 OAuth 흐름이 없으므로 scope 보유 여부로 판단.
+    const calendarConnected =
+      Boolean(gmail) && gmailScopes.some(scope => scope.includes("calendar"));
 
     res.json({
       user: {
@@ -66,7 +70,7 @@ authRouter.get(
         gmailConnectedAt: gmail?.connectedAt ?? null,
         gmailAccessExpiresAt: gmail?.expiresAt ?? null,
         gmailSyncReady: gmailReady,
-        calendarConnected: false
+        calendarConnected
       }
     });
   })
