@@ -1,5 +1,27 @@
 import { apiRequest } from "@lib/api/client";
-import type { StartTripPayload, TransitPingResult, TransitTrip } from "@features/transit/types";
+import type {
+  DirectionsOption,
+  StartTripPayload,
+  TransitPingResult,
+  TransitTrip
+} from "@features/transit/types";
+
+/**
+ * 사용자 GPS 위치에서 destination까지 transit 경로 옵션을 받아온다.
+ * Backend(/api/v1/transit/directions)가 Google Directions API를 호출하고
+ * Redis 30분 캐시 + usage 가드.
+ */
+export async function fetchDirections(input: {
+  originLat: number;
+  originLng: number;
+  destination: string;
+  language: "ko" | "en";
+}) {
+  return apiRequest<{ options: DirectionsOption[] }>("/api/v1/transit/directions", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
 
 export async function startTrip(payload: StartTripPayload) {
   return apiRequest<{ trip: TransitTrip }>("/api/v1/transit/trips", {

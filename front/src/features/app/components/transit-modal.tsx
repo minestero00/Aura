@@ -1,31 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActiveTripBanner, StartTripScreen, getActiveTrip } from "@features/transit";
-import type { TransitTrip } from "@features/transit";
-import type { CalendarAgendaEvent, CalendarAgendaDay } from "@features/calendar/types";
+import {
+  ActiveTripBanner,
+  SearchTripScreen,
+  getActiveTrip
+} from "@features/transit";
+import type { DirectionsOption, TransitTrip } from "@features/transit";
+import type { CalendarAgendaDay } from "@features/calendar/types";
 import { useAuraTheme } from "@features/app/styles";
-import type { AppCopy } from "@features/app/i18n";
+import type { AppCopy, AppLanguage } from "@features/app/i18n";
 
 interface TransitModalProps {
   visible: boolean;
   copy: AppCopy;
-  /** 캘린더에서 다음 일정을 자동 채워넣기 위한 source. */
+  language: AppLanguage;
+  /** 캘린더에서 다음 일정을 자동 채워넣기 위한 source (현재 미사용 — Step 4에서 활용). */
   agendaDays: CalendarAgendaDay[];
   onDismiss: () => void;
 }
 
 /**
  * 버스 도착 알림 진입점. 활성 trip이 있으면 ActiveTripBanner, 없으면
- * StartTripScreen으로 분기. trip 시작/종료 모두 modal 안에서 처리.
+ * SearchTripScreen(목적지 검색 + 옵션 선택). 옵션 선택 후 client-driven
+ * trip 시작은 Step 3+에서 wiring — 지금은 dryRun(Alert).
  */
-export function TransitModal({ visible, copy, agendaDays, onDismiss }: TransitModalProps) {
+export function TransitModal({ visible, copy, language, onDismiss }: TransitModalProps) {
   const theme = useAuraTheme();
   const insets = useSafeAreaInsets();
   const [activeTrip, setActiveTrip] = useState<TransitTrip | null>(null);
 
-  // modal이 열릴 때마다 active trip을 backend에서 한 번 조회 — 다른 device에서
-  // 시작했거나 앱 재실행 후에도 진행 중인 trip 확인.
+  // modal이 열릴 때마다 active trip 조회 (legacy server-side trip — 다음 cleanup PR에서 제거).
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
@@ -39,8 +44,15 @@ export function TransitModal({ visible, copy, agendaDays, onDismiss }: TransitMo
     };
   }, [visible]);
 
-  // 캘린더의 가장 가까운 미래 일정 — StartTrip 화면이 자동 destination 채움.
-  const nextEvent = pickNextLocatedEvent(agendaDays);
+  function handleSelectOption(option: DirectionsOption) {
+    // Step 3+에서 client-trip.ts AsyncStorage 저장 + Region Monitoring 등록.
+    Alert.alert(
+      language === "ko" ? "경로 선택됨 (개발 중)" : "Route selected (WIP)",
+      language === "ko"
+        ? `총 ${Math.round(option.totalDurationSec / 60)}분, 환승 ${option.transferCount}회. 다음 단계에서 trip 시작 + iOS Region Monitoring 등록 예정입니다.`
+        : `${Math.round(option.totalDurationSec / 60)} min · ${option.transferCount} transfer. Trip start + iOS Region Monitoring will be wired in next step.`
+    );
+  }
 
   return (
     <Modal
@@ -77,30 +89,15 @@ export function TransitModal({ visible, copy, agendaDays, onDismiss }: TransitMo
             />
           </View>
         ) : (
-          <StartTripScreen
-            nextEvent={nextEvent ?? null}
-            destinationLocation={null}
-            onTripStarted={trip => setActiveTrip(trip)}
+          <SearchTripScreen
+            language={language}
+            onSelectOption={handleSelectOption}
             onCancel={onDismiss}
           />
         )}
       </View>
     </Modal>
   );
-}
-
-function pickNextLocatedEvent(days: CalendarAgendaDay[]): CalendarAgendaEvent | null {
-  const now = Date.now();
-  for (const day of days) {
-    for (const event of day.events) {
-      const startsAtMs = new Date(event.startsAt).getTime();
-      if (Number.isNaN(startsAtMs)) continue;
-      if (startsAtMs < now) continue;
-      if (!event.location) continue;
-      return event;
-    }
-  }
-  return null;
 }
 
 const styles = StyleSheet.create({

@@ -255,6 +255,7 @@ export function AppShell({ app }: AppShellProps) {
       <TransitModal
         visible={app.isTransitOpen}
         copy={app.copy}
+        language={app.language}
         agendaDays={mergeAgendaDays(app.calendarAgendaDays, app.deviceCalendarAgendaDays)}
         onDismiss={app.handleCloseTransit}
       />

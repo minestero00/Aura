@@ -1,8 +1,10 @@
 export { StartTripScreen } from "./screens/StartTrip";
 export { ActiveTripBanner } from "./screens/ActiveTripBanner";
+export { SearchTripScreen } from "./screens/SearchTrip";
 export { PushOnboardingModal } from "./components/PushOnboardingModal";
 export { useTripTracker } from "./hooks/use-trip-tracker";
 export {
+  fetchDirections,
   startTrip,
   endTrip,
   pingTrip,
@@ -15,5 +17,8 @@ export type {
   TransitTrip,
   TransitTripStatus,
   TransitPingResult,
-  StartTripPayload
+  StartTripPayload,
+  DirectionsLeg,
+  DirectionsOption,
+  DirectionsStop
 } from "./types";
