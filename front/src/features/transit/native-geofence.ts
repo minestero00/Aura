@@ -6,6 +6,10 @@ interface GeofenceRegionInput {
   lng: number;
   /** meters. iOS는 maximumRegionMonitoringDistance로 자동 clamp. */
   radius?: number;
+  /** stop 이름 — native 알림 메시지에 "{name} 근처에 도착했습니다."로 사용. */
+  name?: string;
+  /** "transit-arrival"(기본) | "destination" — 알림 메시지 분기에 사용. */
+  type?: "transit-arrival" | "destination";
 }
 
 interface GeofenceEnterEvent {

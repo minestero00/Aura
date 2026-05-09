@@ -12,11 +12,15 @@ import React
 /// ENTER 시 즉시 local notification을 표시(JS가 안 떠 있어도 사용자에게는
 /// 알림이 보임). 동시에 `AuraTransitGeofenceEnter` 이벤트를 JS로 send해
 /// foreground일 땐 banner UI도 같이 advance 한다.
+///
+/// region별 stop 이름/타입은 UserDefaults에 영구 저장 — 앱이 완전 종료된
+/// 상태에서 OS가 깨워도 알림 메시지에 정류장 이름을 포함할 수 있게.
 @objc(TransitGeofence)
 class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
 
   private let locationManager = CLLocationManager()
   private var hasListeners = false
+  private let metadataKey = "aura.transit.regionMetadata"
 
   override init() {
     super.init()
@@ -43,12 +47,13 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
     DispatchQueue.main.async {
       self.locationManager.requestAlwaysAuthorization()
 
-      // 기존 등록 모두 stop (중복 방지)
       for region in self.locationManager.monitoredRegions {
         self.locationManager.stopMonitoring(for: region)
       }
 
+      var metadata: [String: [String: String]] = [:]
       var added = 0
+
       for raw in regions {
         guard
           let dict = raw as? [String: Any],
@@ -67,7 +72,13 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
         region.notifyOnExit = false
         self.locationManager.startMonitoring(for: region)
         added += 1
+
+        let name = (dict["name"] as? String) ?? ""
+        let type = (dict["type"] as? String) ?? "transit-arrival"
+        metadata[id] = ["name": name, "type": type]
       }
+
+      UserDefaults.standard.set(metadata, forKey: self.metadataKey)
       resolver(["added": added])
     }
   }
@@ -79,6 +90,7 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
       for region in self.locationManager.monitoredRegions {
         self.locationManager.stopMonitoring(for: region)
       }
+      UserDefaults.standard.removeObject(forKey: self.metadataKey)
       resolver(nil)
     }
   }
@@ -90,8 +102,6 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
     if hasListeners {
       sendEvent(withName: "AuraTransitGeofenceEnter", body: ["id": region.identifier])
     }
-    // 같은 region 재진입 알림 방지 — leg 진행 후 JS가 새로 startMonitoring
-    // 하면 새 region set으로 교체된다. 여기서는 한 번 ENTER 후 자체 stop.
     manager.stopMonitoring(for: region)
   }
 
@@ -107,13 +117,31 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
   // MARK: - Local notification
 
   private func presentArrivalNotification(regionId: String) {
+    let metadata = UserDefaults.standard.dictionary(forKey: metadataKey) as? [String: [String: String]] ?? [:]
+    let entry = metadata[regionId] ?? [:]
+    let stopName = entry["name"] ?? ""
+    let type = entry["type"] ?? "transit-arrival"
+
     let content = UNMutableNotificationContent()
     content.title = "AURA 도착 알림"
-    content.body = "정류장 근처에 도착했습니다."
+    if type == "destination" {
+      if stopName.isEmpty {
+        content.body = "목적지에 거의 도착했어요. 조심히 도착하셨나요?"
+      } else {
+        content.body = "\(stopName)에 거의 도착했어요. 조심히 도착하셨나요?"
+      }
+    } else {
+      if stopName.isEmpty {
+        content.body = "정류장 근처에 도착했습니다."
+      } else {
+        content.body = "\(stopName) 근처에 도착했습니다."
+      }
+    }
     content.sound = .default
     content.userInfo = [
-      "type": "transit-arrival",
-      "regionId": regionId
+      "type": type,
+      "regionId": regionId,
+      "stopName": stopName
     ]
     let request = UNNotificationRequest(
       identifier: "aura-transit-arrival-\(regionId)",

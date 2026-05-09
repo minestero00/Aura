@@ -41,6 +41,11 @@ export interface DirectionsOption {
   totalDistanceMeters: number;
   transferCount: number;
   legs: DirectionsLeg[];
+  /**
+   * Google이 destination 텍스트를 geocode한 좌표 — 마지막 google leg의
+   * end_location. client는 이걸 "최종 도착 알림" geofence target으로 사용.
+   */
+  endLocation: { lat: number; lng: number } | null;
 }
 
 export interface DirectionsRequest {
@@ -71,6 +76,7 @@ interface GoogleDirectionsResponse {
     legs: Array<{
       duration: { value: number };
       distance: { value: number };
+      end_location?: { lat: number; lng: number };
       steps: GoogleDirectionsStep[];
     }>;
   }>;
@@ -147,11 +153,17 @@ function normalizeRoute(
 
   const transferCount = Math.max(0, legs.filter(l => l.mode === "transit").length - 1);
 
+  const lastGoogleLeg = route.legs[route.legs.length - 1];
+  const endLocation = lastGoogleLeg?.end_location
+    ? { lat: lastGoogleLeg.end_location.lat, lng: lastGoogleLeg.end_location.lng }
+    : null;
+
   return {
     totalDurationSec: totalDuration,
     totalDistanceMeters: totalDistance,
     transferCount,
-    legs
+    legs,
+    endLocation
   };
 }
 

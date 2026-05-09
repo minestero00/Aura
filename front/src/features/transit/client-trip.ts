@@ -19,6 +19,8 @@ export interface ActiveTripState {
   legs: DirectionsOption["legs"];
   /** 현재 진행 중인 leg index (0부터). geofence ENTER 시 += 1. */
   currentLegIndex: number;
+  /** 최종 도착 알림용 좌표 — Google이 destination을 geocode한 위치. */
+  endLocation: { lat: number; lng: number } | null;
 }
 
 function generateTripId() {
@@ -37,7 +39,8 @@ export function createActiveTripFromOption(
     destinationLabel,
     startedAt: new Date().toISOString(),
     legs: option.legs,
-    currentLegIndex: 0
+    currentLegIndex: 0,
+    endLocation: option.endLocation ?? null
   };
 }
 

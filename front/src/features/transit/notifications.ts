@@ -14,6 +14,7 @@ export async function presentTransitArrivalNotification(input: {
   legIndex: number;
   stopName: string;
   language: "ko" | "en";
+  type?: "transit-arrival" | "destination";
 }) {
   if (Platform.OS !== "ios") return;
 
@@ -27,18 +28,29 @@ export async function presentTransitArrivalNotification(input: {
     return;
   }
 
+  const type = input.type ?? "transit-arrival";
   const id = `${ARRIVAL_NOTIFICATION_PREFIX}-${input.tripId}-${input.legIndex}`;
   const copy =
     input.language === "ko"
-      ? { title: "AURA 도착 알림", body: `${input.stopName}에 곧 도착합니다.` }
-      : { title: "AURA arrival", body: `Approaching ${input.stopName}.` };
+      ? type === "destination"
+        ? {
+            title: "AURA 도착 알림",
+            body: `${input.stopName}에 거의 도착했어요. 조심히 도착하셨나요?`
+          }
+        : { title: "AURA 도착 알림", body: `${input.stopName} 근처에 도착했습니다.` }
+      : type === "destination"
+        ? {
+            title: "AURA arrival",
+            body: `Approaching ${input.stopName}. Did you arrive safely?`
+          }
+        : { title: "AURA arrival", body: `Approaching ${input.stopName}.` };
 
   PushNotificationIOS.addNotificationRequest({
     id,
     title: copy.title,
     body: copy.body,
     fireDate: new Date(Date.now() + 500),
-    userInfo: { type: "transit-arrival", tripId: input.tripId, legIndex: input.legIndex }
+    userInfo: { type, tripId: input.tripId, legIndex: input.legIndex }
   });
 }
 

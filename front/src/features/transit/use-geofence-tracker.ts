@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import { getCurrentDeviceLocation } from "@features/location/current-location";
-import { advanceActiveTripLeg, loadActiveTrip } from "./client-trip";
+import { advanceActiveTripLeg, clearActiveTrip, loadActiveTrip } from "./client-trip";
 import type { ActiveTripState } from "./client-trip";
 import type { DirectionsLeg } from "./types";
 import {
@@ -18,33 +18,132 @@ import {
 
 const POLL_INTERVAL_MS = 15_000;
 const ARRIVAL_RADIUS_METERS = 150;
+const FINAL_ARRIVAL_RADIUS_METERS = 30;
+const BACKGROUND_REGION_RADIUS_METERS = 200;
 
 type TransitLeg = Extract<DirectionsLeg, { mode: "transit" }>;
 
 export interface GeofenceStatus {
-  /** 현재 polling 활성 여부. trip이 없거나 현재 leg가 walking이면 false. */
   active: boolean;
-  /** 사용자 → target stop 거리(m). 측정 전 또는 walking leg면 null. */
   distanceMeters: number | null;
-  /** 현재 target stop name. 없으면 null. */
   targetStopName: string | null;
-  /** 알림 권한이 거부됐을 때 true — banner에서 hint. */
   notificationDenied: boolean;
-  /** background region monitoring 활성 여부 — banner hint. */
   backgroundActive: boolean;
 }
 
-const BACKGROUND_REGION_RADIUS_METERS = 200;
+interface PollingTarget {
+  name: string;
+  lat: number;
+  lng: number;
+  isFinal: boolean;
+}
 
 /**
- * Foreground geofence MVP.
- * - 현재 leg가 transit이면 arrivalStop을 target으로 polling
- * - 사용자가 ARRIVAL_RADIUS_METERS 안으로 들어오면 advanceActiveTripLeg + 로컬
- *   알림 발사 → onChange 호출
- * - 현재 leg가 walking이면 polling 중지 (도착 시점은 manual "다음 단계로" 버튼)
- * - background 진행은 추후 native module에서 처리. 지금은 앱이 foreground일
- *   때만 동작하며 AppState change에 따라 polling을 멈췄다 재개한다.
+ * 현재 leg 기준 다음 도달해야 할 좌표(target).
+ * - transit leg → arrivalStop (정류장 도착이 leg 종료)
+ * - walking leg + 다음이 transit → 다음 transit departureStop (도보 끝 = 정류장)
+ * - walking leg + 마지막 → endLocation (전체 destination)
  */
+function getPollingTarget(trip: ActiveTripState): PollingTarget | null {
+  const currentLeg = trip.legs[trip.currentLegIndex];
+  if (!currentLeg) return null;
+  const isLastLeg = trip.currentLegIndex >= trip.legs.length - 1;
+
+  if (currentLeg.mode === "transit") {
+    return {
+      name: currentLeg.arrivalStop.name,
+      lat: currentLeg.arrivalStop.lat,
+      lng: currentLeg.arrivalStop.lng,
+      isFinal: isLastLeg && !trip.endLocation
+        ? true
+        : isLastLeg && trip.endLocation
+          ? // 마지막 transit leg의 arrival이 endLocation과 거의 동일하면 final로 간주
+            haversineMeters(
+              currentLeg.arrivalStop.lat,
+              currentLeg.arrivalStop.lng,
+              trip.endLocation.lat,
+              trip.endLocation.lng
+            ) < 50
+          : false
+    };
+  }
+
+  // walking
+  const nextLeg = trip.legs[trip.currentLegIndex + 1];
+  if (nextLeg?.mode === "transit") {
+    return {
+      name: nextLeg.departureStop.name,
+      lat: nextLeg.departureStop.lat,
+      lng: nextLeg.departureStop.lng,
+      isFinal: false
+    };
+  }
+  // 다음 leg 없음(마지막 walking) — endLocation
+  if (trip.endLocation) {
+    return {
+      name: trip.destinationLabel || "destination",
+      lat: trip.endLocation.lat,
+      lng: trip.endLocation.lng,
+      isFinal: true
+    };
+  }
+  return null;
+}
+
+interface RegionInput {
+  id: string;
+  lat: number;
+  lng: number;
+  radius: number;
+  name: string;
+  type: "transit-arrival" | "destination";
+}
+
+/** 모든 leg + 최종 destination을 한꺼번에 region 등록. iOS 한도 20개 안. */
+function buildRegions(trip: ActiveTripState): RegionInput[] {
+  const regions: RegionInput[] = [];
+
+  trip.legs.forEach((leg, index) => {
+    if (leg.mode === "transit") {
+      regions.push({
+        id: `leg-${index}`,
+        lat: leg.arrivalStop.lat,
+        lng: leg.arrivalStop.lng,
+        radius: BACKGROUND_REGION_RADIUS_METERS,
+        name: leg.arrivalStop.name,
+        type: "transit-arrival"
+      });
+      return;
+    }
+    // walking — 다음 transit leg가 있으면 그 departureStop을 region target
+    const nextLeg = trip.legs[index + 1];
+    if (nextLeg?.mode === "transit") {
+      regions.push({
+        id: `leg-${index}`,
+        lat: nextLeg.departureStop.lat,
+        lng: nextLeg.departureStop.lng,
+        radius: BACKGROUND_REGION_RADIUS_METERS,
+        name: nextLeg.departureStop.name,
+        type: "transit-arrival"
+      });
+    }
+    // 마지막 walking은 dest region이 별도로 처리
+  });
+
+  if (trip.endLocation) {
+    regions.push({
+      id: "dest",
+      lat: trip.endLocation.lat,
+      lng: trip.endLocation.lng,
+      radius: BACKGROUND_REGION_RADIUS_METERS,
+      name: trip.destinationLabel || "목적지",
+      type: "destination"
+    });
+  }
+
+  return regions;
+}
+
 export function useGeofenceTracker({
   trip,
   language,
@@ -65,9 +164,20 @@ export function useGeofenceTracker({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  // Background region monitoring — trip 시작 시 모든 transit leg arrivalStop을
-  // 한 번에 region으로 등록. 백그라운드에서 ENTER 이벤트가 발생하면 native가
-  // local notification을 띄우고, 앱이 살아있으면 JS에도 이벤트가 와서 advance.
+  // 알림 권한 요청 — trip 시작 시 한 번.
+  useEffect(() => {
+    if (!trip) return;
+    let cancelled = false;
+    void ensureTransitNotificationPermission().then(granted => {
+      if (cancelled) return;
+      setStatus(prev => ({ ...prev, notificationDenied: !granted }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [trip?.id]);
+
+  // Background region monitoring — trip 시작 시 모든 leg + dest 일괄 등록.
   useEffect(() => {
     if (!trip) {
       void stopBackgroundMonitoring();
@@ -79,29 +189,23 @@ export function useGeofenceTracker({
       return;
     }
 
-    const transitRegions = trip.legs
-      .map((leg, index) => {
-        if (leg.mode !== "transit") return null;
-        return {
-          id: `leg-${index}`,
-          lat: leg.arrivalStop.lat,
-          lng: leg.arrivalStop.lng,
-          radius: BACKGROUND_REGION_RADIUS_METERS
-        };
-      })
-      .filter((r): r is { id: string; lat: number; lng: number; radius: number } => r !== null);
-
-    if (transitRegions.length === 0) {
+    const regions = buildRegions(trip);
+    if (regions.length === 0) {
       setStatus(prev => ({ ...prev, backgroundActive: false }));
       return;
     }
 
-    void startBackgroundMonitoring(transitRegions)
+    void startBackgroundMonitoring(regions)
       .then(() => setStatus(prev => ({ ...prev, backgroundActive: true })))
       .catch(() => setStatus(prev => ({ ...prev, backgroundActive: false })));
 
     const unsubscribe = subscribeBackgroundEnter(async event => {
-      // ENTER가 트리거된 leg index 추출. 현재보다 미래 leg면 그 index까지 advance.
+      if (event.id === "dest") {
+        // 최종 도착 — trip 정리 (native가 별도 알림 이미 표시).
+        await clearActiveTrip();
+        onChangeRef.current(null);
+        return;
+      }
       const match = event.id.match(/leg-(\d+)/);
       if (!match) return;
       const enteredLegIndex = parseInt(match[1], 10);
@@ -120,19 +224,7 @@ export function useGeofenceTracker({
     };
   }, [trip?.id]);
 
-  // 알림 권한 요청 — trip 시작 시 한 번. 거부면 silent. 재요청은 OS가 막음.
-  useEffect(() => {
-    if (!trip) return;
-    let cancelled = false;
-    void ensureTransitNotificationPermission().then(granted => {
-      if (cancelled) return;
-      setStatus(prev => ({ ...prev, notificationDenied: !granted }));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [trip?.id]);
-
+  // Foreground polling — current leg 기반 동적 target.
   useEffect(() => {
     if (!trip) {
       setStatus(prev => ({
@@ -145,14 +237,12 @@ export function useGeofenceTracker({
       return;
     }
 
-    const currentLeg = trip.legs[trip.currentLegIndex];
-    if (!currentLeg || currentLeg.mode !== "transit") {
-      // walking leg면 polling 중지. distance는 비움.
+    const target = getPollingTarget(trip);
+    if (!target) {
       setStatus(prev => ({ ...prev, active: false, distanceMeters: null, targetStopName: null }));
       return;
     }
 
-    const target = currentLeg.arrivalStop;
     setStatus(prev => ({
       ...prev,
       active: true,
@@ -168,27 +258,40 @@ export function useGeofenceTracker({
       const loc = await getCurrentDeviceLocation();
       if (cancelled) return;
       if (loc.kind !== "ok") return;
-      const distance = haversineMeters(loc.lat, loc.lng, target.lat, target.lng);
+      const distance = haversineMeters(loc.lat, loc.lng, target!.lat, target!.lng);
       if (__DEV__) {
-        // dev log — 시뮬레이터 좌표 넣고 거리 변화 확인용. prod 빌드에서는 조건 false.
         // eslint-disable-next-line no-console
         console.log(
-          `[geofence] target=${target.name}(${target.lat.toFixed(5)},${target.lng.toFixed(5)}) ` +
-            `here=(${loc.lat.toFixed(5)},${loc.lng.toFixed(5)}) distance=${Math.round(distance)}m`
+          `[geofence] target=${target!.name}(${target!.lat.toFixed(5)},${target!.lng.toFixed(5)}) ` +
+            `here=(${loc.lat.toFixed(5)},${loc.lng.toFixed(5)}) ` +
+            `distance=${Math.round(distance)}m final=${target!.isFinal}`
         );
       }
       setStatus(prev => ({ ...prev, distanceMeters: Math.round(distance) }));
 
-      if (distance <= ARRIVAL_RADIUS_METERS) {
-        // 도착 — advance + 알림. polling은 다음 effect run에서 새 target 설정.
-        await presentTransitArrivalNotification({
-          tripId: trip!.id,
-          legIndex: trip!.currentLegIndex,
-          stopName: target.name,
-          language
-        });
-        const next = await advanceActiveTripLeg();
-        onChangeRef.current(next);
+      const radius = target!.isFinal ? FINAL_ARRIVAL_RADIUS_METERS : ARRIVAL_RADIUS_METERS;
+      if (distance <= radius) {
+        if (target!.isFinal) {
+          await presentTransitArrivalNotification({
+            tripId: trip!.id,
+            legIndex: -1,
+            stopName: target!.name,
+            language,
+            type: "destination"
+          });
+          await clearActiveTrip();
+          onChangeRef.current(null);
+        } else {
+          await presentTransitArrivalNotification({
+            tripId: trip!.id,
+            legIndex: trip!.currentLegIndex,
+            stopName: target!.name,
+            language,
+            type: "transit-arrival"
+          });
+          const next = await advanceActiveTripLeg();
+          onChangeRef.current(next);
+        }
       }
     }
 
@@ -219,7 +322,7 @@ export function useGeofenceTracker({
     };
   }, [trip?.id, trip?.currentLegIndex, language]);
 
-  // trip이 없어진 직후엔 모든 알림 cleanup. (trip 종료 시점에 한 번만 실행)
+  // trip 종료 시 pending 알림 cleanup.
   const lastTripIdRef = useRef<string | null>(null);
   const lastLegCountRef = useRef<number>(0);
   useEffect(() => {

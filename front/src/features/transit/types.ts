@@ -34,6 +34,8 @@ export interface DirectionsOption {
   totalDistanceMeters: number;
   transferCount: number;
   legs: DirectionsLeg[];
+  /** Google이 destination을 geocode한 좌표 — 마지막 leg end_location. */
+  endLocation: { lat: number; lng: number } | null;
 }
 
 export interface TransitTrip {
