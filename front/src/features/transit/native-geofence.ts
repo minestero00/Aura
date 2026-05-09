@@ -29,7 +29,9 @@ interface NativeTransitGeofence {
 }
 
 const moduleHandle =
-  Platform.OS === "ios" ? (NativeModules.TransitGeofence as NativeTransitGeofence | undefined) : undefined;
+  Platform.OS === "ios" || Platform.OS === "android"
+    ? (NativeModules.TransitGeofence as NativeTransitGeofence | undefined)
+    : undefined;
 
 const emitter = moduleHandle ? new NativeEventEmitter(moduleHandle as unknown as { addListener: (event: string) => void; removeListeners: (count: number) => void }) : null;
 

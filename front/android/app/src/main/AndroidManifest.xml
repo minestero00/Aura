@@ -33,5 +33,14 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
+      <receiver
+        android:name=".transit.GeofenceBroadcastReceiver"
+        android:exported="false"
+        android:enabled="true">
+        <intent-filter>
+          <action android:name="com.auraapp.transit.GEOFENCE_TRANSITION" />
+        </intent-filter>
+      </receiver>
     </application>
 </manifest>

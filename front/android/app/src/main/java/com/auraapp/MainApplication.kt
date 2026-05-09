@@ -1,6 +1,8 @@
 package com.auraapp
 
 import android.app.Application
+import com.auraapp.transit.TransitGeofenceModule
+import com.auraapp.transit.TransitGeofencePackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
@@ -14,8 +16,7 @@ class MainApplication : Application(), ReactApplication {
       context = applicationContext,
       packageList =
         PackageList(this).packages.apply {
-          // Packages that cannot be autolinked yet can be added manually here, for example:
-          // add(MyReactNativePackage())
+          add(TransitGeofencePackage())
         },
     )
   }
@@ -23,5 +24,7 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     loadReactNative(this)
+    // 알림 channel을 앱 시작 시 미리 생성 — BR가 cold start 시에도 안전.
+    TransitGeofenceModule.ensureNotificationChannel(this)
   }
 }
