@@ -250,19 +250,23 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     dailyBriefSecondaryActionButton: { flex: 1, minWidth: 0 },
     dailyBriefActionButtonText: { color: colors.accent, fontSize: 13, fontWeight: "700" },
     dailyBriefPrimaryActionText: { color: colors.accentText },
+    // BottomNav를 absolute로 띄워서 ScrollView가 그 아래까지 흐르고 빈 공간이
+    // 안 보이게. iOS 표준 패턴(Mail/Music). 각 ScrollView contentContainerStyle의
+    // paddingBottom이 BottomNav 영역만큼 밀어줘야 마지막 콘텐츠가 가려지지 않는다.
     bottomNav: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
       flexDirection: "column",
       paddingHorizontal: 16,
       paddingTop: 4,
       paddingBottom: 22,
-      borderTopWidth: 0,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
       backgroundColor: colors.elevated,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.line,
       shadowColor: theme.isDark ? "#000000" : "#9fb4e0",
-      shadowOpacity: theme.isDark ? 0.34 : 0.2,
+      shadowOpacity: theme.isDark ? 0.34 : 0.16,
       shadowRadius: 16,
       shadowOffset: { width: 0, height: -6 },
       elevation: 7

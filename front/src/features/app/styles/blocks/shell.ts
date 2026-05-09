@@ -56,7 +56,9 @@ export function buildShellStyles(theme: AuraTheme) {
     safeArea: { flex: 1, backgroundColor: "transparent" },
     safeAreaSolid: { flex: 1, backgroundColor: colors.background },
     settingsScreen: { flex: 1 },
-    scrollContent: { padding: 20, gap: 16, paddingBottom: 48 },
+    // BottomNav가 absolute로 화면 하단을 덮으므로 콘텐츠 끝이 가려지지
+    // 않도록 paddingBottom을 BottomNav 평균 높이(80) + 여유(20)로.
+    scrollContent: { padding: 20, gap: 16, paddingBottom: 110 },
     chipScrollContent: {
       paddingHorizontal: 20,
       paddingBottom: 48,
