@@ -4,6 +4,7 @@ import { useAuraTheme } from "@features/app/styles";
 import { advanceActiveTripLeg, clearActiveTrip } from "../client-trip";
 import type { ActiveTripState } from "../client-trip";
 import type { DirectionsLeg } from "../types";
+import { useGeofenceTracker } from "../use-geofence-tracker";
 import { buildClientActiveTripBannerStyles } from "./ClientActiveTripBanner.styles";
 
 interface ClientActiveTripBannerProps {
@@ -23,6 +24,10 @@ interface BannerCopy {
   advance: string;
   end: string;
   helper: string;
+  helperWalking: string;
+  helperBackgroundLimit: string;
+  notificationDeniedHint: string;
+  distanceLabel: (meters: number, stopName: string) => string;
   walk: string;
   bus: string;
   subway: string;
@@ -43,7 +48,11 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     advanceLast: "도착 — 경로 완료",
     advance: "다음 단계로",
     end: "경로 종료",
-    helper: "Step 5+에서 위치 기반 자동 진행으로 교체됩니다 (현재는 수동).",
+    helper: "정류장에 가까워지면 자동으로 다음 단계로 넘어가요. 필요하면 수동으로 진행해도 됩니다.",
+    helperWalking: "도보 구간은 도착 후 직접 \"다음 단계로\"를 눌러주세요.",
+    helperBackgroundLimit: "현재 앱이 화면에 떠 있을 때만 위치를 확인합니다.",
+    notificationDeniedHint: "알림 권한이 꺼져 있어 도착 알림이 표시되지 않을 수 있어요.",
+    distanceLabel: (meters, stop) => `${stop}까지 약 ${meters}m`,
     walk: "도보",
     bus: "버스",
     subway: "지하철",
@@ -62,7 +71,11 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     advanceLast: "Arrived — finish trip",
     advance: "Advance step",
     end: "End trip",
-    helper: "Step 5+ replaces this with automatic geofence-based advancement.",
+    helper: "When you're near the stop, AURA advances automatically. You can also tap manually.",
+    helperWalking: "On walking legs, tap \"Advance step\" once you arrive.",
+    helperBackgroundLimit: "Location is only checked while the app is in the foreground.",
+    notificationDeniedHint: "Notification permission is off — arrival alerts may not show.",
+    distanceLabel: (meters, stop) => `~${meters}m to ${stop}`,
     walk: "Walk",
     bus: "Bus",
     subway: "Subway",
@@ -121,9 +134,12 @@ export function ClientActiveTripBanner({
   const styles = useMemo(() => buildClientActiveTripBannerStyles(theme), [theme]);
   const t = COPY[language];
 
+  const geofence = useGeofenceTracker({ trip, language, onChange });
+
   const currentLeg = trip.legs[trip.currentLegIndex];
   const nextLeg = trip.legs[trip.currentLegIndex + 1];
   const isLastLeg = trip.currentLegIndex >= trip.legs.length - 1;
+  const isWalkingLeg = currentLeg?.mode === "walking";
 
   async function handleAdvance() {
     const next = await advanceActiveTripLeg();
@@ -207,6 +223,11 @@ export function ClientActiveTripBanner({
             {t.legProgress(trip.currentLegIndex, trip.legs.length)}
           </Text>
         )}
+        {geofence.active && geofence.distanceMeters != null && geofence.targetStopName ? (
+          <Text style={styles.currentMeta}>
+            {t.distanceLabel(geofence.distanceMeters, geofence.targetStopName)}
+          </Text>
+        ) : null}
       </View>
 
       {nextSummary ? (
@@ -238,7 +259,13 @@ export function ClientActiveTripBanner({
         </Pressable>
       </View>
 
-      <Text style={styles.helperText}>{t.helper}</Text>
+      <Text style={styles.helperText}>
+        {isWalkingLeg ? t.helperWalking : t.helper}
+      </Text>
+      <Text style={styles.helperText}>{t.helperBackgroundLimit}</Text>
+      {geofence.notificationDenied ? (
+        <Text style={styles.helperText}>{t.notificationDeniedHint}</Text>
+      ) : null}
     </ScrollView>
   );
 }

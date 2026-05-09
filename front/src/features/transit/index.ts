@@ -21,6 +21,13 @@ export {
   advanceActiveTripLeg
 } from "./client-trip";
 export type { ActiveTripState } from "./client-trip";
+export { useGeofenceTracker } from "./use-geofence-tracker";
+export type { GeofenceStatus } from "./use-geofence-tracker";
+export {
+  presentTransitArrivalNotification,
+  cancelTransitArrivalNotifications,
+  ensureTransitNotificationPermission
+} from "./notifications";
 export type {
   TransitMode,
   TransitTrip,
