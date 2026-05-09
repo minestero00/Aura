@@ -4,7 +4,7 @@ export const KO_COPY: AppCopy = {
   common: {
     backToSettings: '설정으로 돌아가기',
     close: '닫기',
-    loadingSession: 'Aura를 시작하는 중...',
+    loadingSession: 'AURA를 시작하는 중...',
     ok: '확인',
   },
   tabs: {
@@ -15,7 +15,7 @@ export const KO_COPY: AppCopy = {
     settings: '설정',
   },
   signIn: {
-    eyebrow: 'Aura',
+    eyebrow: 'AURA',
     title: '뉴스와 메일을 위한 일일 AI 브리핑',
     subtitle: '편한 방식으로 1초 만에 시작하세요.',
     sectionTitle: '시작하기',
@@ -122,7 +122,7 @@ export const KO_COPY: AppCopy = {
   },
   settings: {
     eyebrow: '설정',
-    title: 'Aura 설정',
+    title: 'AURA 설정',
     subtitle: 'Gmail 접근, 발신자 무시, 뉴스 토픽, 앱 언어를 여기서 관리해요!',
     gmailTitle: 'Gmail 접근',
     gmailSubtitle: '접근 권한이 만료됐거나 계정을 해제하고 싶다면 여기서 관리해주세요.',
@@ -164,7 +164,7 @@ export const KO_COPY: AppCopy = {
     languageEnglish: '영어',
     languageKorean: '한국어',
     notificationsTitle: '데일리 브리핑 알림',
-    notificationsSubtitle: '매일 아침 Aura 알림을 받고, 열면 최신 메일과 뉴스를 바로 준비해요.',
+    notificationsSubtitle: '매일 아침 AURA 알림을 받고, 열면 최신 메일과 뉴스를 바로 준비해요.',
     notificationsStatus: '상태',
     notificationsPermission: '권한',
     notificationsTime: '도착 시간',
@@ -193,10 +193,10 @@ export const KO_COPY: AppCopy = {
     menuDataPrivacy: '데이터 및 개인정보',
     dataPrivacyMenuHint: '무엇을 읽고 저장하고 전송하는지',
     dataPrivacyTitle: '데이터 및 개인정보',
-    dataPrivacySubtitle: 'Aura가 어떤 데이터를 왜 사용하는지 한눈에 확인하세요.',
+    dataPrivacySubtitle: 'AURA가 어떤 데이터를 왜 사용하는지 한눈에 확인하세요.',
     dataPrivacyGoogleTitle: 'Google 로그인',
     dataPrivacyGoogleBody:
-      'Aura는 로그인과 세션 보안을 위해 Google 계정 식별 정보만 사용하며, 비밀번호는 저장하지 않습니다.',
+      'AURA는 로그인과 세션 보안을 위해 Google 계정 식별 정보만 사용하며, 비밀번호는 저장하지 않습니다.',
     dataPrivacyGmailTitle: 'Gmail 읽기 전용 접근',
     dataPrivacyGmailBody:
       '연결 시 최근 메일을 읽어 요약과 긴급 메일 신호를 만듭니다. Gmail에서 초안 열기를 누르기 전에는 메일 발송을 수행하지 않습니다.',
@@ -208,7 +208,7 @@ export const KO_COPY: AppCopy = {
       '현재 위치는 일정 장소와의 이동 시간 계산에만 사용됩니다.',
     dataPrivacyAiTitle: 'AI 처리',
     dataPrivacyAiBody:
-      '브리핑/질문 처리는 Aura 백엔드를 통해 Anthropic 서버에서 수행되며, API 키는 앱에 저장되지 않습니다.',
+      '브리핑/질문 처리는 AURA 백엔드를 통해 Anthropic 서버에서 수행되며, API 키는 앱에 저장되지 않습니다.',
     dataPrivacyStorageTitle: '저장되는 정보',
     dataPrivacyStorageBody:
       '서비스 동작을 위해 세션, 사용자 설정, 연동 계정 메타데이터, 사용량 카운터, 브리핑 스냅샷이 백엔드에 저장됩니다.',
@@ -222,12 +222,12 @@ export const KO_COPY: AppCopy = {
     usageOf: (used, limit) => `${used} / ${limit}`,
     usageRemaining: remaining => `${remaining}회 남음`,
     logoutTitle: '로그아웃',
-    logoutSubtitle: '이 기기에서 Aura 세션을 종료합니다.',
+    logoutSubtitle: '이 기기에서 AURA 세션을 종료합니다.',
     logoutAction: '로그아웃',
   },
   ask: {
     eyebrow: '질문',
-    title: 'Aura에게 물어보기',
+    title: 'AURA에게 물어보기',
     subtitle: '메일과 뉴스 브리핑 맥락으로 빠르게 답을 받으세요.',
     quickTitle: '빠른 질문',
     historyTitle: '대화',
@@ -235,9 +235,9 @@ export const KO_COPY: AppCopy = {
     inputLabel: '질문 입력',
     inputPlaceholder: '오늘 가장 먼저 처리할 일은 무엇일까?',
     send: '질문 보내기',
-    assistantLabel: 'Aura',
+    assistantLabel: 'AURA',
     userLabel: '나',
-    typing: 'Aura가 답변을 작성하는 중...',
+    typing: 'AURA가 답변을 작성하는 중...',
     quickPrompts: ['오늘 가장 급한 메일은 뭐야?', '오늘 뉴스 핵심을 3줄로 알려줘.', '내일까지 미뤄도 되는 일은 뭐야?'],
   },
 };

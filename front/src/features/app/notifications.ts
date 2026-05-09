@@ -33,13 +33,13 @@ function getNextBriefDate(time: string) {
 function buildCopy(language: AppLanguage) {
   if (language === "ko") {
     return {
-      title: "Aura",
+      title: "AURA",
       body: "오늘의 브리핑이 도착했습니다"
     };
   }
 
   return {
-    title: "Aura",
+    title: "AURA",
     body: "Today's briefing is ready"
   };
 }

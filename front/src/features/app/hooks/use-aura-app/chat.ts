@@ -115,7 +115,7 @@ export async function submitChatMessage(deps: ChatModuleDeps, overrideMessage?: 
           );
         },
         onError: error => {
-          deps.setErrorMessage(getErrorMessage(error, "Unable to ask Aura right now."));
+          deps.setErrorMessage(getErrorMessage(error, "Unable to ask AURA right now."));
         }
       }
     );
@@ -131,7 +131,7 @@ export async function submitChatMessage(deps: ChatModuleDeps, overrideMessage?: 
       return finalized;
     });
   } catch (error: unknown) {
-    deps.setErrorMessage(getErrorMessage(error, "Unable to ask Aura right now."));
+    deps.setErrorMessage(getErrorMessage(error, "Unable to ask AURA right now."));
     // 실패 시 placeholder 제거 (사용자 메시지는 남김 — 다시 시도할 수 있도록).
     deps.setChatMessages(prev => prev.filter(m => m.id !== placeholderId));
   } finally {

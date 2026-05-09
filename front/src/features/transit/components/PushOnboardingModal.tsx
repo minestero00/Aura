@@ -100,13 +100,13 @@ export function PushOnboardingModal({ language }: PushOnboardingModalProps) {
   const copy =
     language === "ko"
       ? {
-          title: "Aura의 알림을 켜주세요",
+          title: "AURA의 알림을 켜주세요",
           body: "오늘의 브리핑과 버스 도착 알림을 놓치지 않으려면 알림 권한이 필요합니다. 한 번만 허용해주세요.",
           accept: "알림 켜기",
           skip: "다음에"
         }
       : {
-          title: "Turn on Aura notifications",
+          title: "Turn on AURA notifications",
           body: "Allow notifications so you never miss your daily briefing or transit arrival alerts.",
           accept: "Enable notifications",
           skip: "Maybe later"

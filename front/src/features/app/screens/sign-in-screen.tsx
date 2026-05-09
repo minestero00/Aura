@@ -7,16 +7,17 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgXml } from "react-native-svg";
+import LinearGradient from "react-native-linear-gradient";
 import { auraMotion, createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
-import { HeroGradient } from "@features/app/components/hero-gradient";
-import { ScreenAtmosphere } from "@features/app/components/screen-atmosphere";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
 const DUMB_LOGO = require("@features/app/assets/dumb-logo.jpg");
@@ -107,43 +108,57 @@ export function SignInScreen({
     ]).start();
   }, [heroTranslate, heroOpacity, formTranslate, formOpacity]);
 
+  // 화면 전체를 hero 그라디언트로 채우고, hero 카드를 panel 없이 배경에 직접
+  // 얹는다. status bar 영역까지 같은 톤이 흐르도록 SafeAreaView의 top edge는
+  // 비활성화하고 LinearGradient를 absoluteFill로 가장 아래에 깔았다.
+  const heroGradient = theme.isDark
+    ? ["#8E76FF", "#6B5BFF", "#34D2FF"]
+    : ["#6B5BFF", "#8E76FF", "#34D2FF"];
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScreenAtmosphere />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
+    <View style={signInRoot.root}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <LinearGradient
+        colors={heroGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <SafeAreaView style={signInRoot.safeArea} edges={["bottom", "left", "right"]}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <Animated.View
-            style={{
-              opacity: heroOpacity,
-              transform: [{ translateY: heroTranslate }]
-            }}
+          <ScrollView
+            contentContainerStyle={[styles.container, signInRoot.scrollContent]}
+            keyboardShouldPersistTaps="handled"
           >
-            <HeroGradient style={styles.signInHero}>
-              <View style={styles.signInHeroContent}>
-                <View style={styles.signInHeroIconRow}>
-                  <Image source={AURA_ICON} style={styles.signInHeroIcon} resizeMode="contain" />
-                  <Text style={styles.signInHeroWordmark}>AURA</Text>
-                </View>
-                <Text
-                  style={styles.signInHeroTitle}
-                  numberOfLines={2}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
-                >
-                  {copy.signIn.title}
-                </Text>
-                <Text style={styles.signInHeroSubtitle} numberOfLines={2}>
-                  {copy.signIn.subtitle}
-                </Text>
+            <Animated.View
+              style={[
+                signInRoot.hero,
+                {
+                  opacity: heroOpacity,
+                  transform: [{ translateY: heroTranslate }]
+                }
+              ]}
+            >
+              <View style={styles.signInHeroIconRow}>
+                <Image source={AURA_ICON} style={styles.signInHeroIcon} resizeMode="contain" />
+                <Text style={styles.signInHeroWordmark}>AURA</Text>
               </View>
-            </HeroGradient>
-          </Animated.View>
+              <Text
+                style={styles.signInHeroTitle}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                {copy.signIn.title}
+              </Text>
+              <Text style={styles.signInHeroSubtitle} numberOfLines={2}>
+                {copy.signIn.subtitle}
+              </Text>
+            </Animated.View>
 
           <Animated.View
             style={[
@@ -214,9 +229,22 @@ export function SignInScreen({
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
+
+const signInRoot = StyleSheet.create({
+  root: { flex: 1 },
+  safeArea: { flex: 1, backgroundColor: "transparent" },
+  scrollContent: { backgroundColor: "transparent" },
+  hero: {
+    paddingHorizontal: 6,
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 10
+  }
+});
 
 // ── Menu ─────────────────────────────────────────────────────────────────────
 function SignInMenu({

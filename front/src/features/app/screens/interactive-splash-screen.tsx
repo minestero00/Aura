@@ -90,6 +90,9 @@ export function InteractiveSplashScreen({ language, onContinue }: InteractiveSpl
                 }
               ]}
             >
+              <Text style={[styles.tagline, { color: theme.colors.textPrimary }]}>
+                AI, for User Reliable Assistant
+              </Text>
               <Text style={[styles.hint, { color: theme.colors.textSecondary }]}>
                 {tapHint}
               </Text>
@@ -118,7 +121,15 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingBottom: 56,
-    alignItems: "center"
+    alignItems: "center",
+    gap: 10
+  },
+  tagline: {
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    opacity: 0.85
   },
   hint: {
     fontSize: 15,

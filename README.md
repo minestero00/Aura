@@ -1,4 +1,4 @@
-# Aura
+# AURA
 
 <div style="display: flex; justify-content: center; gap: 100px; align-items: center;">
   <img src="Image/AuraIcon/Assets.xcassets/AppIcon.appiconset/256.png" alt="Aura_Icon" width="200" />
@@ -46,7 +46,7 @@ _Ai assistant application for all users_
 
 ## Versions
 
-| 날짜     | 핵심                                                                    | 링크                                                   |
-| -------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| 26/04/10 | Alpha version                                                           | [docs/versions/Alpha.md](docs/versions/Alpha.md)       |
-| 26/05/08 | Railway 정식 배포 + 화면 진입 모션 + 2차 디자인 패스 + Sign-in lock fix | [docs/versions/26.05.08.md](docs/versions/26.06.08.md) |
+| 날짜     | 핵심                                                               | 링크                                                   |
+| -------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| 26/04/10 | Alpha version                                                      | [docs/versions/Alpha.md](docs/versions/Alpha.md)       |
+| 26/05/08 | Railway 배포 + 화면 진입 모션 + 2차 디자인 패스 + Sign-in lock fix | [docs/versions/26.05.08.md](docs/versions/26.06.08.md) |
