@@ -35,9 +35,9 @@ export function MenuSection(props: SettingsSectionProps) {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
-          <Text style={styles.eyebrowOnGradient}>{copy.settings.eyebrow}</Text>
-          <Text style={styles.titleOnGradient}>{copy.settings.title}</Text>
-          <Text style={styles.subtitleOnGradient}>{copy.settings.subtitle}</Text>
+          <Text style={styles.eyebrow}>{copy.settings.eyebrow}</Text>
+          <Text style={styles.title}>{copy.settings.title}</Text>
+          <Text style={styles.subtitle}>{copy.settings.subtitle}</Text>
         </View>
 
         <View style={styles.sectionCard}>

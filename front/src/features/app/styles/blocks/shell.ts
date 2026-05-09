@@ -4,16 +4,14 @@ export function buildShellStyles(theme: AuraTheme) {
   const { colors } = theme;
 
   return {
-    // AppShell의 root는 LinearGradient가 absoluteFill로 깔리므로 자체 background는 두지 않는다.
-    // 그렇게 해야 status bar/notch 영역까지 같은 그라디언트가 흐른다(SignIn과 통일).
+    // AppShell root background는 colors.background를 인라인으로 적용 (theme 변경 반영).
+    // designFeedback 반영 — 그라디언트 제거, brand 톤은 background의 살짝 보라 끝으로만.
     appShell: { flex: 1 },
-    appShellContent: { flex: 1, backgroundColor: "transparent" },
+    appShellContent: { flex: 1 },
     askScreen: { flex: 1 },
     askTopBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 2 },
-    // ask-screen은 hero 없이 askTopBar만 그라디언트 위에 직접 노출되므로
-    // 가독성을 위해 흰색 톤으로(다른 hero 텍스트와 동일).
-    askTopBarTitle: { color: "#FFFFFF", fontSize: 20, fontWeight: "800" },
-    askTopBarSubtitle: { color: "rgba(255,255,255,0.85)", fontSize: 12, lineHeight: 17 },
+    askTopBarTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: "800" },
+    askTopBarSubtitle: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
     askQuickStripContent: { paddingHorizontal: 20, paddingBottom: 8 },
     askQuickPromptsRow: { flexDirection: "row", gap: 8 },
     askQuickPromptChip: {
@@ -54,8 +52,7 @@ export function buildShellStyles(theme: AuraTheme) {
       textAlignVertical: "top"
     },
     askComposerActions: { marginTop: 8 },
-    // 5탭 화면 안의 SafeAreaView/ScrollView는 AppShell의 그라디언트가 비치도록 transparent.
-    // loading-screen 같이 AppShell 밖에서 쓰는 화면은 자체 background 명시.
+    // 5탭 화면 안 SafeAreaView/ScrollView는 transparent — AppShell의 background가 비침.
     safeArea: { flex: 1, backgroundColor: "transparent" },
     safeAreaSolid: { flex: 1, backgroundColor: colors.background },
     settingsScreen: { flex: 1 },
@@ -220,30 +217,30 @@ export function buildShellStyles(theme: AuraTheme) {
       lineHeight: 20,
       marginTop: 4
     },
+    // designFeedback 반영 — 카드 그림자/radius 약화. Things/Linear 톤.
     formCard: {
-      padding: 22,
-      borderRadius: 28,
+      padding: 20,
+      borderRadius: 18,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      // Aurora-tinted soft shadow — 브랜드 분위기를 그림자에도 미세하게
-      shadowColor: theme.isDark ? "#1a1456" : "#7d6fe0",
-      shadowOpacity: theme.isDark ? 0.40 : 0.22,
-      shadowRadius: 26,
-      shadowOffset: { width: 0, height: 12 },
-      elevation: 5
+      shadowColor: theme.isDark ? "#000000" : "#0F1226",
+      shadowOpacity: theme.isDark ? 0.24 : 0.04,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 1
     },
     sectionCard: {
-      padding: 22,
-      borderRadius: 28,
+      padding: 20,
+      borderRadius: 16,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#1a1456" : "#7d6fe0",
-      shadowOpacity: theme.isDark ? 0.36 : 0.18,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 4
+      shadowColor: theme.isDark ? "#000000" : "#0F1226",
+      shadowOpacity: theme.isDark ? 0.20 : 0.03,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 1 },
+      elevation: 1
     },
     sectionTitle: { color: colors.textPrimary, fontSize: 19, fontWeight: "800", marginBottom: 12 },
     inputLabel: { color: colors.textPrimary, fontSize: 14, fontWeight: "700", marginBottom: 8 },
