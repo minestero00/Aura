@@ -12,6 +12,14 @@ export {
   listRecentTrips,
   registerPushDevice
 } from "./api";
+export {
+  createActiveTripFromOption,
+  loadActiveTrip,
+  saveActiveTrip,
+  clearActiveTrip,
+  advanceActiveTripLeg
+} from "./client-trip";
+export type { ActiveTripState } from "./client-trip";
 export type {
   TransitMode,
   TransitTrip,

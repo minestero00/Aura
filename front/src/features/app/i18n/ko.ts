@@ -28,7 +28,7 @@ export const KO_COPY: AppCopy = {
     askFabSubtitle: '우측 상단의 작은 채팅 버튼으로 AURA에 바로 질문하세요.',
   },
   navExpand: {
-    title: '빠른 메뉴',
+    title: '메뉴',
     askAction: 'AURA 채팅',
     askSubtitle: '메일·뉴스 브리핑을 그라운드 삼아 바로 물어보기',
     transitAction: '버스 도착 알림',

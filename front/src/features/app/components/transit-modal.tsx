@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  ActiveTripBanner,
   SearchTripScreen,
-  getActiveTrip
+  clearActiveTrip,
+  createActiveTripFromOption,
+  loadActiveTrip,
+  saveActiveTrip
 } from "@features/transit";
-import type { DirectionsOption, TransitTrip } from "@features/transit";
+import type { ActiveTripState, DirectionsOption } from "@features/transit";
 import type { CalendarAgendaDay } from "@features/calendar/types";
 import { useAuraTheme } from "@features/app/styles";
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
@@ -15,43 +17,45 @@ interface TransitModalProps {
   visible: boolean;
   copy: AppCopy;
   language: AppLanguage;
-  /** 캘린더에서 다음 일정을 자동 채워넣기 위한 source (현재 미사용 — Step 4에서 활용). */
+  /** Step 4+에서 활용 — 캘린더 다음 일정 location 자동 채움. */
   agendaDays: CalendarAgendaDay[];
   onDismiss: () => void;
 }
 
 /**
- * 버스 도착 알림 진입점. 활성 trip이 있으면 ActiveTripBanner, 없으면
- * SearchTripScreen(목적지 검색 + 옵션 선택). 옵션 선택 후 client-driven
- * trip 시작은 Step 3+에서 wiring — 지금은 dryRun(Alert).
+ * Client-driven 버스 도착 알림 진입점.
+ * - active trip(AsyncStorage)이 있으면 임시 progress 카드(Step 4에서 정식
+ *   ClientActiveTripBanner로 교체).
+ * - 없으면 SearchTripScreen → 옵션 선택 시 client-trip 저장.
+ *
+ * 서버 transit_trips 호출은 모두 제거 — schema 누락 + client-driven 정책.
  */
 export function TransitModal({ visible, copy, language, onDismiss }: TransitModalProps) {
   const theme = useAuraTheme();
   const insets = useSafeAreaInsets();
-  const [activeTrip, setActiveTrip] = useState<TransitTrip | null>(null);
+  const [activeTrip, setActiveTrip] = useState<ActiveTripState | null>(null);
 
-  // modal이 열릴 때마다 active trip 조회 (legacy server-side trip — 다음 cleanup PR에서 제거).
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
-    getActiveTrip()
-      .then(result => {
-        if (!cancelled) setActiveTrip(result.trip ?? null);
-      })
-      .catch(() => undefined);
+    void loadActiveTrip().then(trip => {
+      if (!cancelled) setActiveTrip(trip);
+    });
     return () => {
       cancelled = true;
     };
   }, [visible]);
 
-  function handleSelectOption(option: DirectionsOption) {
-    // Step 3+에서 client-trip.ts AsyncStorage 저장 + Region Monitoring 등록.
-    Alert.alert(
-      language === "ko" ? "경로 선택됨 (개발 중)" : "Route selected (WIP)",
-      language === "ko"
-        ? `총 ${Math.round(option.totalDurationSec / 60)}분, 환승 ${option.transferCount}회. 다음 단계에서 trip 시작 + iOS Region Monitoring 등록 예정입니다.`
-        : `${Math.round(option.totalDurationSec / 60)} min · ${option.transferCount} transfer. Trip start + iOS Region Monitoring will be wired in next step.`
-    );
+  async function handleSelectOption(option: DirectionsOption, destinationLabel: string) {
+    const trip = createActiveTripFromOption(option, destinationLabel || "Trip");
+    await saveActiveTrip(trip);
+    setActiveTrip(trip);
+  }
+
+  async function handleEndTrip() {
+    await clearActiveTrip();
+    setActiveTrip(null);
+    onDismiss();
   }
 
   return (
@@ -79,15 +83,37 @@ export function TransitModal({ visible, copy, language, onDismiss }: TransitModa
         </Pressable>
 
         {activeTrip ? (
-          <View style={[styles.bannerWrap, { paddingTop: insets.top + 64 }]}>
-            <ActiveTripBanner
-              trip={activeTrip}
-              onTripFinished={() => {
-                setActiveTrip(null);
-                onDismiss();
-              }}
-            />
-          </View>
+          <ScrollView
+            contentContainerStyle={[
+              styles.bannerWrap,
+              { paddingTop: insets.top + 64 }
+            ]}
+          >
+            <Text style={[styles.bannerTitle, { color: theme.colors.textPrimary }]}>
+              {language === "ko" ? "진행 중인 경로" : "Active trip"}
+            </Text>
+            <Text style={[styles.bannerSubtitle, { color: theme.colors.textSecondary }]}>
+              → {activeTrip.destinationLabel}
+            </Text>
+            <Text style={[styles.bannerHint, { color: theme.colors.textMuted }]}>
+              {language === "ko"
+                ? `진행 leg ${activeTrip.currentLegIndex + 1} / ${activeTrip.legs.length} · iOS Region Monitoring 알림은 Step 5+에서 활성화됩니다.`
+                : `Leg ${activeTrip.currentLegIndex + 1} / ${activeTrip.legs.length} · iOS Region Monitoring alerts will be wired in Step 5+.`}
+            </Text>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void handleEndTrip()}
+              style={[
+                styles.endButton,
+                { backgroundColor: theme.colors.dangerSoft }
+              ]}
+            >
+              <Text style={[styles.endButtonText, { color: theme.colors.dangerText }]}>
+                {language === "ko" ? "경로 종료" : "End trip"}
+              </Text>
+            </Pressable>
+          </ScrollView>
         ) : (
           <SearchTripScreen
             language={language}
@@ -113,5 +139,16 @@ const styles = StyleSheet.create({
     zIndex: 50
   },
   closeLabel: { fontSize: 22, fontWeight: "700", lineHeight: 24 },
-  bannerWrap: { padding: 20 }
+  bannerWrap: { paddingHorizontal: 20, paddingBottom: 40, gap: 10 },
+  bannerTitle: { fontSize: 20, fontWeight: "800" },
+  bannerSubtitle: { fontSize: 15, lineHeight: 22 },
+  bannerHint: { fontSize: 12, lineHeight: 18, marginTop: 4 },
+  endButton: {
+    marginTop: 16,
+    minHeight: 48,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  endButtonText: { fontSize: 14, fontWeight: "800" }
 });

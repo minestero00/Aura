@@ -16,8 +16,8 @@ import { buildSearchTripStyles } from "./SearchTrip.styles";
 
 interface SearchTripScreenProps {
   language: "ko" | "en";
-  /** 옵션 선택 콜백 — Step 3+에서 client-trip 시작에 연결. 지금은 dryRun. */
-  onSelectOption: (option: DirectionsOption) => void;
+  /** 옵션 선택 콜백 — caller가 createActiveTripFromOption + saveActiveTrip. */
+  onSelectOption: (option: DirectionsOption, destinationLabel: string) => void;
   onCancel: () => void;
 }
 
@@ -119,7 +119,7 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
           <Pressable
             key={`opt-${index}`}
             style={styles.optionCard}
-            onPress={() => onSelectOption(option)}
+            onPress={() => onSelectOption(option, destination.trim())}
           >
             <View style={styles.optionHeader}>
               <Text style={styles.optionDuration}>

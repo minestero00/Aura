@@ -13,11 +13,11 @@ export const EN_COPY: AppCopy = {
       'Reconnect Gmail and your email brief is ready to roll right away.',
     locationPermissionTitle: 'Location access needed',
     locationPermissionBody:
-      'AURA needs your location for today\'s weather and travel-time hints. Allow once and you\'re set.',
+      "AURA needs your location for today's weather and travel-time hints. Allow once and you're set.",
     locationPermissionPrimary: 'Open settings & allow',
     calendarPermissionTitle: 'Calendar access needed',
     calendarPermissionBody:
-      'AURA needs calendar access to merge your phone schedule. Allow once and you\'re set.',
+      "AURA needs calendar access to merge your phone schedule. Allow once and you're set.",
     calendarPermissionPrimary: 'Open settings & allow',
     primaryAction: 'Reconnect now',
     dismiss: 'Later',
@@ -25,14 +25,16 @@ export const EN_COPY: AppCopy = {
   display: {
     sectionTitle: 'Display options',
     askFabLabel: 'AURA chat button',
-    askFabSubtitle: 'Show a small chat button at the top right to ask AURA anytime.',
+    askFabSubtitle:
+      'Show a small chat button at the top right to ask AURA anytime.',
   },
   navExpand: {
-    title: 'Quick menu',
+    title: 'Menu Plus',
     askAction: 'Ask AURA',
     askSubtitle: 'Get answers grounded in your mail and news brief',
     transitAction: 'Bus arrival alert',
-    transitSubtitle: 'Start a trip and get pinged one stop before your destination',
+    transitSubtitle:
+      'Start a trip and get pinged one stop before your destination',
     handleHint: 'Pull up to expand',
     coachmark: 'Tap here to open more menus!',
   },
@@ -52,7 +54,8 @@ export const EN_COPY: AppCopy = {
     signingIn: 'Signing in...',
     googleButton: 'Continue with Google',
     kakaoButton: 'Continue with Kakao',
-    kakaoComingSoon: 'Kakao sign-in is rolling out soon. Please use another option for now.',
+    kakaoComingSoon:
+      'Kakao sign-in is rolling out soon. Please use another option for now.',
     phoneButton: 'Continue with phone number',
     emailButton: 'Sign in with dumb account',
     dumbHint: 'Already have a dumb account?',
@@ -69,10 +72,13 @@ export const EN_COPY: AppCopy = {
   mail: {
     eyebrow: 'Mail',
     title: "Today's email brief",
-    subtitle: 'Focus on the inbox items that matter and hide ignored senders automatically.',
+    subtitle:
+      'Focus on the inbox items that matter and hide ignored senders automatically.',
     dailyBriefTitle: 'Daily Brief',
-    dailyBriefSubtitle: 'A quick snapshot of your inbox and news before you dive into details.',
-    dailyBriefEmpty: 'Your daily brief will appear here after mail and news are prepared.',
+    dailyBriefSubtitle:
+      'A quick snapshot of your inbox and news before you dive into details.',
+    dailyBriefEmpty:
+      'Your daily brief will appear here after mail and news are prepared.',
     dailyBriefPreparing: 'Preparing your daily brief...',
     dailyBriefRefresh: 'Refresh brief',
     dailyBriefOpenMail: 'Open Mail',
@@ -97,7 +103,8 @@ export const EN_COPY: AppCopy = {
   news: {
     eyebrow: 'News',
     title: 'Daily news briefing',
-    subtitle: 'Get a compact briefing built from the categories you enabled in settings.',
+    subtitle:
+      'Get a compact briefing built from the categories you enabled in settings.',
     todayBriefTitle: "Today's Brief",
     activeCategories: 'Active categories',
     loadBrief: 'Load Daily News Brief',
@@ -116,15 +123,19 @@ export const EN_COPY: AppCopy = {
     deviceTitle: 'Device calendar',
     deviceSubtitle: 'Read calendar events already stored on this phone.',
     deviceConnectTitle: 'Device calendar access needed',
-    deviceConnectBody: 'Allow calendar access to read schedules from your phone calendar apps.',
+    deviceConnectBody:
+      'Allow calendar access to read schedules from your phone calendar apps.',
     deviceConnectAction: 'Allow device calendar',
     weatherTitle: "Today's weather advice",
-    weatherSubtitle: 'Use current location weather to decide umbrella and clothing quickly.',
+    weatherSubtitle:
+      'Use current location weather to decide umbrella and clothing quickly.',
     weatherRefresh: 'Refresh weather',
     weatherLoading: "Loading today's weather...",
-    weatherUnavailable: 'Weather advice is unavailable. Allow location and try again.',
+    weatherUnavailable:
+      'Weather advice is unavailable. Allow location and try again.',
     reconnectTitle: 'Calendar access needed',
-    reconnectBody: 'Reconnect Google access once to include your calendar schedule here.',
+    reconnectBody:
+      'Reconnect Google access once to include your calendar schedule here.',
     reconnectAction: 'Reconnect Google',
     loadAgenda: 'Load schedule',
     loading: 'Loading your schedule...',
@@ -156,9 +167,11 @@ export const EN_COPY: AppCopy = {
   settings: {
     eyebrow: 'Settings',
     title: 'Control AURA',
-    subtitle: 'Open Gmail access settings, manage ignored senders, choose news topics, or change the app language from here.',
+    subtitle:
+      'Open Gmail access settings, manage ignored senders, choose news topics, or change the app language from here.',
     gmailTitle: 'Gmail access',
-    gmailSubtitle: 'Reconnect Gmail here if access expired or you want to disconnect this account.',
+    gmailSubtitle:
+      'Reconnect Gmail here if access expired or you want to disconnect this account.',
     currentStatus: 'Current status',
     connected: 'Connected',
     address: 'Address',
@@ -167,13 +180,15 @@ export const EN_COPY: AppCopy = {
     yes: 'Yes',
     no: 'No',
     refreshRequired: 'Refresh required',
-    refreshHelp: 'Gmail access has expired. Reconnect Gmail to keep inbox features working.',
+    refreshHelp:
+      'Gmail access has expired. Reconnect Gmail to keep inbox features working.',
     refreshDone: 'Gmail access refreshed.',
     refreshGmail: 'Refresh Gmail Access',
     connectGmail: 'Connect Gmail',
     disconnectGmail: 'Disconnect Gmail',
     ignoredTitle: 'Ignored senders',
-    ignoredSubtitle: 'Add or remove email addresses that AURA should hide from mail lists and summaries.',
+    ignoredSubtitle:
+      'Add or remove email addresses that AURA should hide from mail lists and summaries.',
     ignoredManage: 'Manage ignored senders',
     ignoredHelper:
       'Enter an email address. Messages from matching senders will be filtered out locally.',
@@ -195,7 +210,8 @@ export const EN_COPY: AppCopy = {
     languageEnglish: 'English',
     languageKorean: 'Korean',
     notificationsTitle: 'Daily brief notifications',
-    notificationsSubtitle: 'Send a local AURA reminder every morning and prepare the latest mail and news brief when opened.',
+    notificationsSubtitle:
+      'Send a local AURA reminder every morning and prepare the latest mail and news brief when opened.',
     notificationsStatus: 'Status',
     notificationsPermission: 'Permission',
     notificationsTime: 'Delivery time',
@@ -207,7 +223,8 @@ export const EN_COPY: AppCopy = {
     notificationsDisable: 'Disable daily brief',
     notificationsRefresh: 'Refresh schedule',
     permissionsTitle: 'Permissions',
-    permissionsSubtitle: 'Manage the access AURA needs to show your briefings and schedule.',
+    permissionsSubtitle:
+      'Manage the access AURA needs to show your briefings and schedule.',
     permissionsDeviceCalendar: 'Device calendar',
     permissionsNotifications: 'Notifications',
     permissionsGoogleCalendar: 'Google Calendar',
@@ -268,6 +285,10 @@ export const EN_COPY: AppCopy = {
     assistantLabel: 'AURA',
     userLabel: 'You',
     typing: 'AURA is composing a reply...',
-    quickPrompts: ['What is the most urgent email today?', 'Summarize today news in 3 lines.', 'What can be postponed until tomorrow?'],
+    quickPrompts: [
+      'What is the most urgent email today?',
+      'Summarize today news in 3 lines.',
+      'What can be postponed until tomorrow?',
+    ],
   },
 };
