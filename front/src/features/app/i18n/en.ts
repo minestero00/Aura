@@ -19,6 +19,12 @@ export const EN_COPY: AppCopy = {
     askFabLabel: 'AURA chat button',
     askFabSubtitle: 'Show a small chat button at the top right to ask AURA anytime.',
   },
+  navExpand: {
+    title: 'Quick menu',
+    askAction: 'Ask AURA',
+    askSubtitle: 'Get answers grounded in your mail and news brief',
+    handleHint: 'Pull up to expand',
+  },
   tabs: {
     mail: 'Mail',
     todo: 'Todo',

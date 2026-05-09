@@ -80,6 +80,8 @@ export interface UseAuraAppResult {
   isAskOpen: boolean;
   /** 우측 상단 채팅 FAB을 숨길지 — 사용자가 설정에서 토글. */
   isAskFabHidden: boolean;
+  /** Bottom nav를 위로 끌어올린 expanded drawer 표시 여부. */
+  isNavExpanded: boolean;
   selectedTab: AppTabKey;
   selectedSettingsSection: SettingsSectionKey;
   selectedTravelMode: "driving" | "transit";
@@ -140,4 +142,8 @@ export interface UseAuraAppResult {
   handleCloseAsk: () => void;
   /** 채팅 FAB 표시/숨김 토글 (설정 화면). */
   handleToggleAskFabHidden: () => Promise<void>;
+  /** Bottom nav 끌어올림 → expanded drawer 열기. */
+  handleOpenNavExpand: () => void;
+  /** Drawer 닫기 (백드롭 탭 또는 swipe down). */
+  handleCloseNavExpand: () => void;
 }

@@ -251,11 +251,9 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     dailyBriefActionButtonText: { color: colors.accent, fontSize: 13, fontWeight: "700" },
     dailyBriefPrimaryActionText: { color: colors.accentText },
     bottomNav: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+      flexDirection: "column",
       paddingHorizontal: 16,
-      paddingTop: 10,
+      paddingTop: 4,
       paddingBottom: 22,
       borderTopWidth: 0,
       backgroundColor: colors.elevated,
@@ -268,6 +266,22 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       shadowRadius: 16,
       shadowOffset: { width: 0, height: -6 },
       elevation: 7
+    },
+    bottomNavRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between"
+    },
+    bottomNavHandleHit: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 6
+    },
+    bottomNavHandle: {
+      width: 44,
+      height: 4,
+      borderRadius: 999,
+      backgroundColor: colors.lineStrong
     },
     bottomNavItem: {
       minHeight: 52,

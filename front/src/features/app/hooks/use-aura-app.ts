@@ -126,6 +126,12 @@ export function useAuraApp(): UseAuraAppResult {
     state.setIsAskFabHidden(next);
     await saveAskFabHidden(next).catch(() => undefined);
   }
+  function handleOpenNavExpand() {
+    state.setIsNavExpanded(true);
+  }
+  function handleCloseNavExpand() {
+    state.setIsNavExpanded(false);
+  }
 
   function handleOpenNotificationSettings() {
     state.setSelectedTab("settings");
@@ -169,7 +175,9 @@ export function useAuraApp(): UseAuraAppResult {
       handleDismissActionableError,
       handleOpenAsk,
       handleCloseAsk,
-      handleToggleAskFabHidden
+      handleToggleAskFabHidden,
+      handleOpenNavExpand,
+      handleCloseNavExpand
     },
     openHandlers: {
       handleOpenGmailSettings,

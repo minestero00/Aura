@@ -19,6 +19,12 @@ export const KO_COPY: AppCopy = {
     askFabLabel: 'AURA 채팅 버튼 표시',
     askFabSubtitle: '우측 상단의 작은 채팅 버튼으로 AURA에 바로 질문하세요.',
   },
+  navExpand: {
+    title: '빠른 메뉴',
+    askAction: 'AURA 채팅',
+    askSubtitle: '메일·뉴스 브리핑을 그라운드 삼아 바로 물어보기',
+    handleHint: '위로 끌어 올리기',
+  },
   tabs: {
     mail: '메일',
     todo: '일정',

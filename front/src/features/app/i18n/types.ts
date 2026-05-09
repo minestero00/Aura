@@ -18,6 +18,12 @@ export interface AppCopy {
     askFabLabel: string;
     askFabSubtitle: string;
   };
+  navExpand: {
+    title: string;
+    askAction: string;
+    askSubtitle: string;
+    handleHint: string;
+  };
   tabs: {
     mail: string;
     todo: string;

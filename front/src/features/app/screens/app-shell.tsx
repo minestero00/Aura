@@ -23,6 +23,7 @@ import { BottomNav } from "@features/app/screens/app-shell/bottom-nav";
 import { DailyBriefModal } from "@features/app/screens/app-shell/daily-brief-modal";
 import { ActionAlertModal } from "@features/app/components/action-alert-modal";
 import { ChatFab } from "@features/app/components/chat-fab";
+import { NavExpandDrawer } from "@features/app/components/nav-expand-drawer";
 
 interface AppShellProps {
   app: UseAuraAppResult;
@@ -203,9 +204,17 @@ export function AppShell({ app }: AppShellProps) {
         onSelectTab={app.handleSelectTab}
         selectedTab={app.selectedTab}
         theme={theme}
+        onPullUp={app.handleOpenNavExpand}
       />
 
       <ChatFab onPress={app.handleOpenAsk} hidden={app.isAskFabHidden} />
+
+      <NavExpandDrawer
+        visible={app.isNavExpanded}
+        copy={app.copy}
+        onDismiss={app.handleCloseNavExpand}
+        onOpenAsk={app.handleOpenAsk}
+      />
 
       <Modal
         visible={app.isAskOpen}
