@@ -39,7 +39,7 @@
         android:exported="false"
         android:enabled="true">
         <intent-filter>
-          <action android:name="com.auraapp.transit.GEOFENCE_TRANSITION" />
+          <action android:name="com.dumbteam.aura.transit.GEOFENCE_TRANSITION" />
         </intent-filter>
       </receiver>
     </application>

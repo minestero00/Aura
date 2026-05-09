@@ -1,4 +1,4 @@
-package com.auraapp.transit
+package com.dumbteam.aura.transit
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -131,7 +131,7 @@ class TransitGeofenceModule(private val reactContext: ReactApplicationContext) :
     companion object {
         const val PREFS_NAME = "aura.transit.regionMetadata"
         const val NOTIFICATION_CHANNEL_ID = "aura.transit.arrival"
-        const val INTENT_ACTION = "com.auraapp.transit.GEOFENCE_TRANSITION"
+        const val INTENT_ACTION = "com.dumbteam.aura.transit.GEOFENCE_TRANSITION"
 
         @Volatile var instance: TransitGeofenceModule? = null
             private set

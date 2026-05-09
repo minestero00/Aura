@@ -1,4 +1,4 @@
-package com.auraapp.transit
+package com.dumbteam.aura.transit
 
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -6,8 +6,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import com.auraapp.MainActivity
-import com.auraapp.R
+import com.dumbteam.aura.MainActivity
+import com.dumbteam.aura.R
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import com.google.android.gms.location.LocationServices

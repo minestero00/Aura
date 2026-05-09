@@ -1,4 +1,4 @@
-package com.auraapp
+package com.dumbteam.aura
 
 import android.os.Bundle
 import com.facebook.react.ReactActivity

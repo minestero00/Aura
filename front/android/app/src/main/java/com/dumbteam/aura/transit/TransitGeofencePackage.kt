@@ -1,4 +1,4 @@
-package com.auraapp.transit
+package com.dumbteam.aura.transit
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

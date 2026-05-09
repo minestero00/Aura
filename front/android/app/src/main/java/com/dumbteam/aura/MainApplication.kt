@@ -1,8 +1,8 @@
-package com.auraapp
+package com.dumbteam.aura
 
 import android.app.Application
-import com.auraapp.transit.TransitGeofenceModule
-import com.auraapp.transit.TransitGeofencePackage
+import com.dumbteam.aura.transit.TransitGeofenceModule
+import com.dumbteam.aura.transit.TransitGeofencePackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
