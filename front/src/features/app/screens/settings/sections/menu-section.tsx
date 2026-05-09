@@ -1,7 +1,6 @@
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { HeroGradient } from "@features/app/components/hero-gradient";
 import { SettingsOkBadge } from "@features/app/screens/settings/shared";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
 
@@ -35,13 +34,11 @@ export function MenuSection(props: SettingsSectionProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
-        <HeroGradient>
-          <View style={styles.heroForeground}>
-            <Text style={styles.eyebrowOnGradient}>{copy.settings.eyebrow}</Text>
-            <Text style={styles.titleOnGradient}>{copy.settings.title}</Text>
-            <Text style={styles.subtitleOnGradient}>{copy.settings.subtitle}</Text>
-          </View>
-        </HeroGradient>
+        <View style={styles.heroBare}>
+          <Text style={styles.eyebrowOnGradient}>{copy.settings.eyebrow}</Text>
+          <Text style={styles.titleOnGradient}>{copy.settings.title}</Text>
+          <Text style={styles.subtitleOnGradient}>{copy.settings.subtitle}</Text>
+        </View>
 
         <View style={styles.sectionCard}>
           <Pressable onPress={onOpenPermissionsSettings} style={styles.settingsMenuItem}>

@@ -4,12 +4,16 @@ export function buildShellStyles(theme: AuraTheme) {
   const { colors } = theme;
 
   return {
-    appShell: { flex: 1, backgroundColor: colors.background },
-    appShellContent: { flex: 1 },
+    // AppShell의 root는 LinearGradient가 absoluteFill로 깔리므로 자체 background는 두지 않는다.
+    // 그렇게 해야 status bar/notch 영역까지 같은 그라디언트가 흐른다(SignIn과 통일).
+    appShell: { flex: 1 },
+    appShellContent: { flex: 1, backgroundColor: "transparent" },
     askScreen: { flex: 1 },
     askTopBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 2 },
-    askTopBarTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: "800" },
-    askTopBarSubtitle: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
+    // ask-screen은 hero 없이 askTopBar만 그라디언트 위에 직접 노출되므로
+    // 가독성을 위해 흰색 톤으로(다른 hero 텍스트와 동일).
+    askTopBarTitle: { color: "#FFFFFF", fontSize: 20, fontWeight: "800" },
+    askTopBarSubtitle: { color: "rgba(255,255,255,0.85)", fontSize: 12, lineHeight: 17 },
     askQuickStripContent: { paddingHorizontal: 20, paddingBottom: 8 },
     askQuickPromptsRow: { flexDirection: "row", gap: 8 },
     askQuickPromptChip: {
@@ -50,7 +54,10 @@ export function buildShellStyles(theme: AuraTheme) {
       textAlignVertical: "top"
     },
     askComposerActions: { marginTop: 8 },
-    safeArea: { flex: 1, backgroundColor: colors.background },
+    // 5탭 화면 안의 SafeAreaView/ScrollView는 AppShell의 그라디언트가 비치도록 transparent.
+    // loading-screen 같이 AppShell 밖에서 쓰는 화면은 자체 background 명시.
+    safeArea: { flex: 1, backgroundColor: "transparent" },
+    safeAreaSolid: { flex: 1, backgroundColor: colors.background },
     settingsScreen: { flex: 1 },
     scrollContent: { padding: 20, gap: 16, paddingBottom: 48 },
     chipScrollContent: {
@@ -194,6 +201,8 @@ export function buildShellStyles(theme: AuraTheme) {
       transform: [{ rotate: "-11deg" }]
     },
     heroForeground: { position: "relative", zIndex: 1 },
+    // hero를 panel 카드 없이 배경 그라디언트 위에 그대로 얹는 spacing
+    heroBare: { paddingHorizontal: 4, paddingTop: 12, paddingBottom: 16, gap: 6 },
     eyebrow: { color: colors.textMuted, fontSize: 12, fontWeight: "700", letterSpacing: 1.4, marginBottom: 10, textTransform: "uppercase" },
     title: { color: colors.textPrimary, fontSize: 31, fontWeight: "800", lineHeight: 38 },
     subtitle: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: 12 },

@@ -2,7 +2,6 @@ import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
-import { HeroGradient } from "@features/app/components/hero-gradient";
 import { EmptyStateHero } from "@features/app/components/empty-state-hero";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
@@ -47,13 +46,11 @@ export function MailScreen({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
-        <HeroGradient>
-          <View style={styles.heroForeground}>
-            <Text style={styles.eyebrowOnGradient}>{copy.mail.eyebrow}</Text>
-            <Text style={styles.titleOnGradient}>{copy.mail.title}</Text>
-            <Text style={styles.subtitleOnGradient}>{copy.mail.subtitle}</Text>
-          </View>
-        </HeroGradient>
+        <View style={styles.heroBare}>
+          <Text style={styles.eyebrowOnGradient}>{copy.mail.eyebrow}</Text>
+          <Text style={styles.titleOnGradient}>{copy.mail.title}</Text>
+          <Text style={styles.subtitleOnGradient}>{copy.mail.subtitle}</Text>
+        </View>
 
         {!gmailConnected ? (
           <View style={styles.sectionCard}>
