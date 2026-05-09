@@ -32,6 +32,10 @@ _Ai assistant application for all users_
 ![Express](https://img.shields.io/badge/Express.js-000000?style=flat&logo=express&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
 
+## Auth
+
+[Auth.md](docs/Auth.md)
+
 ## Design
 
 | 분야       | 설명                                                                                      |
@@ -40,19 +44,9 @@ _Ai assistant application for all users_
 | 모션       | `auraMotion` Token. 최대한 user가 딱딱하게 느껴지지 않게                                  |
 | 5 Tab Icon | `react-native-svg` line icon                                                              |
 
-## Version
+## Versions
 
-### Alpha → Beta 전환 중
-
-2026/05/08 update
-
-## Changelog
-
-날짜별 패치 노트는 `docs/versions/` 폴더. 새 패치를 합칠 때마다 같은 형식으로 한 파일씩 추가.
-
-| 날짜       | 핵심                                                                    | 링크                                                   |
-| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
-| 25/04/10   | Alpha version                                                           | [docs/versions/Alpha.md](docs/versions/Alpha.md)       |
-| 2026-05-08 | Railway 정식 배포 + 화면 진입 모션 + 2차 디자인 패스 + Sign-in lock fix | [docs/versions/26.05.08.md](docs/versions/26.06.08.md) |
-
----
+| 날짜     | 핵심                                                                    | 링크                                                   |
+| -------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| 26/04/10 | Alpha version                                                           | [docs/versions/Alpha.md](docs/versions/Alpha.md)       |
+| 26/05/08 | Railway 정식 배포 + 화면 진입 모션 + 2차 디자인 패스 + Sign-in lock fix | [docs/versions/26.05.08.md](docs/versions/26.06.08.md) |

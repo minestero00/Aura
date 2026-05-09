@@ -55,18 +55,18 @@
     </clipPath>
   </defs>
   <rect x="0.5" y="0.5" width="359" height="55" rx="14" fill="#F1F0F7" stroke="#E2E3EC"/>
-  <image href="https://raw.githubusercontent.com/e-commerce-dumb/Aura/main/Image/DumbIcon/dumb_logo.svg" x="88" y="17" width="22" height="22" preserveAspectRatio="xMidYMid slice" clip-path="url(#dumbLogoClip)"/>
+  <image href="../Image/DumbIcon/dumb_logo.svg" x="88" y="17" width="22" height="22" preserveAspectRatio="xMidYMid slice" clip-path="url(#dumbLogoClip)"/>
   <text x="120" y="35" fill="#0F1226" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" letter-spacing="0.2">Dumb 계정으로 로그인</text>
 </svg>
 
 ### 색/그림자 토큰
 
-| 버튼 | background | text | border | shadow tone |
-|---|---|---|---|---|
-| Google | `#FFFFFF` (`surface`) | `#0F1226` (`textPrimary`) | `#E2E3EC` (`lineStrong`) | `#1A1F38` (잉크) |
-| Kakao | `#FEE500` (브랜드) | `#191600` (브랜드) | — | `#C7B400` (옐로 glow) |
-| 휴대전화 | `#6B5BFF` (`accent`) | `#FFFFFF` (`accentText`) | — | `#6B5BFF` (보라 glow) |
-| Dumb | `#F1F0F7` (`surfaceMuted`) | `#0F1226` (`textPrimary`) | `#E2E3EC` (`lineStrong`) | `#1A1F38` (잉크) |
+| 버튼     | background                 | text                      | border                   | shadow tone           |
+| -------- | -------------------------- | ------------------------- | ------------------------ | --------------------- |
+| Google   | `#FFFFFF` (`surface`)      | `#0F1226` (`textPrimary`) | `#E2E3EC` (`lineStrong`) | `#1A1F38` (잉크)      |
+| Kakao    | `#FEE500` (브랜드)         | `#191600` (브랜드)        | —                        | `#C7B400` (옐로 glow) |
+| 휴대전화 | `#6B5BFF` (`accent`)       | `#FFFFFF` (`accentText`)  | —                        | `#6B5BFF` (보라 glow) |
+| Dumb     | `#F1F0F7` (`surfaceMuted`) | `#0F1226` (`textPrimary`) | `#E2E3EC` (`lineStrong`) | `#1A1F38` (잉크)      |
 
 > shadow는 background 톤에 동기화. press 시 `scale(0.97)` + 그림자 약화 (opacity 0.32→0.18, radius 16→10) — `front/src/features/app/screens/sign-in-screen.tsx:480-509`.
 
