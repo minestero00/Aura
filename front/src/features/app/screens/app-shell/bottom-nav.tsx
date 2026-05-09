@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { PanResponder, Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createAppStyles, type AuraTheme } from "@features/app/styles";
 import type { AppTabKey } from "@features/app/types";
 import { TAB_ICONS } from "@features/app/screens/app-shell/tab-icons";
@@ -17,6 +18,7 @@ const PULL_UP_THRESHOLD = 30; // px — swipe-up이 이만큼 넘으면 trigger
 
 export function BottomNav({ theme, selectedTab, navItems, onSelectTab, onPullUp }: BottomNavProps) {
   const styles = createAppStyles(theme);
+  const insets = useSafeAreaInsets();
 
   // Handle 영역 위에서 위로 끌면 onPullUp 트리거. 작은 제스처라 pan responder
   // 자체는 BottomNav 다른 영역의 tap을 방해하지 않도록 Handle 영역에만 attach.
@@ -33,8 +35,11 @@ export function BottomNav({ theme, selectedTab, navItems, onSelectTab, onPullUp 
     })
   ).current;
 
+  // Android navigation bar(◯ < |||) + iOS home indicator를 피해 paddingBottom
+  // 동적 보정. iOS는 inset.bottom이 home indicator 높이(보통 34), Android는
+  // gesture/3-button nav bar 높이.
   return (
-    <View style={styles.bottomNav}>
+    <View style={[styles.bottomNav, { paddingBottom: 22 + insets.bottom }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Open quick menu"
