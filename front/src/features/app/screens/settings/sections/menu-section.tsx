@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SettingsOkBadge } from "@features/app/screens/settings/shared";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
+import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 
 export function MenuSection(props: SettingsSectionProps) {
   const {
@@ -37,7 +38,7 @@ export function MenuSection(props: SettingsSectionProps) {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
-          <Text style={styles.eyebrowOnGradient}>{copy.settings.eyebrow}</Text>
+          <ScreenEyebrow label={copy.settings.eyebrow} />
           <Text style={styles.titleOnGradient}>{copy.settings.title}</Text>
           <Text style={styles.subtitleOnGradient}>{copy.settings.subtitle}</Text>
         </View>

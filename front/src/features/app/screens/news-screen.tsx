@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { formatNewsTime } from "@features/news/format";
+import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 
 interface NewsScreenProps {
@@ -35,7 +36,7 @@ export function NewsScreen({
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
-          <Text style={styles.eyebrowOnGradient}>{copy.news.eyebrow}</Text>
+          <ScreenEyebrow label={copy.news.eyebrow} />
           <Text style={styles.titleOnGradient}>{copy.news.title}</Text>
           <Text style={styles.subtitleOnGradient}>{copy.news.subtitle}</Text>
         </View>

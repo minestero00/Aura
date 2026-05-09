@@ -170,12 +170,31 @@ export function buildShellStyles(theme: AuraTheme) {
     title: { color: colors.textPrimary, fontSize: 31, fontWeight: "800", lineHeight: 38 },
     subtitle: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: 12 },
     // Hero 그라데이션 위 텍스트(흰색 톤) — design.md §3.3
+    eyebrowRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 10
+    },
+    eyebrowIcon: {
+      width: 16,
+      height: 16,
+      borderRadius: 4
+    },
     eyebrowOnGradient: {
       color: "rgba(255,255,255,0.78)",
       fontSize: 12,
       fontWeight: "700",
       letterSpacing: 1.6,
       marginBottom: 10,
+      textTransform: "uppercase"
+    },
+    // eyebrowRow 안에서 사용 — marginBottom 0(row가 marginBottom 보유)
+    eyebrowOnGradientInline: {
+      color: "rgba(255,255,255,0.78)",
+      fontSize: 12,
+      fontWeight: "700",
+      letterSpacing: 1.6,
       textTransform: "uppercase"
     },
     titleOnGradient: {

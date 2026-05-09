@@ -6,6 +6,7 @@ import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { mergeAgendaDays } from "@features/calendar/merge";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import { AgendaDayCard } from "@features/app/screens/todo/agenda-day-card";
+import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import { TravelModeSelector } from "@features/app/screens/todo/travel-mode-selector";
 import type { TodayWeatherAdvice } from "@features/weather/types";
 
@@ -74,7 +75,7 @@ export function TodoScreen({
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
-          <Text style={styles.eyebrowOnGradient}>{copy.todo.eyebrow}</Text>
+          <ScreenEyebrow label={copy.todo.eyebrow} />
           <Text style={styles.titleOnGradient}>{copy.todo.title}</Text>
           <Text style={styles.subtitleOnGradient}>{copy.todo.subtitle}</Text>
         </View>
