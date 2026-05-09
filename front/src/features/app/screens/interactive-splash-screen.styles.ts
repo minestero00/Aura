@@ -30,6 +30,10 @@ export const styles = StyleSheet.create({
     fontSize: 44,
     fontWeight: "900",
     letterSpacing: 8,
+    // letterSpacing은 마지막 글자 뒤에도 trailing spacing을 width에 포함시켜서
+    // 텍스트가 시각적으로 왼쪽으로 밀린다. textAlign + paddingLeft로 광학 보정.
+    textAlign: "center",
+    paddingLeft: 8,
     textShadowColor: "rgba(15, 18, 38, 0.18)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6
