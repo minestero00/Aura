@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 56" width="360" height="56" role="img" aria-label="카카오로 시작">
+  <rect x="0" y="0" width="360" height="56" rx="14" fill="#FEE500"/>
+  <g transform="translate(112 17) scale(0.9167)">
+    <path d="M12 3C6.48 3 2 6.48 2 10.8c0 2.91 1.96 5.45 4.84 6.84L5.5 21l4.36-2.86c.7.1 1.41.16 2.14.16 5.52 0 10-3.48 10-7.8S17.52 3 12 3z" fill="#191600"/>
+  </g>
+  <text x="144" y="35" fill="#191600" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" letter-spacing="0.2">카카오로 시작</text>
+</svg>
