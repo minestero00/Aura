@@ -1,12 +1,18 @@
-import React from "react";
-import { View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import {
+  ScrollView,
+  View,
+  useWindowDimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent
+} from "react-native";
 import { MailScreen } from "@features/app/screens/mail-screen";
 import { NewsScreen } from "@features/app/screens/news-screen";
 import { SettingsScreen } from "@features/app/screens/settings-screen";
 import { TodoScreen } from "@features/app/screens/todo-screen";
 import { AskScreen } from "@features/app/screens/ask-screen";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
-import type { UseAuraAppResult } from "@features/app/types";
+import type { AppTabKey, UseAuraAppResult } from "@features/app/types";
 import { BottomNav } from "@features/app/screens/app-shell/bottom-nav";
 import { DailyBriefModal } from "@features/app/screens/app-shell/daily-brief-modal";
 import { ScreenAtmosphere } from "@features/app/components/screen-atmosphere";
@@ -16,11 +22,33 @@ interface AppShellProps {
   app: UseAuraAppResult;
 }
 
+const TAB_ORDER: AppTabKey[] = ["mail", "todo", "news", "ask", "settings"];
+
 export function AppShell({ app }: AppShellProps) {
   const gmail = app.authState!.me.integrations;
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
-  const navItems: Array<{ key: "mail" | "todo" | "news" | "ask" | "settings"; label: string }> = [
+  const { width: screenWidth } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const tabIndex = Math.max(0, TAB_ORDER.indexOf(app.selectedTab));
+
+  // BottomNav 탭 누르면 selectedTab → useEffect에서 ScrollView 동기화.
+  // 스와이프로 탭 바뀌면 onMomentumScrollEnd → handleSelectTab 호출 (handleSelectTab
+  // 안에서 selectedTab 다시 set하지만 useEffect는 같은 인덱스라 no-op).
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ x: tabIndex * screenWidth, animated: true });
+  }, [tabIndex, screenWidth]);
+
+  function handleScrollEnd(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (screenWidth <= 0) return;
+    const newIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+    const newTab = TAB_ORDER[newIndex];
+    if (newTab && newTab !== app.selectedTab) {
+      app.handleSelectTab(newTab);
+    }
+  }
+
+  const navItems: Array<{ key: AppTabKey; label: string }> = [
     { key: "mail", label: app.copy.tabs.mail },
     { key: "todo", label: app.copy.tabs.todo },
     { key: "news", label: app.copy.tabs.news },
@@ -39,8 +67,17 @@ export function AppShell({ app }: AppShellProps) {
         onDismiss={app.handleDismissActionableError}
       />
 
-      <View style={styles.appShellContent}>
-        {app.selectedTab === "mail" ? (
+      <ScrollView
+        ref={scrollRef}
+        style={styles.appShellContent}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScrollEnd}
+        keyboardShouldPersistTaps="handled"
+        contentOffset={{ x: tabIndex * screenWidth, y: 0 }}
+      >
+        <View style={{ width: screenWidth }}>
           <MailScreen
             copy={app.copy}
             dailyEmailDigest={app.dailyEmailDigest}
@@ -57,21 +94,9 @@ export function AppShell({ app }: AppShellProps) {
             onReplyToMessage={app.handleReplyToMessage}
             replyingMessageId={app.replyingMessageId}
           />
-        ) : null}
+        </View>
 
-        {app.selectedTab === "news" ? (
-          <NewsScreen
-            copy={app.copy}
-            enabledCategories={app.enabledNewsCategories}
-            isNewsLoading={app.isNewsLoading}
-            labelCategory={app.labelNewsCategory}
-            newsArticles={app.newsArticles}
-            newsBriefing={app.newsBriefing}
-            onLoadDailyNewsBrief={app.handleLoadDailyNewsBrief}
-          />
-        ) : null}
-
-        {app.selectedTab === "todo" ? (
+        <View style={{ width: screenWidth }}>
           <TodoScreen
             calendarAgendaDays={app.calendarAgendaDays}
             calendarTravelHints={app.calendarTravelHints}
@@ -92,9 +117,35 @@ export function AppShell({ app }: AppShellProps) {
             onLoadDeviceCalendarAgenda={app.handleLoadDeviceCalendarAgenda}
             onLoadCalendarAgenda={app.handleLoadCalendarAgenda}
           />
-        ) : null}
+        </View>
 
-        {app.selectedTab === "settings" ? (
+        <View style={{ width: screenWidth }}>
+          <NewsScreen
+            copy={app.copy}
+            enabledCategories={app.enabledNewsCategories}
+            isNewsLoading={app.isNewsLoading}
+            labelCategory={app.labelNewsCategory}
+            newsArticles={app.newsArticles}
+            newsBriefing={app.newsBriefing}
+            onLoadDailyNewsBrief={app.handleLoadDailyNewsBrief}
+          />
+        </View>
+
+        <View style={{ width: screenWidth }}>
+          <AskScreen
+            chatInputDraft={app.chatInputDraft}
+            chatMessages={app.chatMessages}
+            copy={app.copy}
+            currentUserName={app.authState?.me.user.name ?? null}
+            dailyEmailMessages={app.dailyEmailMessages}
+            errorMessage={app.errorMessage}
+            isChatLoading={app.isChatLoading}
+            onChatInputChange={app.handleChatInputDraftChange}
+            onSendChatMessage={app.handleSendChatMessage}
+          />
+        </View>
+
+        <View style={{ width: screenWidth }}>
           <SettingsScreen
             areDailyBriefNotificationsEnabled={app.areDailyBriefNotificationsEnabled}
             copy={app.copy}
@@ -139,22 +190,8 @@ export function AppShell({ app }: AppShellProps) {
             onSelectSettingsSection={app.handleSelectSettingsSection}
             onToggleNewsCategory={app.handleToggleNewsCategory}
           />
-        ) : null}
-
-        {app.selectedTab === "ask" ? (
-          <AskScreen
-            chatInputDraft={app.chatInputDraft}
-            chatMessages={app.chatMessages}
-            copy={app.copy}
-            currentUserName={app.authState?.me.user.name ?? null}
-            dailyEmailMessages={app.dailyEmailMessages}
-            errorMessage={app.errorMessage}
-            isChatLoading={app.isChatLoading}
-            onChatInputChange={app.handleChatInputDraftChange}
-            onSendChatMessage={app.handleSendChatMessage}
-          />
-        ) : null}
-      </View>
+        </View>
+      </ScrollView>
 
       <BottomNav
         navItems={navItems}
