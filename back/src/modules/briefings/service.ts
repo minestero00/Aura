@@ -6,6 +6,7 @@ import { summarizeGmailMessages } from "../integrations/gmail/summarizer.js";
 import { fetchTopNewsArticles } from "../news/provider.js";
 import { summarizeNewsArticles } from "../news/summarizer.js";
 import type { NewsArticle } from "../news/types.js";
+import { usageService } from "../usage/service.js";
 import { briefingsRepository } from "./repository.js";
 import type { DailyBriefResponse, DailyBriefSnapshot } from "./types.js";
 
@@ -198,7 +199,9 @@ export const briefingsService = {
       }
     }
 
+    // forceRefresh: 사용자가 명시적으로 refresh 누름 → consume(quota +1) 후 generate.
     if (forceRefresh) {
+      await usageService.consumeOrThrow({ userId, feature: "daily_overview", manualRefresh: true });
       const snapshot = await generateSnapshot(userId, language);
       return {
         snapshot,
@@ -207,11 +210,21 @@ export const briefingsService = {
       };
     }
 
+    // cache hit(오늘자 snapshot 존재): consume X — 사용자 reload만으로 quota
+    // counter가 늘지 않게. 30분 이상 지나면 백그라운드 refresh를 trigger하되
+    // 그 백그라운드 호출이 quota를 먹는다(따로 consume).
     if (existing && isSnapshotForToday(existing, user.timezone)) {
       const ageMs = Date.now() - new Date(existing.generatedAt).getTime();
 
       if (ageMs >= REFRESH_WINDOW_MS) {
-        void generateSnapshot(userId, language).catch(() => undefined);
+        void (async () => {
+          try {
+            await usageService.consumeOrThrow({ userId, feature: "daily_overview" });
+            await generateSnapshot(userId, language);
+          } catch {
+            // quota 초과 등은 무시 — 사용자에겐 기존 snapshot 그대로.
+          }
+        })();
       }
 
       return {
@@ -221,8 +234,17 @@ export const briefingsService = {
       };
     }
 
+    // stale snapshot(어제자 등): 사용자에게 일단 stale 응답하고 백그라운드로
+    // 새 snapshot 생성 — 백그라운드 호출에서만 consume.
     if (existing) {
-      void generateSnapshot(userId, language).catch(() => undefined);
+      void (async () => {
+        try {
+          await usageService.consumeOrThrow({ userId, feature: "daily_overview" });
+          await generateSnapshot(userId, language);
+        } catch {
+          // 무시 — 사용자에게 stale 응답.
+        }
+      })();
       return {
         snapshot: existing,
         stale: true,
@@ -230,6 +252,8 @@ export const briefingsService = {
       };
     }
 
+    // cache miss(첫 호출): 동기적으로 consume + generate.
+    await usageService.consumeOrThrow({ userId, feature: "daily_overview" });
     const snapshot = await generateSnapshot(userId, language);
     return {
       snapshot,

@@ -62,15 +62,16 @@ gmailRouter.post(
   })
 );
 
+/**
+ * daily-summary는 service 안 24h Redis cache가 hit이면 LLM 호출 안 함. 그래서
+ * consumeOrThrow도 service의 cache-miss 분기에서 호출 — cache hit엔 quota
+ * counter를 증가시키지 않음(reload stack 방지).
+ */
 gmailRouter.get(
   "/gmail/daily-summary",
   requireAuth,
   asyncHandler(async (req, res) => {
     const input = listGmailMessagesSchema.parse(req.query);
-    await usageService.consumeOrThrow({
-      userId: req.authUser!.id,
-      feature: "email_summary"
-    });
     res.json(
       await gmailService.summarizeDailyMessages(req.authUser!.id, {
         ignoredSenderKeys: input.ignoredSenderKeys,

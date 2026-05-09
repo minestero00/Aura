@@ -2,6 +2,7 @@ import { AppError } from "../../../lib/errors/app-error.js";
 import { briefingsService } from "../../briefings/service.js";
 import { authStore } from "../../auth/store.js";
 import { requireUser } from "../../auth/guards.js";
+import { usageService } from "../../usage/service.js";
 import { getRedisClient } from "../../../lib/cache/redis.js";
 import { filterIgnoredMessages } from "./filtering.js";
 import {
@@ -193,6 +194,9 @@ export const gmailService = {
         }
       }
     }
+
+    // cache miss — 여기서 quota를 소비. cache hit인 reload는 counter 안 올라감.
+    await usageService.consumeOrThrow({ userId, feature: "email_summary" });
 
     const messages = filterIgnoredMessages(
       await fetchDailyGmailMessages(userId, 20),
