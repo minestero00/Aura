@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
 import { EmptyStateHero } from "@features/app/components/empty-state-hero";
+import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
@@ -47,7 +48,7 @@ export function MailScreen({
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
-          <Text style={styles.eyebrowOnGradient}>{copy.mail.eyebrow}</Text>
+          <ScreenEyebrow label={copy.mail.eyebrow} />
           <Text style={styles.titleOnGradient}>{copy.mail.title}</Text>
           <Text style={styles.subtitleOnGradient}>{copy.mail.subtitle}</Text>
         </View>

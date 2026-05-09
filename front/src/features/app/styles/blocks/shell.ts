@@ -177,9 +177,8 @@ export function buildShellStyles(theme: AuraTheme) {
       marginBottom: 10
     },
     eyebrowIcon: {
-      width: 16,
-      height: 16,
-      borderRadius: 4
+      width: 18,
+      height: 18
     },
     eyebrowOnGradient: {
       color: "rgba(255,255,255,0.78)",

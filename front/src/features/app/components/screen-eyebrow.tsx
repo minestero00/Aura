@@ -18,7 +18,11 @@ export function ScreenEyebrow({ label }: ScreenEyebrowProps) {
   const styles = createAppStyles(theme);
   return (
     <View style={styles.eyebrowRow}>
-      <Image source={AURA_ICON} style={styles.eyebrowIcon} resizeMode="contain" />
+      <Image
+        source={AURA_ICON}
+        style={[styles.eyebrowIcon, { tintColor: "#FFFFFF" }]}
+        resizeMode="contain"
+      />
       <Text style={styles.eyebrowOnGradientInline}>{label}</Text>
     </View>
   );

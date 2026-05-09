@@ -31,7 +31,7 @@ export const KO_COPY: AppCopy = {
     title: '메뉴',
     askAction: 'AURA 채팅',
     askSubtitle: '메일·뉴스 브리핑을 그라운드 삼아 바로 물어보기',
-    transitAction: '버스 도착 알림',
+    transitAction: '정류장 도착 알림',
     transitSubtitle: '탑승 시작 → 1정거장 전 알림 → 내릴 시점을 놓치지 마세요',
     handleHint: '위로 끌어 올리기',
     coachmark: '여길 누르면 세부 메뉴들을 볼 수 있어요!',
