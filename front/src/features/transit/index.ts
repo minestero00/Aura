@@ -1,5 +1,6 @@
 export { StartTripScreen } from "./screens/StartTrip";
 export { ActiveTripBanner } from "./screens/ActiveTripBanner";
+export { ClientActiveTripBanner } from "./screens/ClientActiveTripBanner";
 export { SearchTripScreen } from "./screens/SearchTrip";
 export { PushOnboardingModal } from "./components/PushOnboardingModal";
 export { useTripTracker } from "./hooks/use-trip-tracker";
