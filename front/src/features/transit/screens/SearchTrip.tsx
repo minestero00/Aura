@@ -124,7 +124,7 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
             onPress={() => onSelectOption(option, destination.trim())}
           >
             <OptionHeader option={option} styles={styles} language={language} />
-            <OptionTimeline option={option} styles={styles} language={language} />
+            <OptionTimeline option={option} styles={styles} />
           </Pressable>
         ))}
 
@@ -194,14 +194,19 @@ function OptionHeader({
   );
 }
 
+function lineBadgeFontSize(label: string) {
+  if (label.length <= 2) return 12;
+  if (label.length === 3) return 10;
+  if (label.length === 4) return 9;
+  return 7;
+}
+
 function OptionTimeline({
   option,
-  styles,
-  language
+  styles
 }: {
   option: DirectionsOption;
   styles: ReturnType<typeof buildSearchTripStyles>;
-  language: "ko" | "en";
 }) {
   const transitLegs = option.legs.filter((l): l is TransitLeg => l.mode === "transit");
   // transit이 하나도 없는 경우 (도보만) — 거리 정도만 표시.
@@ -214,9 +219,7 @@ function OptionTimeline({
           <View style={styles.walkingDot} />
         </View>
         <View style={styles.timelineBody}>
-          <Text style={styles.walkingLabel}>
-            {language === "ko" ? `도보 ${min}분` : `Walk ${min} min`}
-          </Text>
+          <Text style={styles.walkingLabel}>{`도보 ${min}분`}</Text>
         </View>
       </View>
     );
@@ -225,14 +228,23 @@ function OptionTimeline({
   return (
     <View style={styles.timeline}>
       {transitLegs.map((leg, idx) => {
-        const isLast = idx === transitLegs.length - 1;
+        const label = lineBadgeLabel(leg);
         return (
           <View key={`t-${idx}`} style={styles.timelineRow}>
             <View style={styles.timelineRail}>
               <View
                 style={[styles.lineBadge, { backgroundColor: lineColor(leg) }]}
               >
-                <Text style={styles.lineBadgeText}>{lineBadgeLabel(leg)}</Text>
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  style={[
+                    styles.lineBadgeText,
+                    { fontSize: lineBadgeFontSize(label) }
+                  ]}
+                >
+                  {label}
+                </Text>
               </View>
               <View style={styles.timelineConnector} />
             </View>
@@ -242,14 +254,10 @@ function OptionTimeline({
                 <Text style={styles.stopLineSuffix}>{` (${lineFullLabel(leg)})`}</Text>
               </Text>
               {leg.headsign ? (
-                <Text style={styles.stopHeadsign}>
-                  {language === "ko" ? `${leg.headsign} 방면` : `Toward ${leg.headsign}`}
-                </Text>
+                <Text style={styles.stopHeadsign}>{`${leg.headsign} 방면`}</Text>
               ) : null}
               <Text style={styles.stopHeadsign}>
-                {language === "ko"
-                  ? `${leg.numStops}정거장 · ${Math.max(1, Math.round(leg.durationSec / 60))}분`
-                  : `${leg.numStops} stops · ${Math.max(1, Math.round(leg.durationSec / 60))} min`}
+                {`${leg.numStops}정거장 · ${Math.max(1, Math.round(leg.durationSec / 60))}분`}
               </Text>
             </View>
           </View>
@@ -315,9 +323,10 @@ function lineColor(leg: TransitLeg): string {
 function lineBadgeLabel(leg: TransitLeg): string {
   const short = (leg.lineShort ?? "").trim();
   if (short) {
+    // 버스 번호 등 4자리 이상도 그대로 — 표시는 동적 fontSize로 축소.
     const numeric = short.match(/(\d+)/);
     if (numeric) return numeric[1];
-    return short.slice(0, 2);
+    return short.slice(0, 4);
   }
   const name = (leg.lineName ?? "").trim();
   const numeric2 = name.match(/(\d+)\s*호선/);
@@ -326,8 +335,8 @@ function lineBadgeLabel(leg: TransitLeg): string {
   if (/분당/.test(name)) return "분당";
   if (/공항/.test(name)) return "공항";
   if (/경의중앙/.test(name)) return "중앙";
-  if (leg.transitKind === "BUS") return name.slice(0, 2) || "버스";
-  return name.slice(0, 2) || "—";
+  if (leg.transitKind === "BUS") return name.slice(0, 4) || "버스";
+  return name.slice(0, 4) || "—";
 }
 
 function lineFullLabel(leg: TransitLeg): string {

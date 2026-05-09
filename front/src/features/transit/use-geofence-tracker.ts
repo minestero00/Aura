@@ -102,6 +102,14 @@ export function useGeofenceTracker({
       if (cancelled) return;
       if (loc.kind !== "ok") return;
       const distance = haversineMeters(loc.lat, loc.lng, target.lat, target.lng);
+      if (__DEV__) {
+        // dev log — 시뮬레이터 좌표 넣고 거리 변화 확인용. prod 빌드에서는 조건 false.
+        // eslint-disable-next-line no-console
+        console.log(
+          `[geofence] target=${target.name}(${target.lat.toFixed(5)},${target.lng.toFixed(5)}) ` +
+            `here=(${loc.lat.toFixed(5)},${loc.lng.toFixed(5)}) distance=${Math.round(distance)}m`
+        );
+      }
       setStatus(prev => ({ ...prev, distanceMeters: Math.round(distance) }));
 
       if (distance <= ARRIVAL_RADIUS_METERS) {
