@@ -3,13 +3,13 @@ import {
   Animated,
   ImageBackground,
   Pressable,
-  StyleSheet,
   Text,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auraMotion, useAuraTheme } from "@features/app/styles";
 import type { AppLanguage } from "@features/app/i18n";
+import { styles } from "./interactive-splash-screen.styles";
 
 interface InteractiveSplashScreenProps {
   language: AppLanguage;
@@ -104,36 +104,3 @@ export function InteractiveSplashScreen({ language, onContinue }: InteractiveSpl
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1
-  },
-  image: {
-    flex: 1
-  },
-  safeArea: {
-    flex: 1
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end"
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingBottom: 56,
-    alignItems: "center",
-    gap: 10
-  },
-  tagline: {
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    opacity: 0.85
-  },
-  hint: {
-    fontSize: 15,
-    fontWeight: "500",
-    letterSpacing: 0.3
-  }
-});

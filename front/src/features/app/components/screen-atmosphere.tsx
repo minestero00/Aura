@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
+import { styles } from "./screen-atmosphere.styles";
 
 /**
  * 화면 배경 분위기. 콘텐츠 위에 얹히지 않으며(zIndex 0, pointerEvents none)
@@ -39,21 +40,3 @@ export function ScreenAtmosphere() {
   );
 }
 
-const styles = StyleSheet.create({
-  topGlow: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 420,
-    zIndex: 0
-  },
-  bottomTint: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 320,
-    zIndex: 0
-  }
-});

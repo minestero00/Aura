@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Image, Text, View } from "react-native";
 import { useAuraTheme } from "@features/app/styles";
+import { styles } from "./empty-state-hero.styles";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
 
@@ -70,25 +71,3 @@ export function EmptyStateHero({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 28,
-    paddingHorizontal: 24,
-    gap: 12
-  },
-  icon: { width: 76, height: 76 },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-    lineHeight: 22
-  },
-  body: {
-    fontSize: 13,
-    lineHeight: 19,
-    textAlign: "center",
-    maxWidth: 280
-  }
-});

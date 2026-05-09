@@ -18,6 +18,7 @@ import { SvgXml } from "react-native-svg";
 import LinearGradient from "react-native-linear-gradient";
 import { auraMotion, createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
+import { signInRoot } from "./sign-in-screen.styles";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
 const DUMB_LOGO = require("@features/app/assets/dumb-logo.jpg");
@@ -233,18 +234,6 @@ export function SignInScreen({
     </View>
   );
 }
-
-const signInRoot = StyleSheet.create({
-  root: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: "transparent" },
-  scrollContent: { backgroundColor: "transparent" },
-  hero: {
-    paddingHorizontal: 6,
-    paddingTop: 8,
-    paddingBottom: 12,
-    gap: 10
-  }
-});
 
 // ── Menu ─────────────────────────────────────────────────────────────────────
 function SignInMenu({

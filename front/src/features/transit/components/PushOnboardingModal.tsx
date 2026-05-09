@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getDailyBriefNotificationStatus,
   scheduleDailyBriefingNotification
 } from "@features/app/notifications";
 import type { AppLanguage } from "@features/app/i18n";
-import { useAuraTheme, type AuraTheme } from "@features/app/styles";
+import { useAuraTheme } from "@features/app/styles";
+import { buildPushOnboardingModalStyles } from "./PushOnboardingModal.styles";
 
 const STORAGE_KEY = "aura.push.onboarding.shown";
 
@@ -14,47 +15,9 @@ interface PushOnboardingModalProps {
   language: AppLanguage;
 }
 
-function buildStyles(theme: AuraTheme) {
-  const { colors } = theme;
-  return StyleSheet.create({
-    backdrop: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: "center",
-      padding: 20
-    },
-    card: {
-      borderRadius: 28,
-      backgroundColor: colors.surface,
-      padding: 24,
-      gap: 14
-    },
-    title: { color: colors.textPrimary, fontSize: 20, fontWeight: "800" },
-    body: { color: colors.textSecondary, fontSize: 15, lineHeight: 22 },
-    primary: {
-      minHeight: 48,
-      borderRadius: 14,
-      backgroundColor: colors.accent,
-      alignItems: "center",
-      justifyContent: "center"
-    },
-    primaryText: { color: colors.accentText, fontSize: 15, fontWeight: "800" },
-    secondary: {
-      minHeight: 44,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: colors.lineStrong,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.surfaceMuted
-    },
-    secondaryText: { color: colors.textSecondary, fontSize: 14, fontWeight: "700" }
-  });
-}
-
 export function PushOnboardingModal({ language }: PushOnboardingModalProps) {
   const theme = useAuraTheme();
-  const styles = useMemo(() => buildStyles(theme), [theme]);
+  const styles = useMemo(() => buildPushOnboardingModalStyles(theme), [theme]);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
