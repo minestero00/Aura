@@ -164,6 +164,10 @@ export function useGeofenceTracker({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
+  // backgroundActive를 ref로도 보관 — AppState listener가 stale closure 없이 체크.
+  const backgroundActiveRef = useRef(status.backgroundActive);
+  backgroundActiveRef.current = status.backgroundActive;
+
   // 알림 권한 요청 — trip 시작 시 한 번.
   useEffect(() => {
     if (!trip) return;
@@ -196,8 +200,22 @@ export function useGeofenceTracker({
     }
 
     void startBackgroundMonitoring(regions)
-      .then(() => setStatus(prev => ({ ...prev, backgroundActive: true })))
+      .then(added => setStatus(prev => ({ ...prev, backgroundActive: added > 0 })))
       .catch(() => setStatus(prev => ({ ...prev, backgroundActive: false })));
+
+    // 사용자가 Settings에서 권한을 "Always"로 바꾸고 앱으로 돌아오는 시점을
+    // 잡아 자동으로 startMonitoring 재시도. 이미 active이면 skip.
+    const appStateSub = AppState.addEventListener("change", state => {
+      if (state !== "active") return;
+      if (backgroundActiveRef.current) return;
+      void startBackgroundMonitoring(regions)
+        .then(added => {
+          if (added > 0) {
+            setStatus(prev => ({ ...prev, backgroundActive: true }));
+          }
+        })
+        .catch(() => undefined);
+    });
 
     const unsubscribe = subscribeBackgroundEnter(async event => {
       if (event.id === "dest") {
@@ -221,6 +239,7 @@ export function useGeofenceTracker({
 
     return () => {
       unsubscribe();
+      appStateSub.remove();
     };
   }, [trip?.id]);
 
