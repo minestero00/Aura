@@ -114,23 +114,23 @@ export function buildContentStyles(theme: AuraTheme) {
       backgroundColor: "transparent",
       paddingHorizontal: 12
     },
-    // sub-card — 흰 카드 안에 들어가므로 살짝 차분한 ivory 톤(neutral) +
-    // 더 진한 border. 보라 끝 surfaceMuted는 카드와 톤 충돌이라 변경.
+    // sub-card — 흰 카드 안에 들어가지만 배경은 그냥 흰색(elevated)으로 두고
+    // 테두리만 살짝 진하게. 채워진 색 대신 outline으로 구분 — 더 깔끔.
     digestCard: {
       marginTop: 18,
       padding: 16,
       borderRadius: 16,
-      backgroundColor: theme.isDark ? "#15173A" : "#F7F7F9",
+      backgroundColor: colors.elevated,
       borderWidth: 1,
-      borderColor: theme.isDark ? "#2D3045" : "#ECECF1"
+      borderColor: colors.lineStrong
     },
     compactDigestCard: {
       marginTop: 14,
       padding: 16,
       borderRadius: 16,
-      backgroundColor: theme.isDark ? "#15173A" : "#F7F7F9",
+      backgroundColor: colors.elevated,
       borderWidth: 1,
-      borderColor: theme.isDark ? "#2D3045" : "#ECECF1",
+      borderColor: colors.lineStrong,
       gap: 10
     },
     digestLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
@@ -144,8 +144,8 @@ export function buildContentStyles(theme: AuraTheme) {
       padding: 14,
       borderRadius: 14,
       borderWidth: 1,
-      borderColor: theme.isDark ? "#2D3045" : "#ECECF1",
-      backgroundColor: theme.isDark ? "#15173A" : "#F7F7F9"
+      borderColor: colors.lineStrong,
+      backgroundColor: colors.elevated
     },
     messageHeaderRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
     messageHeaderMain: { flex: 1 },
