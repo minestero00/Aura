@@ -15,7 +15,21 @@ authRouter.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     const userId = req.authUser!.id;
+    const ensureStart = Date.now();
     const context = await authStore.ensureUserContext(userId);
+    const ensureMs = Date.now() - ensureStart;
+    if (ensureMs > 500) {
+      console.log(
+        JSON.stringify({
+          level: "warn",
+          service: "aura-back",
+          module: "auth-me",
+          message: "slow ensureUserContext",
+          userId,
+          ms: ensureMs
+        })
+      );
+    }
     if (!context) {
       res.status(404).json({
         error: { code: "USER_NOT_FOUND", message: "User context could not be loaded." }

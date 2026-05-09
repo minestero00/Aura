@@ -17,12 +17,31 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
   }
 
   try {
+    const t0 = Date.now();
     const claims = await verifySupabaseJwt(token);
+    const t1 = Date.now();
     const user = await authStore.ensureAuthenticatedUser({
       id: claims.sub,
       email: claims.email ?? null,
       phone: claims.phone ?? null
     });
+    const t2 = Date.now();
+
+    if (t2 - t0 > 500) {
+      console.log(
+        JSON.stringify({
+          level: "warn",
+          service: "aura-back",
+          module: "require-auth",
+          message: "slow auth",
+          userId: claims.sub,
+          jwt_ms: t1 - t0,
+          user_ms: t2 - t1,
+          total_ms: t2 - t0,
+          path: req.path
+        })
+      );
+    }
 
     req.authAccessToken = token;
     req.authSessionId = claims.sub;

@@ -26,6 +26,11 @@ async function bootstrap() {
 
   const app = createApp();
   const server = createServer(app);
+  // Force-close any request that doesn't finish within 12s so a hung
+  // downstream (DB, external API) cannot leak sockets after the client
+  // already gave up. headersTimeout must be > requestTimeout per Node docs.
+  server.requestTimeout = 12_000;
+  server.headersTimeout = 13_000;
 
   async function shutdown(signal: string) {
     console.log(

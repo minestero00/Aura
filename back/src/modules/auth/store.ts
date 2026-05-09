@@ -172,9 +172,23 @@ function rowToGmailConnection(row: UserCompositeRow): GmailConnectionRecord | nu
 async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
   const db = getPool();
   if (!db) return null;
+  const userQueryStart = Date.now();
   const result = await db.query<UserCompositeRow>(`${USER_SELECT_SQL} WHERE u.id = $1 LIMIT 1`, [
     userId
   ]);
+  const userQueryMs = Date.now() - userQueryStart;
+  if (userQueryMs > 1_000) {
+    console.log(
+      JSON.stringify({
+        level: "warn",
+        service: "aura-back",
+        module: "auth-store",
+        message: "slow user select",
+        userId,
+        ms: userQueryMs
+      })
+    );
+  }
   const row = result.rows[0];
   if (!row) return null;
 
@@ -183,6 +197,7 @@ async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
   const conn = rowToGmailConnection(row);
   if (conn) gmailConnectionsByUserId.set(user.id, conn);
 
+  const prefsQueryStart = Date.now();
   const prefsResult = await db.query<{
     user_id: string;
     news_categories: string;
@@ -195,6 +210,19 @@ async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
     "SELECT user_id, news_categories, summary_length, push_enabled, morning_brief_time::text, evening_brief_time::text, updated_at FROM aura.user_preferences WHERE user_id = $1",
     [userId]
   );
+  const prefsQueryMs = Date.now() - prefsQueryStart;
+  if (prefsQueryMs > 1_000) {
+    console.log(
+      JSON.stringify({
+        level: "warn",
+        service: "aura-back",
+        module: "auth-store",
+        message: "slow prefs select",
+        userId,
+        ms: prefsQueryMs
+      })
+    );
+  }
   const prefRow = prefsResult.rows[0];
   if (prefRow) {
     preferencesByUserId.set(user.id, {
@@ -235,6 +263,15 @@ export const authStore = {
       user = await loadUserFromDb(input.id);
     }
     if (!user) {
+      console.log(
+        JSON.stringify({
+          level: "info",
+          service: "aura-back",
+          module: "auth-store",
+          message: "first user provision",
+          userId: input.id
+        })
+      );
       // Trigger should have created the row, but if Supabase webhook lag occurs,
       // create profile defensively.
       const db = getPool();
