@@ -7,6 +7,13 @@ export const EN_COPY: AppCopy = {
     loadingSession: 'Starting AURA...',
     ok: 'OK',
   },
+  actionable: {
+    gmailReconnectTitle: 'Refresh Gmail connection',
+    gmailReconnectBody:
+      'Reconnect Gmail and your email brief is ready to roll right away.',
+    primaryAction: 'Reconnect now',
+    dismiss: 'Later',
+  },
   tabs: {
     mail: 'Mail',
     todo: 'Todo',

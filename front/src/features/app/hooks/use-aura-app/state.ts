@@ -2,7 +2,12 @@ import { useRef, useState } from "react";
 import type { UsageResponse } from "@features/usage/types";
 import type { AppLanguage } from "@features/app/i18n";
 import { detectSystemLanguage } from "@features/app/storage";
-import type { AppTabKey, AuthSessionState, SettingsSectionKey } from "@features/app/types";
+import type {
+  ActionableError,
+  AppTabKey,
+  AuthSessionState,
+  SettingsSectionKey
+} from "@features/app/types";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import type { ChatMessage } from "@features/chat/types";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
@@ -23,6 +28,7 @@ export function useAuraAppState() {
   const [isNewsLoading, setIsNewsLoading] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionableError, setActionableError] = useState<ActionableError | null>(null);
   const [settingsNoticeMessage, setSettingsNoticeMessage] = useState<string | null>(null);
   const [gmailDebugState, setGmailDebugState] = useState("idle");
   const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
@@ -98,6 +104,8 @@ export function useAuraAppState() {
     setIsBootstrapping,
     errorMessage,
     setErrorMessage,
+    actionableError,
+    setActionableError,
     settingsNoticeMessage,
     setSettingsNoticeMessage,
     gmailDebugState,

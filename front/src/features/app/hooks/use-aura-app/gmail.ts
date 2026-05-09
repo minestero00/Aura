@@ -3,7 +3,7 @@ import { type Dispatch, type SetStateAction } from "react";
 import { connectGmailIntegration, disconnectGmailIntegration } from "@features/auth/api";
 import { type IgnoredSenderRule } from "@features/gmail/storage";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
-import type { AuthSessionState } from "@features/app/types";
+import type { ActionableError, AuthSessionState } from "@features/app/types";
 import { getErrorMessage } from "@features/app/hooks/use-aura-app/helpers";
 import { createSessionManager } from "@features/app/hooks/use-aura-app/session";
 export { loadDailyEmailBrief, loadEmailSummary, loadRecentEmails } from "./gmail-inbox";
@@ -17,6 +17,7 @@ export interface GmailModuleDeps {
   withSessionAutoRefresh: ReturnType<typeof createSessionManager>["withSessionAutoRefresh"];
   syncMe: ReturnType<typeof createSessionManager>["syncMe"];
   setErrorMessage: Dispatch<SetStateAction<string | null>>;
+  setActionableError: Dispatch<SetStateAction<ActionableError | null>>;
   setIsGmailSubmitting: Dispatch<SetStateAction<boolean>>;
   setIsInboxLoading: Dispatch<SetStateAction<boolean>>;
   setGmailMessages: Dispatch<SetStateAction<GmailMessage[]>>;

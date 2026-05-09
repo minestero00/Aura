@@ -25,10 +25,20 @@ export interface AuthSessionState {
   me: MeResponse;
 }
 
+/**
+ * Errors that the user can resolve in one tap. Surfaced as a brand-tone
+ * modal with a primary action button instead of a passive inline message.
+ *
+ * 새 케이스 추가는 discriminated union에 한 줄 + ActionAlertModal에 분기 +
+ * 에러 발생 지점에서 setActionableError로 set. 그 외 wiring은 그대로.
+ */
+export type ActionableError = { kind: "gmail-reconnect" };
+
 export interface UseAuraAppResult {
   authState: AuthSessionState | null;
   copy: AppCopy;
   errorMessage: string | null;
+  actionableError: ActionableError | null;
   settingsNoticeMessage: string | null;
   language: AppLanguage;
   gmailDebugState: string;
@@ -116,4 +126,8 @@ export interface UseAuraAppResult {
   handleSetTravelMode: (mode: "driving" | "transit") => void;
   handleToggleNewsCategory: (category: NewsCategory) => Promise<void>;
   labelNewsCategory: (category: NewsCategory) => string;
+  /** 사용자가 modal의 primary action(예: Gmail 재연결)을 눌렀을 때. */
+  handleActionableErrorPrimary: () => Promise<void>;
+  /** 사용자가 modal을 닫았을 때 (잠시 미루기). */
+  handleDismissActionableError: () => void;
 }

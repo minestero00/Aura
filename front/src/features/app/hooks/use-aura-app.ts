@@ -96,6 +96,24 @@ export function useAuraApp(): UseAuraAppResult {
     state.setSelectedTravelMode(mode);
   }
 
+  /**
+   * Actionable error modal의 primary 버튼. error kind에 따라 적절한 회복
+   * 액션을 즉시 실행한다. modal은 dismiss → 액션 → 에러 발생 시 다음 modal
+   * 자연스레 다시 표시.
+   */
+  async function handleActionableErrorPrimary() {
+    const current = state.actionableError;
+    if (!current) return;
+    state.setActionableError(null);
+    if (current.kind === "gmail-reconnect") {
+      await handlers.handleConnectGmail();
+    }
+  }
+
+  function handleDismissActionableError() {
+    state.setActionableError(null);
+  }
+
   function handleOpenNotificationSettings() {
     state.setSelectedTab("settings");
     state.setSelectedSettingsSection("notifications");
@@ -133,7 +151,9 @@ export function useAuraApp(): UseAuraAppResult {
     isGmailRefreshRequired,
     handlers: {
       ...handlers,
-      handleSetTravelMode
+      handleSetTravelMode,
+      handleActionableErrorPrimary,
+      handleDismissActionableError
     },
     openHandlers: {
       handleOpenGmailSettings,

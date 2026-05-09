@@ -7,6 +7,13 @@ export const KO_COPY: AppCopy = {
     loadingSession: 'AURA를 시작하는 중...',
     ok: '확인',
   },
+  actionable: {
+    gmailReconnectTitle: 'Gmail 연결을 갱신해 주세요',
+    gmailReconnectBody:
+      'Gmail 재연결을 하시면 바로 메일 브리핑을 받아보실 수 있어요!',
+    primaryAction: '바로 다시 연결',
+    dismiss: '나중에',
+  },
   tabs: {
     mail: '메일',
     todo: '일정',

@@ -16,6 +16,7 @@ interface BuildResultParams {
   deviceCalendarAgendaDays: UseAuraAppResult["deviceCalendarAgendaDays"];
   enabledNewsCategories: UseAuraAppResult["enabledNewsCategories"];
   errorMessage: UseAuraAppResult["errorMessage"];
+  actionableError: UseAuraAppResult["actionableError"];
   settingsNoticeMessage: UseAuraAppResult["settingsNoticeMessage"];
   language: AppLanguage;
   gmailDebugState: UseAuraAppResult["gmailDebugState"];
@@ -82,6 +83,8 @@ interface BuildResultParams {
     handleSetLanguage: UseAuraAppResult["handleSetLanguage"];
     handleToggleNewsCategory: UseAuraAppResult["handleToggleNewsCategory"];
     handleSetTravelMode: UseAuraAppResult["handleSetTravelMode"];
+    handleActionableErrorPrimary: UseAuraAppResult["handleActionableErrorPrimary"];
+    handleDismissActionableError: UseAuraAppResult["handleDismissActionableError"];
   };
   openHandlers: {
     handleOpenGmailSettings: UseAuraAppResult["handleOpenGmailSettings"];
@@ -113,6 +116,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     deviceCalendarAgendaDays: params.deviceCalendarAgendaDays,
     enabledNewsCategories: params.enabledNewsCategories,
     errorMessage: params.errorMessage,
+    actionableError: params.actionableError,
     settingsNoticeMessage: params.settingsNoticeMessage,
     language: params.language,
     gmailDebugState: params.gmailDebugState,
@@ -195,6 +199,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleSetLanguage: params.handlers.handleSetLanguage,
     handleToggleNewsCategory: params.handlers.handleToggleNewsCategory,
     labelNewsCategory: category => getCategoryLabel(params.language, category),
+    handleActionableErrorPrimary: params.handlers.handleActionableErrorPrimary,
+    handleDismissActionableError: params.handlers.handleDismissActionableError,
     handleSelectTab: tab => {
       params.setSelectedTab(tab);
       if (tab !== "settings") {

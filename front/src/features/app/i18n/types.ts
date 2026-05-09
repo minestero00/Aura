@@ -7,6 +7,12 @@ export interface AppCopy {
     loadingSession: string;
     ok: string;
   };
+  actionable: {
+    gmailReconnectTitle: string;
+    gmailReconnectBody: string;
+    primaryAction: string;
+    dismiss: string;
+  };
   tabs: {
     mail: string;
     todo: string;

@@ -10,6 +10,7 @@ import type { UseAuraAppResult } from "@features/app/types";
 import { BottomNav } from "@features/app/screens/app-shell/bottom-nav";
 import { DailyBriefModal } from "@features/app/screens/app-shell/daily-brief-modal";
 import { ScreenAtmosphere } from "@features/app/components/screen-atmosphere";
+import { ActionAlertModal } from "@features/app/components/action-alert-modal";
 
 interface AppShellProps {
   app: UseAuraAppResult;
@@ -31,6 +32,12 @@ export function AppShell({ app }: AppShellProps) {
     <View style={styles.appShell}>
       <ScreenAtmosphere />
       <DailyBriefModal app={app} theme={theme} />
+      <ActionAlertModal
+        copy={app.copy}
+        error={app.actionableError}
+        onPrimary={app.handleActionableErrorPrimary}
+        onDismiss={app.handleDismissActionableError}
+      />
 
       <View style={styles.appShellContent}>
         {app.selectedTab === "mail" ? (
