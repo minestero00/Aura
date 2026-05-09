@@ -24,6 +24,13 @@ export type { ActiveTripState } from "./client-trip";
 export { useGeofenceTracker } from "./use-geofence-tracker";
 export type { GeofenceStatus } from "./use-geofence-tracker";
 export {
+  isBackgroundGeofenceAvailable,
+  startBackgroundMonitoring,
+  stopBackgroundMonitoring,
+  subscribeBackgroundEnter,
+  subscribeBackgroundError
+} from "./native-geofence";
+export {
   presentTransitArrivalNotification,
   cancelTransitArrivalNotifications,
   ensureTransitNotificationPermission

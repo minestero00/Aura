@@ -25,6 +25,7 @@ interface BannerCopy {
   end: string;
   helper: string;
   helperWalking: string;
+  helperBackgroundOn: string;
   helperBackgroundLimit: string;
   notificationDeniedHint: string;
   distanceLabel: (meters: number, stopName: string) => string;
@@ -50,6 +51,7 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     end: "경로 종료",
     helper: "정류장에 가까워지면 자동으로 다음 단계로 넘어가요. 필요하면 수동으로 진행해도 됩니다.",
     helperWalking: "도보 구간은 도착 후 직접 \"다음 단계로\"를 눌러주세요.",
+    helperBackgroundOn: "앱이 꺼져 있어도 도착 시 알림을 보내드려요.",
     helperBackgroundLimit: "현재 앱이 화면에 떠 있을 때만 위치를 확인합니다.",
     notificationDeniedHint: "알림 권한이 꺼져 있어 도착 알림이 표시되지 않을 수 있어요.",
     distanceLabel: (meters, stop) => `${stop}까지 약 ${meters}m`,
@@ -73,6 +75,7 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     end: "End trip",
     helper: "When you're near the stop, AURA advances automatically. You can also tap manually.",
     helperWalking: "On walking legs, tap \"Advance step\" once you arrive.",
+    helperBackgroundOn: "AURA will notify you on arrival even when the app is closed.",
     helperBackgroundLimit: "Location is only checked while the app is in the foreground.",
     notificationDeniedHint: "Notification permission is off — arrival alerts may not show.",
     distanceLabel: (meters, stop) => `~${meters}m to ${stop}`,
@@ -262,7 +265,9 @@ export function ClientActiveTripBanner({
       <Text style={styles.helperText}>
         {isWalkingLeg ? t.helperWalking : t.helper}
       </Text>
-      <Text style={styles.helperText}>{t.helperBackgroundLimit}</Text>
+      <Text style={styles.helperText}>
+        {geofence.backgroundActive ? t.helperBackgroundOn : t.helperBackgroundLimit}
+      </Text>
       {geofence.notificationDenied ? (
         <Text style={styles.helperText}>{t.notificationDeniedHint}</Text>
       ) : null}

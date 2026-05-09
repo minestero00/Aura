@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import { getCurrentDeviceLocation } from "@features/location/current-location";
-import { advanceActiveTripLeg } from "./client-trip";
+import { advanceActiveTripLeg, loadActiveTrip } from "./client-trip";
 import type { ActiveTripState } from "./client-trip";
 import type { DirectionsLeg } from "./types";
 import {
@@ -9,6 +9,12 @@ import {
   ensureTransitNotificationPermission,
   presentTransitArrivalNotification
 } from "./notifications";
+import {
+  isBackgroundGeofenceAvailable,
+  startBackgroundMonitoring,
+  stopBackgroundMonitoring,
+  subscribeBackgroundEnter
+} from "./native-geofence";
 
 const POLL_INTERVAL_MS = 15_000;
 const ARRIVAL_RADIUS_METERS = 150;
@@ -24,7 +30,11 @@ export interface GeofenceStatus {
   targetStopName: string | null;
   /** 알림 권한이 거부됐을 때 true — banner에서 hint. */
   notificationDenied: boolean;
+  /** background region monitoring 활성 여부 — banner hint. */
+  backgroundActive: boolean;
 }
+
+const BACKGROUND_REGION_RADIUS_METERS = 200;
 
 /**
  * Foreground geofence MVP.
@@ -48,11 +58,67 @@ export function useGeofenceTracker({
     active: false,
     distanceMeters: null,
     targetStopName: null,
-    notificationDenied: false
+    notificationDenied: false,
+    backgroundActive: false
   });
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  // Background region monitoring — trip 시작 시 모든 transit leg arrivalStop을
+  // 한 번에 region으로 등록. 백그라운드에서 ENTER 이벤트가 발생하면 native가
+  // local notification을 띄우고, 앱이 살아있으면 JS에도 이벤트가 와서 advance.
+  useEffect(() => {
+    if (!trip) {
+      void stopBackgroundMonitoring();
+      setStatus(prev => ({ ...prev, backgroundActive: false }));
+      return;
+    }
+    if (!isBackgroundGeofenceAvailable()) {
+      setStatus(prev => ({ ...prev, backgroundActive: false }));
+      return;
+    }
+
+    const transitRegions = trip.legs
+      .map((leg, index) => {
+        if (leg.mode !== "transit") return null;
+        return {
+          id: `leg-${index}`,
+          lat: leg.arrivalStop.lat,
+          lng: leg.arrivalStop.lng,
+          radius: BACKGROUND_REGION_RADIUS_METERS
+        };
+      })
+      .filter((r): r is { id: string; lat: number; lng: number; radius: number } => r !== null);
+
+    if (transitRegions.length === 0) {
+      setStatus(prev => ({ ...prev, backgroundActive: false }));
+      return;
+    }
+
+    void startBackgroundMonitoring(transitRegions)
+      .then(() => setStatus(prev => ({ ...prev, backgroundActive: true })))
+      .catch(() => setStatus(prev => ({ ...prev, backgroundActive: false })));
+
+    const unsubscribe = subscribeBackgroundEnter(async event => {
+      // ENTER가 트리거된 leg index 추출. 현재보다 미래 leg면 그 index까지 advance.
+      const match = event.id.match(/leg-(\d+)/);
+      if (!match) return;
+      const enteredLegIndex = parseInt(match[1], 10);
+      let current = await loadActiveTrip();
+      if (!current) return;
+      while (current && current.currentLegIndex <= enteredLegIndex) {
+        const next = await advanceActiveTripLeg();
+        if (!next || next === current) break;
+        current = next;
+      }
+      onChangeRef.current(current);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [trip?.id]);
 
   // 알림 권한 요청 — trip 시작 시 한 번. 거부면 silent. 재요청은 OS가 막음.
   useEffect(() => {
@@ -69,12 +135,13 @@ export function useGeofenceTracker({
 
   useEffect(() => {
     if (!trip) {
-      setStatus({
+      setStatus(prev => ({
         active: false,
         distanceMeters: null,
         targetStopName: null,
-        notificationDenied: false
-      });
+        notificationDenied: false,
+        backgroundActive: prev.backgroundActive
+      }));
       return;
     }
 
