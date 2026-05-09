@@ -1,4 +1,5 @@
 import React from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppShell } from "@features/app/screens/app-shell";
 import { useAuraApp } from "@features/app/hooks/use-aura-app";
 import { InteractiveSplashScreen } from "@features/app/screens/interactive-splash-screen";
@@ -42,10 +43,14 @@ function AppContent(): React.JSX.Element {
 }
 
 function App(): React.JSX.Element {
+  // SafeAreaProvider — useSafeAreaInsets()를 사용하는 화면(AppShell의 ChatFab
+  // 위치 계산 등)의 전제 조건. SafeAreaView만으로는 inset hook이 동작하지 않는다.
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
