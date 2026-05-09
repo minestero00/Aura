@@ -5,7 +5,7 @@ import {
   getInitialDailyBriefOpen,
   subscribeToDailyBriefOpen
 } from "@features/app/notifications";
-import { loadAppLanguage } from "@features/app/storage";
+import { loadAppLanguage, loadAskFabHidden } from "@features/app/storage";
 import { fetchMe } from "@features/auth/api";
 import { presentLoginError } from "@features/auth/error-presenter";
 import { clearMeCache, loadMeCache, saveMeCache } from "@features/auth/storage";
@@ -30,7 +30,15 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
       }
     }
 
+    async function bootstrapAskFabHidden() {
+      const hidden = await loadAskFabHidden();
+      if (isMounted) {
+        deps.setIsAskFabHidden(hidden);
+      }
+    }
+
     void bootstrapLanguage();
+    void bootstrapAskFabHidden();
 
     function toSessionPayload(): Promise<SessionPayload | null> {
       return supabase.auth.getSession().then(({ data }) => {

@@ -14,6 +14,11 @@ export const EN_COPY: AppCopy = {
     primaryAction: 'Reconnect now',
     dismiss: 'Later',
   },
+  display: {
+    sectionTitle: 'Display options',
+    askFabLabel: 'AURA chat button',
+    askFabSubtitle: 'Show a small chat button at the top right to ask AURA anytime.',
+  },
   tabs: {
     mail: 'Mail',
     todo: 'Todo',

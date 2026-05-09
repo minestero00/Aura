@@ -3,6 +3,7 @@ import { NativeModules, Platform } from "react-native";
 import type { AppLanguage } from "@features/app/i18n";
 
 const APP_LANGUAGE_KEY = "aura.app.language";
+const ASK_FAB_HIDDEN_KEY = "aura.app.askFabHidden";
 
 export function detectSystemLanguage(): AppLanguage {
   let locale: string | undefined;
@@ -46,4 +47,14 @@ export async function loadAppLanguage(): Promise<AppLanguage> {
 
 export async function saveAppLanguage(language: AppLanguage) {
   await AsyncStorage.setItem(APP_LANGUAGE_KEY, language);
+}
+
+/** 우측 상단 채팅 FAB 표시 여부. 기본 false(노출). 사용자가 설정에서 끄면 true. */
+export async function loadAskFabHidden(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(ASK_FAB_HIDDEN_KEY);
+  return raw === "1";
+}
+
+export async function saveAskFabHidden(hidden: boolean) {
+  await AsyncStorage.setItem(ASK_FAB_HIDDEN_KEY, hidden ? "1" : "0");
 }

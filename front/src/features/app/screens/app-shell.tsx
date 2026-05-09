@@ -192,6 +192,8 @@ export function AppShell({ app }: AppShellProps) {
             onSetLanguage={app.handleSetLanguage}
             onSelectSettingsSection={app.handleSelectSettingsSection}
             onToggleNewsCategory={app.handleToggleNewsCategory}
+            isAskFabHidden={app.isAskFabHidden}
+            onToggleAskFabHidden={app.handleToggleAskFabHidden}
           />
         </View>
       </ScrollView>
@@ -203,7 +205,7 @@ export function AppShell({ app }: AppShellProps) {
         theme={theme}
       />
 
-      <ChatFab onPress={app.handleOpenAsk} />
+      <ChatFab onPress={app.handleOpenAsk} hidden={app.isAskFabHidden} />
 
       <Modal
         visible={app.isAskOpen}

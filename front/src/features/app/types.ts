@@ -78,6 +78,8 @@ export interface UseAuraAppResult {
   isDailyBriefModalVisible: boolean;
   /** Ask(채팅)을 별도 modal로 띄울지 — bottom nav에서 분리, 우측 상단 FAB 진입. */
   isAskOpen: boolean;
+  /** 우측 상단 채팅 FAB을 숨길지 — 사용자가 설정에서 토글. */
+  isAskFabHidden: boolean;
   selectedTab: AppTabKey;
   selectedSettingsSection: SettingsSectionKey;
   selectedTravelMode: "driving" | "transit";
@@ -136,4 +138,6 @@ export interface UseAuraAppResult {
   handleOpenAsk: () => void;
   /** Ask modal 닫기. */
   handleCloseAsk: () => void;
+  /** 채팅 FAB 표시/숨김 토글 (설정 화면). */
+  handleToggleAskFabHidden: () => Promise<void>;
 }

@@ -42,6 +42,7 @@ export interface AuraEffectsDeps {
   setCalendarTravelHintsByMode: (value: { transit: CalendarTravelHint[]; driving: CalendarTravelHint[] }) => void;
   setIsDailyBriefModalVisible: (value: boolean) => void;
   setIgnoredSenderRules: (rules: IgnoredSenderRule[]) => void;
+  setIsAskFabHidden: (value: boolean) => void;
   hasStartedInitialDailyBriefRef: MutableRefObject<boolean>;
   hasAttemptedDeviceCalendarPromptRef: MutableRefObject<boolean>;
   lastTravelPlanSignatureRef: MutableRefObject<string>;

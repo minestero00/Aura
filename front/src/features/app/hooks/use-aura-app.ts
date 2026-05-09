@@ -10,6 +10,7 @@ import { buildDepsInput } from "@features/app/hooks/use-aura-app/builders";
 import { useAuraAppEffects } from "@features/app/hooks/use-aura-app/effects";
 import { useAuraAppState } from "@features/app/hooks/use-aura-app/state";
 import { getCopy } from "@features/app/i18n";
+import { saveAskFabHidden } from "@features/app/storage";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
 import type {
@@ -120,6 +121,11 @@ export function useAuraApp(): UseAuraAppResult {
   function handleCloseAsk() {
     state.setIsAskOpen(false);
   }
+  async function handleToggleAskFabHidden() {
+    const next = !state.isAskFabHidden;
+    state.setIsAskFabHidden(next);
+    await saveAskFabHidden(next).catch(() => undefined);
+  }
 
   function handleOpenNotificationSettings() {
     state.setSelectedTab("settings");
@@ -162,7 +168,8 @@ export function useAuraApp(): UseAuraAppResult {
       handleActionableErrorPrimary,
       handleDismissActionableError,
       handleOpenAsk,
-      handleCloseAsk
+      handleCloseAsk,
+      handleToggleAskFabHidden
     },
     openHandlers: {
       handleOpenGmailSettings,

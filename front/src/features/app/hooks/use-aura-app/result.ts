@@ -36,6 +36,7 @@ interface BuildResultParams {
   isDailyBriefModalVisible: UseAuraAppResult["isDailyBriefModalVisible"];
   setIsDailyBriefModalVisible: (value: boolean) => void;
   isAskOpen: UseAuraAppResult["isAskOpen"];
+  isAskFabHidden: UseAuraAppResult["isAskFabHidden"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
   isDeviceCalendarPermissionGranted: UseAuraAppResult["isDeviceCalendarPermissionGranted"];
   isGmailSubmitting: UseAuraAppResult["isGmailSubmitting"];
@@ -88,6 +89,7 @@ interface BuildResultParams {
     handleDismissActionableError: UseAuraAppResult["handleDismissActionableError"];
     handleOpenAsk: UseAuraAppResult["handleOpenAsk"];
     handleCloseAsk: UseAuraAppResult["handleCloseAsk"];
+    handleToggleAskFabHidden: UseAuraAppResult["handleToggleAskFabHidden"];
   };
   openHandlers: {
     handleOpenGmailSettings: UseAuraAppResult["handleOpenGmailSettings"];
@@ -136,6 +138,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isDailyBriefPreparing: params.isDailyBriefPreparing,
     isDailyBriefModalVisible: params.isDailyBriefModalVisible,
     isAskOpen: params.isAskOpen,
+    isAskFabHidden: params.isAskFabHidden,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
     isDeviceCalendarPermissionGranted: params.isDeviceCalendarPermissionGranted,
     isGmailSubmitting: params.isGmailSubmitting,
@@ -207,6 +210,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleDismissActionableError: params.handlers.handleDismissActionableError,
     handleOpenAsk: params.handlers.handleOpenAsk,
     handleCloseAsk: params.handlers.handleCloseAsk,
+    handleToggleAskFabHidden: params.handlers.handleToggleAskFabHidden,
     handleSelectTab: tab => {
       params.setSelectedTab(tab);
       if (tab !== "settings") {

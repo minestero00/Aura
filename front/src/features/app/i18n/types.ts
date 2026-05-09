@@ -13,6 +13,11 @@ export interface AppCopy {
     primaryAction: string;
     dismiss: string;
   };
+  display: {
+    sectionTitle: string;
+    askFabLabel: string;
+    askFabSubtitle: string;
+  };
   tabs: {
     mail: string;
     todo: string;

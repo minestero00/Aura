@@ -20,6 +20,7 @@ export function MenuSection(props: SettingsSectionProps) {
     isNotificationPermissionGranted,
     areDailyBriefNotificationsEnabled,
     morningBriefTime,
+    isAskFabHidden,
     onOpenPermissionsSettings,
     onOpenNotificationSettings,
     onOpenUsageSettings,
@@ -28,6 +29,7 @@ export function MenuSection(props: SettingsSectionProps) {
     onOpenIgnoredSenderSettings,
     onOpenNewsSettings,
     onOpenLanguageSettings,
+    onToggleAskFabHidden,
     onLogout
   } = props;
 
@@ -148,6 +150,24 @@ export function MenuSection(props: SettingsSectionProps) {
               </Text>
             </View>
             <Text style={styles.settingsChevron}>›</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>{copy.display.sectionTitle}</Text>
+          <Pressable
+            accessibilityRole="switch"
+            accessibilityState={{ checked: !isAskFabHidden }}
+            onPress={() => void onToggleAskFabHidden()}
+            style={styles.settingsMenuItem}
+          >
+            <View style={styles.settingsMenuMain}>
+              <Text style={styles.messageSubject}>{copy.display.askFabLabel}</Text>
+              <Text style={styles.messageMeta}>{copy.display.askFabSubtitle}</Text>
+            </View>
+            <Text style={styles.messageMeta}>
+              {isAskFabHidden ? copy.settings.off : copy.settings.on}
+            </Text>
           </Pressable>
         </View>
 

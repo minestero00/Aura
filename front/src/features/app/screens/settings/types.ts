@@ -47,6 +47,8 @@ export interface SettingsScreenProps {
   onEnableDailyBriefNotifications: () => Promise<void>;
   onToggleNewsCategory: (category: NewsCategory) => Promise<void>;
   onLogout: () => Promise<void>;
+  isAskFabHidden: boolean;
+  onToggleAskFabHidden: () => Promise<void>;
 }
 
 export const NEWS_CATEGORIES: NewsCategory[] = [
