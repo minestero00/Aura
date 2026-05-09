@@ -10,8 +10,9 @@ export function buildShellStyles(theme: AuraTheme) {
     appShellContent: { flex: 1 },
     askScreen: { flex: 1 },
     askTopBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 2 },
-    askTopBarTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: "800" },
-    askTopBarSubtitle: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
+    // 그라디언트 위에 직접 노출되는 ask hero 텍스트는 흰색 톤(가독성).
+    askTopBarTitle: { color: "#FFFFFF", fontSize: 20, fontWeight: "800" },
+    askTopBarSubtitle: { color: "rgba(255,255,255,0.85)", fontSize: 12, lineHeight: 17 },
     askQuickStripContent: { paddingHorizontal: 20, paddingBottom: 8 },
     askQuickPromptsRow: { flexDirection: "row", gap: 8 },
     askQuickPromptChip: {
@@ -219,30 +220,31 @@ export function buildShellStyles(theme: AuraTheme) {
       lineHeight: 20,
       marginTop: 4
     },
-    // designFeedback 반영 — 카드 그림자/radius 약화. Things/Linear 톤.
+    // 그라디언트 배경 위에 떠있는 카드 — 살짝 부유감 + brand 보라 그림자.
+    // SignIn 톤과 통일.
     formCard: {
-      padding: 20,
-      borderRadius: 18,
+      padding: 22,
+      borderRadius: 24,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#000000" : "#0F1226",
-      shadowOpacity: theme.isDark ? 0.24 : 0.04,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 1
+      shadowColor: theme.isDark ? "#1a1456" : "#5746E8",
+      shadowOpacity: theme.isDark ? 0.32 : 0.18,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 4
     },
     sectionCard: {
-      padding: 20,
-      borderRadius: 16,
+      padding: 22,
+      borderRadius: 22,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#000000" : "#0F1226",
-      shadowOpacity: theme.isDark ? 0.20 : 0.03,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 1 },
-      elevation: 1
+      shadowColor: theme.isDark ? "#1a1456" : "#5746E8",
+      shadowOpacity: theme.isDark ? 0.28 : 0.14,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 3
     },
     sectionTitle: { color: colors.textPrimary, fontSize: 19, fontWeight: "800", marginBottom: 12 },
     inputLabel: { color: colors.textPrimary, fontSize: 14, fontWeight: "700", marginBottom: 8 },

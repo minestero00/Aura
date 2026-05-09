@@ -11,6 +11,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent
 } from "react-native";
+import LinearGradient from "react-native-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MailScreen } from "@features/app/screens/mail-screen";
 import { NewsScreen } from "@features/app/screens/news-screen";
@@ -65,17 +66,22 @@ export function AppShell({ app }: AppShellProps) {
     { key: "settings", label: app.copy.tabs.settings }
   ];
 
-  // designFeedback.md 반영: 그라디언트 배경은 "목업스러운" 인상의 주범이라
-  // AppShell에서 제거. background는 살짝 보라 끝이 도는 off-white(#F0EFF8)로
-  // brand 흔적만 유지. 카드/버튼은 sectionCard/formCard로 정상 위계.
-  // hero 텍스트는 어두운 톤(textPrimary 계열)으로 라이트 배경에 정렬.
+  // 사용자가 SignIn 톤이 깔끔하다고 피드백 → 5탭 전체에 동일 그라디언트 +
+  // 흰 카드 패턴. status bar/notch까지 이어지는 보라/시안 그라디언트.
+  // (이전 1단계의 그라디언트 제거를 revert. 단 카드/버튼/sub-card 정돈 패턴은 유지.)
+  const heroGradient = theme.isDark
+    ? ["#8E76FF", "#6B5BFF", "#34D2FF"]
+    : ["#6B5BFF", "#8E76FF", "#34D2FF"];
 
   return (
-    <View style={[styles.appShell, { backgroundColor: theme.colors.background }]}>
-      <StatusBar
-        barStyle={theme.isDark ? "light-content" : "dark-content"}
-        backgroundColor="transparent"
-        translucent
+    <View style={styles.appShell}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <LinearGradient
+        colors={heroGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFillObject}
       />
       <DailyBriefModal app={app} theme={theme} />
       <ActionAlertModal

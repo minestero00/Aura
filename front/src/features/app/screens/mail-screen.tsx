@@ -47,9 +47,9 @@ export function MailScreen({
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
-          <Text style={styles.eyebrow}>{copy.mail.eyebrow}</Text>
-          <Text style={styles.title}>{copy.mail.title}</Text>
-          <Text style={styles.subtitle}>{copy.mail.subtitle}</Text>
+          <Text style={styles.eyebrowOnGradient}>{copy.mail.eyebrow}</Text>
+          <Text style={styles.titleOnGradient}>{copy.mail.title}</Text>
+          <Text style={styles.subtitleOnGradient}>{copy.mail.subtitle}</Text>
         </View>
 
         {!gmailConnected ? (
