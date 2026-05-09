@@ -42,6 +42,9 @@ react {
     /* Hermes Commands */
     //   The hermes compiler command to run. By default it is 'hermesc'
     // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+    //   RN 0.84의 default(`node_modules/react-native/sdks/hermesc/%OS-BIN%/hermesc`)에는
+    //   binary가 없고, 대신 별도 hermes-compiler 패키지가 prebuilt를 가져옴.
+    hermesCommand = "$rootDir/../../node_modules/hermes-compiler/hermesc/%OS-BIN%/hermesc"
     //
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
     // hermesFlags = ["-O", "-output-source-map"]
