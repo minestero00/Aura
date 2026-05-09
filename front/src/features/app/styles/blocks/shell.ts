@@ -82,19 +82,21 @@ export function buildShellStyles(theme: AuraTheme) {
       borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.surfaceMuted
+      backgroundColor: "rgba(255,255,255,0.18)"
     },
-    backIconText: { color: colors.textPrimary, fontSize: 22, fontWeight: "700", lineHeight: 22 },
+    // 그라디언트 위에 있는 backIcon은 흰 반투명 배경 + 흰 글자.
+    backIconText: { color: "#FFFFFF", fontSize: 22, fontWeight: "700", lineHeight: 22 },
     subpageHeader: { paddingHorizontal: 20, paddingBottom: 12, gap: 8 },
     subpageHeaderRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+    // 설정 sub-page 헤더는 그라디언트 위에 직접 노출 — 흰 톤으로 가독성 확보.
     subpageTitle: {
       flex: 1,
-      color: colors.textPrimary,
+      color: "#FFFFFF",
       fontSize: 26,
       fontWeight: "800",
       lineHeight: 32
     },
-    subpageSubtitle: { color: colors.textSecondary, fontSize: 15, lineHeight: 22 },
+    subpageSubtitle: { color: "rgba(255,255,255,0.86)", fontSize: 15, lineHeight: 22 },
     subpageMetaRow: {
       flexDirection: "row",
       alignItems: "center",
