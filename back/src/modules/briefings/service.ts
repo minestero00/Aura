@@ -106,8 +106,15 @@ async function generateSnapshot(
       }
     };
 
-    snapshotsByKey.set(key, snapshot);
-    await briefingsRepository.saveSnapshot(user.id, language, snapshot);
+    // Partial snapshot은 캐시하지 않는다 — Gmail 연결됐는데 email digest를
+    // 못 만든 경우(token stale / Gmail API 장애 등) 다음 요청에서 다시
+    // 시도하도록. 그래야 사용자가 같은 stale snapshot에 영영 갇히지 않음.
+    // (gmail summarize 자체는 별도 24h Redis 캐시로 비용 폭발 방지됨.)
+    const isPartial = user.gmailConnected && !emailDigest;
+    if (!isPartial) {
+      snapshotsByKey.set(key, snapshot);
+      await briefingsRepository.saveSnapshot(user.id, language, snapshot);
+    }
     return snapshot;
   })();
 

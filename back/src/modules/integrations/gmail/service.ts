@@ -13,22 +13,39 @@ import {
 import { exchangeServerAuthCode } from "./google-oauth.js";
 import { generateReplyDraft, summarizeGmailMessages } from "./summarizer.js";
 
-// Daily summary는 사용자별·하루치 결과라 같은 사용자가 같은 날 여러 번
-// 요청해도 결과가 거의 같다. Anthropic 호출이 비싸므로 6시간 TTL로 캐시 →
-// usage 차감 한 번으로 고정 + frontend fallback 자동 호출에도 안전.
-const DAILY_SUMMARY_CACHE_TTL_SECONDS = 6 * 60 * 60;
+// Daily summary는 하루치 결과라 같은 날에 한 번만 만들면 됨 — Anthropic 호출
+// 비용 폭발 방지. 사용자 timezone 기준 자정에 자연스럽게 새 캐시.
+// TTL 24h로 안전망(자정 직후 race도 흡수). 사용자 timezone의 현재 날짜를
+// key에 포함해 자정 넘어가면 즉시 새 키 → 새 generate.
+const DAILY_SUMMARY_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const DAILY_SUMMARY_KEY_PREFIX = "gmail:daily-summary";
+
+function userLocalDate(timezone: string | null | undefined): string {
+  const tz = timezone && timezone.length > 0 ? timezone : "UTC";
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(new Date());
+  } catch {
+    // 잘못된 timezone string fallback
+    return new Date().toISOString().slice(0, 10);
+  }
+}
 
 function buildDailySummaryCacheKey(
   userId: string,
   language: "en" | "ko",
-  ignoredSenderKeys: string[]
+  ignoredSenderKeys: string[],
+  timezone: string | null | undefined
 ) {
   // ignored sender 변경되면 결과 달라지므로 sorted hash 일부만 키에.
   const ignoreSig = ignoredSenderKeys.length === 0
     ? "none"
     : [...ignoredSenderKeys].sort().join(",").slice(0, 80);
-  const dayBucket = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
+  const dayBucket = userLocalDate(timezone);
   return `${DAILY_SUMMARY_KEY_PREFIX}:${userId}:${language}:${dayBucket}:${ignoreSig}`;
 }
 
@@ -159,7 +176,8 @@ export const gmailService = {
 
     const language = options.language ?? "en";
     const ignoredSenderKeys = options.ignoredSenderKeys ?? [];
-    const cacheKey = buildDailySummaryCacheKey(userId, language, ignoredSenderKeys);
+    const timezone = authStore.findUserById(userId)?.timezone ?? null;
+    const cacheKey = buildDailySummaryCacheKey(userId, language, ignoredSenderKeys, timezone);
 
     const redis = await getRedisClient().catch(() => null);
     if (redis) {
