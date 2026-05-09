@@ -11,6 +11,10 @@ export const EN_COPY: AppCopy = {
     gmailReconnectTitle: 'Refresh Gmail connection',
     gmailReconnectBody:
       'Reconnect Gmail and your email brief is ready to roll right away.',
+    locationPermissionTitle: 'Location access needed',
+    locationPermissionBody:
+      'AURA needs your location for today\'s weather and travel-time hints. Allow once and you\'re set.',
+    locationPermissionPrimary: 'Open settings & allow',
     primaryAction: 'Reconnect now',
     dismiss: 'Later',
   },

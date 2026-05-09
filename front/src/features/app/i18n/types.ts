@@ -10,6 +10,9 @@ export interface AppCopy {
   actionable: {
     gmailReconnectTitle: string;
     gmailReconnectBody: string;
+    locationPermissionTitle: string;
+    locationPermissionBody: string;
+    locationPermissionPrimary: string;
     primaryAction: string;
     dismiss: string;
   };

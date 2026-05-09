@@ -119,6 +119,7 @@ export function buildDepsInput(params: any) {
       language,
       withSessionAutoRefresh,
       setErrorMessage,
+      setActionableError,
       setTodayWeatherAdvice,
       setIsWeatherLoading,
       setHasLoadedTodayWeather

@@ -1,3 +1,4 @@
+import { Linking } from "react-native";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as KakaoLogin from "@react-native-seoul/kakao-login";
 import { KAKAO_LOGIN_ENABLED, KAKAO_NATIVE_APP_KEY } from "@env";
@@ -108,6 +109,11 @@ export function useAuraApp(): UseAuraAppResult {
     state.setActionableError(null);
     if (current.kind === "gmail-reconnect") {
       await handlers.handleConnectGmail();
+    } else if (current.kind === "location-permission") {
+      // iOS: 한 번 거부 후엔 in-app 다이얼로그 못 띄움. Linking.openSettings()로
+      // 앱 설정 화면 직접 진입(1탭). 사용자가 토글 후 swipe back하면 자동으로
+      // foreground 복귀하면서 다음 weather load가 새 권한 status를 사용.
+      await Linking.openSettings().catch(() => undefined);
     }
   }
 

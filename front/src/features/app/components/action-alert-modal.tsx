@@ -25,9 +25,14 @@ export function ActionAlertModal({ copy, error, onPrimary, onDismiss }: ActionAl
 
   let title = "";
   let body = "";
+  let primaryLabel = copy.actionable.primaryAction;
   if (error.kind === "gmail-reconnect") {
     title = copy.actionable.gmailReconnectTitle;
     body = copy.actionable.gmailReconnectBody;
+  } else if (error.kind === "location-permission") {
+    title = copy.actionable.locationPermissionTitle;
+    body = copy.actionable.locationPermissionBody;
+    primaryLabel = copy.actionable.locationPermissionPrimary;
   }
 
   return (
@@ -43,7 +48,7 @@ export function ActionAlertModal({ copy, error, onPrimary, onDismiss }: ActionAl
             }}
             accessibilityRole="button"
           >
-            <Text style={styles.primaryText}>{copy.actionable.primaryAction}</Text>
+            <Text style={styles.primaryText}>{primaryLabel}</Text>
           </Pressable>
           <Pressable style={styles.secondary} onPress={onDismiss} accessibilityRole="button">
             <Text style={styles.secondaryText}>{copy.actionable.dismiss}</Text>

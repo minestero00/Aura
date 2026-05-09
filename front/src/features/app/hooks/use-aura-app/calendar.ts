@@ -120,11 +120,17 @@ export async function loadCalendarTravelPlan(
   deps.setIsCalendarTravelLoading(true);
 
   try {
-    const currentLocation = await getCurrentDeviceLocation();
+    // calendar travel plan은 location이 옵션 — 없어도 server-side 일정 간 시간만
+    // 계산. 권한 거부/미확인은 silent skip(weather에서 별도 안내).
+    const locationResult = await getCurrentDeviceLocation();
+    const currentLocation =
+      locationResult.kind === "ok"
+        ? { lat: locationResult.lat, lng: locationResult.lng }
+        : undefined;
     const { result: response } = await deps.withSessionAutoRefresh(accessToken =>
       fetchCalendarTravelPlan(accessToken, {
         days,
-        currentLocation: currentLocation ?? undefined
+        currentLocation
       })
     );
     const nextHintsByMode = response.hintsByMode ?? {

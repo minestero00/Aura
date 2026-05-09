@@ -32,7 +32,9 @@ export interface AuthSessionState {
  * 새 케이스 추가는 discriminated union에 한 줄 + ActionAlertModal에 분기 +
  * 에러 발생 지점에서 setActionableError로 set. 그 외 wiring은 그대로.
  */
-export type ActionableError = { kind: "gmail-reconnect" };
+export type ActionableError =
+  | { kind: "gmail-reconnect" }
+  | { kind: "location-permission" };
 
 export interface UseAuraAppResult {
   authState: AuthSessionState | null;
