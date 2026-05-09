@@ -1,5 +1,24 @@
+import { type Dispatch, type SetStateAction } from "react";
 import { ApiError } from "@lib/api/client";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
+import type { ActionableError } from "@features/app/types";
+
+/**
+ * 한 번의 탭으로 회복 가능한 에러는 actionableError로 떠받쳐서 modal로
+ * 띄우고, 그 외 에러는 caller가 평소처럼 setErrorMessage 흐름을 타게 한다.
+ * 어떤 catch 블록이든 첫 줄에 `if (tryHandleActionableError(...)) return;` 만
+ * 추가하면 같은 패턴으로 확장된다.
+ */
+export function tryHandleActionableError(
+  error: unknown,
+  setActionableError: Dispatch<SetStateAction<ActionableError | null>>
+): boolean {
+  if (error instanceof ApiError && error.code === "GMAIL_AUTH_RECONNECT_REQUIRED") {
+    setActionableError({ kind: "gmail-reconnect" });
+    return true;
+  }
+  return false;
+}
 
 function readRetryAfterSeconds(error: ApiError) {
   if (typeof error.details === "object" && error.details !== null && "retryAfterSeconds" in error.details) {

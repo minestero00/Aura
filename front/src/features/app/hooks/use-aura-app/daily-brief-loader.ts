@@ -5,7 +5,8 @@ import { filterIgnoredMessages } from "@features/gmail/filtering";
 import { fetchDailyNewsBriefing } from "@features/news/api";
 import {
   getIgnoredSenderKeys,
-  getLocalizedErrorMessage
+  getLocalizedErrorMessage,
+  tryHandleActionableError
 } from "@features/app/hooks/use-aura-app/helpers";
 import type { AuthSessionState } from "@features/app/types";
 import type { DailyBriefModuleDeps } from "./daily-brief";
@@ -50,6 +51,10 @@ export async function prepareDailyBriefForSession(
       void saveDailyBriefCache(userId, deps.language, snapshot);
     }
   } catch (error: unknown) {
+    if (tryHandleActionableError(error, deps.setActionableError)) {
+      deps.setIsDailyBriefModalVisible(false);
+      return;
+    }
     deps.setErrorMessage(
       getLocalizedErrorMessage(
         error,
@@ -82,6 +87,7 @@ export async function loadDailyEmailBriefForSession(
     deps.setDailyEmailDigest(response.digest);
     deps.setDailyEmailMessages(filteredMessages);
   } catch (error: unknown) {
+    if (tryHandleActionableError(error, deps.setActionableError)) return;
     deps.setErrorMessage(
       getLocalizedErrorMessage(error, "Unable to build today's email brief right now.", deps.language)
     );
@@ -134,6 +140,7 @@ export async function refreshDailyBrief(deps: DailyBriefModuleDeps) {
     deps.setDailyEmailMessages(gmailConnected ? snapshot.email.messages : []);
     void saveDailyBriefCache(userId, deps.language, snapshot);
   } catch (error: unknown) {
+    if (tryHandleActionableError(error, deps.setActionableError)) return;
     deps.setErrorMessage(
       getLocalizedErrorMessage(error, "Unable to refresh the daily brief right now.", deps.language)
     );

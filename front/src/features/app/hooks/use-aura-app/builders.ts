@@ -57,6 +57,7 @@ export function buildDepsInput(params: any) {
       withSessionAutoRefresh,
       syncMe,
       setErrorMessage,
+      setActionableError,
       setNewsBriefing,
       setNewsArticles,
       setDailyEmailDigest,
