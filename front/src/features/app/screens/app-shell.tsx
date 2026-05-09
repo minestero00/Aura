@@ -94,6 +94,13 @@ export function AppShell({ app }: AppShellProps) {
         onMomentumScrollEnd={handleScrollEnd}
         keyboardShouldPersistTaps="handled"
         contentOffset={{ x: tabIndex * screenWidth, y: 0 }}
+        // 설정 sub-section(권한/Gmail/뉴스 등)에서는 가로 스와이프를 비활성화.
+        // sub-section은 stack 안의 detail page라 좌우 swipe로 옆 탭에 가버리면
+        // 사용자가 의도치 않게 다른 화면으로 튕겨나간다(피드백 받음).
+        // sub-section의 "← 설정으로 돌아가기" 링크로만 뒤로 가도록.
+        scrollEnabled={
+          !(app.selectedTab === "settings" && app.selectedSettingsSection !== "menu")
+        }
       >
         <View style={{ width: screenWidth }}>
           <MailScreen
@@ -140,6 +147,7 @@ export function AppShell({ app }: AppShellProps) {
         <View style={{ width: screenWidth }}>
           <NewsScreen
             copy={app.copy}
+            language={app.language}
             enabledCategories={app.enabledNewsCategories}
             isNewsLoading={app.isNewsLoading}
             labelCategory={app.labelNewsCategory}

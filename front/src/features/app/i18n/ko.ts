@@ -104,6 +104,9 @@ export const KO_COPY: AppCopy = {
     loading: '오늘 뉴스를 불러오는 중...',
     unknownTime: '시간 정보 없음',
     openArticle: '기사 보기',
+    viewArticles: '실제 뉴스 확인하기',
+    articlesTitle: '오늘 뉴스 기사',
+    articlesEmpty: '아직 가져온 기사가 없어요. 먼저 브리핑을 불러와 주세요.',
   },
   todo: {
     eyebrow: '일정',

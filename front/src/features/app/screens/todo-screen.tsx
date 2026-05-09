@@ -167,17 +167,9 @@ export function TodoScreen({
           ))}
         </View>
 
-        {!calendarConnected ? (
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>{copy.todo.reconnectTitle}</Text>
-            <Text style={styles.helperText}>{copy.todo.reconnectBody}</Text>
-            <View style={styles.buttonRow}>
-              <Pressable onPress={() => void onConnectCalendar()} style={styles.secondaryButton}>
-                <Text style={styles.secondaryButtonText}>{copy.todo.reconnectAction}</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
+        {/* Google 다시 연결 카드는 메인 일정 화면에서 제거 — 사용자 요청.
+            토큰 stale 시 backend가 refresh_token으로 자동 갱신(이미 동작),
+            정말 reconnect가 필요한 케이스는 설정 화면에서만 노출. */}
       </ScrollView>
     </SafeAreaView>
   );

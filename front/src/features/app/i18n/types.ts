@@ -98,6 +98,9 @@ export interface AppCopy {
     loading: string;
     unknownTime: string;
     openArticle: string;
+    viewArticles: string;
+    articlesTitle: string;
+    articlesEmpty: string;
   };
   todo: {
     eyebrow: string;

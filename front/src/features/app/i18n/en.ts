@@ -102,6 +102,9 @@ export const EN_COPY: AppCopy = {
     loading: 'Loading daily news...',
     unknownTime: 'Unknown time',
     openArticle: 'Open article',
+    viewArticles: 'View source articles',
+    articlesTitle: "Today's articles",
+    articlesEmpty: "No articles yet. Load today's brief first.",
   },
   todo: {
     eyebrow: 'Todo',

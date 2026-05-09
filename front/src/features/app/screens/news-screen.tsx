@@ -1,12 +1,14 @@
-import React from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { AppCopy } from "@features/app/i18n";
+import type { AppCopy, AppLanguage } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
+import { formatNewsTime } from "@features/news/format";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 
 interface NewsScreenProps {
   copy: AppCopy;
+  language: AppLanguage;
   enabledCategories: NewsCategory[];
   isNewsLoading: boolean;
   labelCategory: (category: NewsCategory) => string;
@@ -17,6 +19,7 @@ interface NewsScreenProps {
 
 export function NewsScreen({
   copy,
+  language,
   enabledCategories,
   isNewsLoading,
   labelCategory,
@@ -26,6 +29,7 @@ export function NewsScreen({
 }: NewsScreenProps) {
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
+  const [isArticlesOpen, setIsArticlesOpen] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -70,21 +74,60 @@ export function NewsScreen({
             </View>
           ) : null}
 
-          {newsArticles.map(article => (
-            <Pressable
-              key={article.id}
-              onPress={() => void Linking.openURL(article.link)}
-              style={styles.messageCard}
-            >
-              <Text style={styles.messageSubject}>{article.title}</Text>
-              <Text style={styles.messageMeta}>
-                {labelCategory(article.category)} · {article.source}
-              </Text>
-              <Text style={styles.messageMeta}>{article.publishedAt ?? copy.news.unknownTime}</Text>
-            </Pressable>
-          ))}
+          {newsBriefing ? (
+            <View style={styles.buttonRow}>
+              <Pressable
+                onPress={() => setIsArticlesOpen(true)}
+                style={styles.outlineButton}
+              >
+                <Text style={styles.outlineButtonText}>{copy.news.viewArticles}</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={isArticlesOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setIsArticlesOpen(false)}
+      >
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+          <View style={styles.subpageTopBar}>
+            <Pressable
+              onPress={() => setIsArticlesOpen(false)}
+              style={styles.backIconButton}
+              accessibilityRole="button"
+              accessibilityLabel={copy.common.close}
+            >
+              <Text style={{ color: theme.colors.textSecondary, fontSize: 22, fontWeight: "700" }}>×</Text>
+            </Pressable>
+            <Text style={styles.askTopBarTitle}>{copy.news.articlesTitle}</Text>
+          </View>
+          <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
+            {newsArticles.length === 0 ? (
+              <Text style={styles.helperText}>{copy.news.articlesEmpty}</Text>
+            ) : (
+              newsArticles.map(article => (
+                <Pressable
+                  key={article.id}
+                  onPress={() => void Linking.openURL(article.link)}
+                  style={styles.messageCard}
+                >
+                  <Text style={styles.messageSubject}>{article.title}</Text>
+                  <Text style={styles.messageMeta}>
+                    {labelCategory(article.category)} · {article.source}
+                  </Text>
+                  <Text style={styles.messageMeta}>
+                    {formatNewsTime(article.publishedAt, language) || copy.news.unknownTime}
+                  </Text>
+                </Pressable>
+              ))
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
