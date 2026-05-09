@@ -75,6 +75,7 @@ export function buildDepsInput(params: any) {
       language,
       withSessionAutoRefresh,
       setErrorMessage,
+      setActionableError,
       setCalendarAgendaDays,
       setIsCalendarLoading,
       setHasLoadedCalendarAgenda,

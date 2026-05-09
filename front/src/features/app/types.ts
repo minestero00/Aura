@@ -34,7 +34,8 @@ export interface AuthSessionState {
  */
 export type ActionableError =
   | { kind: "gmail-reconnect" }
-  | { kind: "location-permission" };
+  | { kind: "location-permission" }
+  | { kind: "calendar-permission" };
 
 export interface UseAuraAppResult {
   authState: AuthSessionState | null;

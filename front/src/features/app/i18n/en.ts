@@ -15,6 +15,10 @@ export const EN_COPY: AppCopy = {
     locationPermissionBody:
       'AURA needs your location for today\'s weather and travel-time hints. Allow once and you\'re set.',
     locationPermissionPrimary: 'Open settings & allow',
+    calendarPermissionTitle: 'Calendar access needed',
+    calendarPermissionBody:
+      'AURA needs calendar access to merge your phone schedule. Allow once and you\'re set.',
+    calendarPermissionPrimary: 'Open settings & allow',
     primaryAction: 'Reconnect now',
     dismiss: 'Later',
   },

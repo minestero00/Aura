@@ -1,13 +1,14 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { fetchCalendarAgenda, fetchCalendarTravelPlan } from "@features/calendar/api";
 import {
+  checkDeviceCalendarPermission,
   isCalendarPermissionGranted,
   requestDeviceCalendarPermission,
   fetchDeviceCalendarAgenda
 } from "@features/calendar/device";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import { getCurrentDeviceLocation } from "@features/location/current-location";
-import type { AuthSessionState } from "@features/app/types";
+import type { ActionableError, AuthSessionState } from "@features/app/types";
 import { getErrorMessage } from "@features/app/hooks/use-aura-app/helpers";
 import { createSessionManager } from "@features/app/hooks/use-aura-app/session";
 
@@ -16,6 +17,7 @@ export interface CalendarModuleDeps {
   language: "ko" | "en";
   withSessionAutoRefresh: ReturnType<typeof createSessionManager>["withSessionAutoRefresh"];
   setErrorMessage: Dispatch<SetStateAction<string | null>>;
+  setActionableError: Dispatch<SetStateAction<ActionableError | null>>;
   setCalendarAgendaDays: Dispatch<SetStateAction<CalendarAgendaDay[]>>;
   setIsCalendarLoading: Dispatch<SetStateAction<boolean>>;
   setHasLoadedCalendarAgenda: Dispatch<SetStateAction<boolean>>;
@@ -66,6 +68,17 @@ export async function loadCalendarAgenda(deps: CalendarModuleDeps) {
 
 export async function connectDeviceCalendar(deps: CalendarModuleDeps) {
   try {
+    // iOS는 한 번 거부하면 requestPermissions가 다이얼로그 안 띄우고 즉시
+    // "denied" 반환 — 사용자 입장에서 버튼 눌러도 반응 없어 보임.
+    // 현재 status를 먼저 보고, 이미 거부된 상태면 ActionAlertModal로
+    // 1탭 설정 진입을 안내한다(weather와 동일 패턴).
+    const currentStatus = await checkDeviceCalendarPermission();
+    if (currentStatus === "denied" || currentStatus === "restricted") {
+      deps.setIsDeviceCalendarPermissionGranted(false);
+      deps.setActionableError({ kind: "calendar-permission" });
+      return;
+    }
+
     const status = await requestDeviceCalendarPermission();
     const granted = isCalendarPermissionGranted(status);
     deps.setIsDeviceCalendarPermissionGranted(granted);
@@ -73,6 +86,9 @@ export async function connectDeviceCalendar(deps: CalendarModuleDeps) {
 
     if (granted) {
       await loadDeviceCalendarAgenda(deps);
+    } else {
+      // request 후에도 not-granted (사용자가 다이얼로그에서 거부) → modal 안내
+      deps.setActionableError({ kind: "calendar-permission" });
     }
   } catch (error: unknown) {
     deps.setErrorMessage(

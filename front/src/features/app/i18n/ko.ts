@@ -15,6 +15,10 @@ export const KO_COPY: AppCopy = {
     locationPermissionBody:
       '오늘 날씨와 일정 이동 시간 추천을 위해 위치 권한이 필요합니다. 한 번만 허용해 주세요.',
     locationPermissionPrimary: '설정 열고 허용',
+    calendarPermissionTitle: '캘린더 권한이 필요해요',
+    calendarPermissionBody:
+      '휴대폰 캘린더 일정을 함께 보여드리려면 권한이 필요합니다. 한 번만 허용해 주세요.',
+    calendarPermissionPrimary: '설정 열고 허용',
     primaryAction: '바로 다시 연결',
     dismiss: '나중에',
   },

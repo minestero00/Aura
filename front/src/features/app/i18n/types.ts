@@ -13,6 +13,9 @@ export interface AppCopy {
     locationPermissionTitle: string;
     locationPermissionBody: string;
     locationPermissionPrimary: string;
+    calendarPermissionTitle: string;
+    calendarPermissionBody: string;
+    calendarPermissionPrimary: string;
     primaryAction: string;
     dismiss: string;
   };

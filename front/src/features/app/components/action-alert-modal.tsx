@@ -33,6 +33,10 @@ export function ActionAlertModal({ copy, error, onPrimary, onDismiss }: ActionAl
     title = copy.actionable.locationPermissionTitle;
     body = copy.actionable.locationPermissionBody;
     primaryLabel = copy.actionable.locationPermissionPrimary;
+  } else if (error.kind === "calendar-permission") {
+    title = copy.actionable.calendarPermissionTitle;
+    body = copy.actionable.calendarPermissionBody;
+    primaryLabel = copy.actionable.calendarPermissionPrimary;
   }
 
   return (
