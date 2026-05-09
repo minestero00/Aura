@@ -123,6 +123,8 @@ export function buildShellStyles(theme: AuraTheme) {
     },
     statusOkBadgeText: { color: colors.textPrimary, fontSize: 13, fontWeight: "800" },
     statusAlertText: { color: colors.dangerText, fontSize: 13, fontWeight: "700" },
+    // tappable 변종 — 누르면 권한 요청 prompt 또는 OS 설정 deep link.
+    statusAlertTextTappable: { textDecorationLine: "underline" },
     chipButton: {
       minHeight: 38,
       borderRadius: 999,

@@ -38,12 +38,14 @@ export function NotificationsSection(props: SettingsSectionProps) {
               label={copy.settings.notificationsStatus}
               isOk={areDailyBriefNotificationsEnabled}
               issueText={copy.settings.notificationsDisabled}
+              onIssuePress={() => onEnableDailyBriefNotifications()}
             />
             <SettingsStatusRow
               styles={styles}
               label={copy.settings.notificationsPermission}
               isOk={isNotificationPermissionGranted}
               issueText={copy.settings.notificationsBlocked}
+              onIssuePress={() => onEnableDailyBriefNotifications()}
             />
             <Text style={styles.detailLine}>
               {copy.settings.notificationsTime}: {morningBriefTime ?? "09:00"}

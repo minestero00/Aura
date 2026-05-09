@@ -14,8 +14,21 @@ export function PermissionsSection(props: SettingsSectionProps) {
     onConnectDeviceCalendar,
     onOpenSystemSettings,
     onConnectGmail,
-    onSelectSettingsSection
+    onSelectSettingsSection,
+    onEnableDailyBriefNotifications
   } = props;
+
+  // Status row 클릭 시점에 직접 권한 요청. 거부됐다면 fallback으로 OS 설정 열기.
+  // (각 핸들러가 이미 거부 상태에서는 Settings 안내 modal/deep link를 자체적으로 띄움.)
+  const handleCalendarIssue = async () => {
+    await onConnectDeviceCalendar();
+  };
+  const handleNotificationIssue = async () => {
+    await onEnableDailyBriefNotifications();
+  };
+  const handleGoogleIssue = async () => {
+    await onConnectGmail();
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -34,18 +47,21 @@ export function PermissionsSection(props: SettingsSectionProps) {
               label={copy.settings.permissionsDeviceCalendar}
               isOk={isDeviceCalendarPermissionGranted}
               issueText={copy.todo.deviceConnectTitle}
+              onIssuePress={handleCalendarIssue}
             />
             <SettingsStatusRow
               styles={styles}
               label={copy.settings.permissionsNotifications}
               isOk={isNotificationPermissionGranted}
               issueText={copy.settings.notificationsBlocked}
+              onIssuePress={handleNotificationIssue}
             />
             <SettingsStatusRow
               styles={styles}
               label={copy.settings.permissionsGoogleCalendar}
               isOk={isGoogleCalendarConnected}
               issueText={copy.settings.refreshRequired}
+              onIssuePress={handleGoogleIssue}
             />
 
             <View style={styles.buttonRow}>
