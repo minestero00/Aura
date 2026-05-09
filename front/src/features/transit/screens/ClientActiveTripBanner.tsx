@@ -115,7 +115,12 @@ function summarizeLeg(leg: DirectionsLeg, t: BannerCopy): LegSummary {
   const icon = isSubway ? "🚇" : isTrain ? "🚆" : "🚌";
   const lineLabel =
     leg.lineShort ?? leg.lineName ?? (isSubway ? t.subway : isTrain ? t.train : t.bus);
-  const headsign = leg.headsign ? `${leg.headsign} ${t.headsignSuffix}` : null;
+  const rawHeadsign = leg.headsign?.trim() ?? "";
+  const headsign = rawHeadsign
+    ? rawHeadsign.endsWith(t.headsignSuffix)
+      ? rawHeadsign
+      : `${rawHeadsign} ${t.headsignSuffix}`
+    : null;
   const minutes = Math.max(1, Math.round(leg.durationSec / 60));
   const stops = t.stopsCount(leg.numStops);
   const route = `${leg.departureStop.name} → ${leg.arrivalStop.name}`;

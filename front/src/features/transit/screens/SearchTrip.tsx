@@ -194,6 +194,12 @@ function OptionHeader({
   );
 }
 
+function formatHeadsign(headsign: string | null) {
+  const trimmed = headsign?.trim() ?? "";
+  if (!trimmed) return "";
+  return trimmed.endsWith("방면") ? trimmed : `${trimmed} 방면`;
+}
+
 function lineBadgeFontSize(label: string) {
   if (label.length <= 2) return 12;
   if (label.length === 3) return 10;
@@ -254,7 +260,7 @@ function OptionTimeline({
                 <Text style={styles.stopLineSuffix}>{` (${lineFullLabel(leg)})`}</Text>
               </Text>
               {leg.headsign ? (
-                <Text style={styles.stopHeadsign}>{`${leg.headsign} 방면`}</Text>
+                <Text style={styles.stopHeadsign}>{formatHeadsign(leg.headsign)}</Text>
               ) : null}
               <Text style={styles.stopHeadsign}>
                 {`${leg.numStops}정거장 · ${Math.max(1, Math.round(leg.durationSec / 60))}분`}
