@@ -108,12 +108,14 @@ export function buildContentStyles(theme: AuraTheme) {
       backgroundColor: "transparent",
       paddingHorizontal: 12
     },
-    digestCard: { marginTop: 18, padding: 16, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.line },
+    // sub-card는 카드 안에 들어가므로 surfaceMuted(엷은 회색-보라)로 통일.
+    // 카드 외부 배경(backgroundSecondary)을 카드 안에 가져오면 의미 mismatch.
+    digestCard: { marginTop: 18, padding: 16, borderRadius: 22, backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.line },
     compactDigestCard: {
       marginTop: 14,
       padding: 16,
       borderRadius: 22,
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.surfaceMuted,
       borderWidth: 1,
       borderColor: colors.line,
       gap: 10
@@ -130,7 +132,7 @@ export function buildContentStyles(theme: AuraTheme) {
       borderRadius: 20,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.backgroundSecondary
+      backgroundColor: colors.surfaceMuted
     },
     messageHeaderRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
     messageHeaderMain: { flex: 1 },
@@ -152,7 +154,7 @@ export function buildContentStyles(theme: AuraTheme) {
       borderRadius: 18,
       borderWidth: 1,
       borderColor: colors.line,
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.surfaceMuted,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",

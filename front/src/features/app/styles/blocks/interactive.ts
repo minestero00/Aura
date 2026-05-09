@@ -200,7 +200,7 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       marginTop: 2,
       padding: 14,
       borderRadius: 20,
-      backgroundColor: colors.backgroundSecondary,
+      backgroundColor: colors.surfaceMuted,
       borderWidth: 1,
       borderColor: colors.line,
       gap: 8

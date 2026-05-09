@@ -60,8 +60,10 @@ const lightTheme: AuraTheme = {
     background: "#F0EFF8",
     backgroundSecondary: "#E9E6F4",
     surface: "#FFFFFF",
-    surfaceMuted: "#F1F0F7",
-    elevated: "#FFFFFF",
+    surfaceMuted: "#F4F3FB",
+    // 카드(elevated)는 살짝 보라 끝이 도는 off-white로 — 그라디언트
+    // 배경(보라/시안) 위에 떠 있을 때 순백보다 자연스럽게 호흡한다.
+    elevated: "#FCFBFF",
     textPrimary: "#0F1226",
     textSecondary: "#4A4E66",
     textMuted: "#8B8FA4",
