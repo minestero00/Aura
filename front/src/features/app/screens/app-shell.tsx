@@ -1,12 +1,17 @@
 import React, { useEffect, useRef } from "react";
 import {
+  Modal,
+  Pressable,
   ScrollView,
   StatusBar,
+  StyleSheet,
+  Text,
   View,
   useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MailScreen } from "@features/app/screens/mail-screen";
 import { NewsScreen } from "@features/app/screens/news-screen";
 import { SettingsScreen } from "@features/app/screens/settings-screen";
@@ -17,18 +22,22 @@ import type { AppTabKey, UseAuraAppResult } from "@features/app/types";
 import { BottomNav } from "@features/app/screens/app-shell/bottom-nav";
 import { DailyBriefModal } from "@features/app/screens/app-shell/daily-brief-modal";
 import { ActionAlertModal } from "@features/app/components/action-alert-modal";
+import { ChatFab } from "@features/app/components/chat-fab";
 
 interface AppShellProps {
   app: UseAuraAppResult;
 }
 
-const TAB_ORDER: AppTabKey[] = ["mail", "todo", "news", "ask", "settings"];
+// Ask는 별도 modal(우측 상단 ChatFab)로 분리. bottom nav는 4탭만.
+// AppTabKey union에는 "ask"가 남아있지만 selectedTab은 이 4개만 set된다.
+const TAB_ORDER: AppTabKey[] = ["mail", "todo", "news", "settings"];
 
 export function AppShell({ app }: AppShellProps) {
   const gmail = app.authState!.me.integrations;
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
   const { width: screenWidth } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const tabIndex = Math.max(0, TAB_ORDER.indexOf(app.selectedTab));
 
@@ -52,7 +61,6 @@ export function AppShell({ app }: AppShellProps) {
     { key: "mail", label: app.copy.tabs.mail },
     { key: "todo", label: app.copy.tabs.todo },
     { key: "news", label: app.copy.tabs.news },
-    { key: "ask", label: app.copy.tabs.ask },
     { key: "settings", label: app.copy.tabs.settings }
   ];
 
@@ -141,20 +149,6 @@ export function AppShell({ app }: AppShellProps) {
         </View>
 
         <View style={{ width: screenWidth }}>
-          <AskScreen
-            chatInputDraft={app.chatInputDraft}
-            chatMessages={app.chatMessages}
-            copy={app.copy}
-            currentUserName={app.authState?.me.user.name ?? null}
-            dailyEmailMessages={app.dailyEmailMessages}
-            errorMessage={app.errorMessage}
-            isChatLoading={app.isChatLoading}
-            onChatInputChange={app.handleChatInputDraftChange}
-            onSendChatMessage={app.handleSendChatMessage}
-          />
-        </View>
-
-        <View style={{ width: screenWidth }}>
           <SettingsScreen
             areDailyBriefNotificationsEnabled={app.areDailyBriefNotificationsEnabled}
             copy={app.copy}
@@ -208,6 +202,55 @@ export function AppShell({ app }: AppShellProps) {
         selectedTab={app.selectedTab}
         theme={theme}
       />
+
+      <ChatFab onPress={app.handleOpenAsk} />
+
+      <Modal
+        visible={app.isAskOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={app.handleCloseAsk}
+      >
+        <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={app.copy.common.close}
+            onPress={app.handleCloseAsk}
+            style={[askCloseStyles.button, { top: insets.top + 12 }, {
+              backgroundColor: theme.colors.surfaceMuted,
+              borderColor: theme.colors.line
+            }]}
+          >
+            <Text style={[askCloseStyles.label, { color: theme.colors.textSecondary }]}>×</Text>
+          </Pressable>
+          <AskScreen
+            chatInputDraft={app.chatInputDraft}
+            chatMessages={app.chatMessages}
+            copy={app.copy}
+            currentUserName={app.authState?.me.user.name ?? null}
+            dailyEmailMessages={app.dailyEmailMessages}
+            errorMessage={app.errorMessage}
+            isChatLoading={app.isChatLoading}
+            onChatInputChange={app.handleChatInputDraftChange}
+            onSendChatMessage={app.handleSendChatMessage}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const askCloseStyles = StyleSheet.create({
+  button: {
+    position: "absolute",
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    zIndex: 50
+  },
+  label: { fontSize: 22, fontWeight: "700", lineHeight: 24 }
+});

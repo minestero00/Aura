@@ -114,6 +114,13 @@ export function useAuraApp(): UseAuraAppResult {
     state.setActionableError(null);
   }
 
+  function handleOpenAsk() {
+    state.setIsAskOpen(true);
+  }
+  function handleCloseAsk() {
+    state.setIsAskOpen(false);
+  }
+
   function handleOpenNotificationSettings() {
     state.setSelectedTab("settings");
     state.setSelectedSettingsSection("notifications");
@@ -153,7 +160,9 @@ export function useAuraApp(): UseAuraAppResult {
       ...handlers,
       handleSetTravelMode,
       handleActionableErrorPrimary,
-      handleDismissActionableError
+      handleDismissActionableError,
+      handleOpenAsk,
+      handleCloseAsk
     },
     openHandlers: {
       handleOpenGmailSettings,

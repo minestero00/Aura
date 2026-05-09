@@ -68,6 +68,7 @@ export function useAuraAppState() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [pendingDailyBriefOpen, setPendingDailyBriefOpen] = useState(false);
   const [isDailyBriefModalVisible, setIsDailyBriefModalVisible] = useState(false);
+  const [isAskOpen, setIsAskOpen] = useState(false);
   const [isDailyBriefPreparing, setIsDailyBriefPreparing] = useState(false);
   const [hasShownDailyBriefThisSession, setHasShownDailyBriefThisSession] = useState(false);
   const [areDailyBriefNotificationsEnabled, setAreDailyBriefNotificationsEnabled] = useState(false);
@@ -164,6 +165,8 @@ export function useAuraAppState() {
     setPendingDailyBriefOpen,
     isDailyBriefModalVisible,
     setIsDailyBriefModalVisible,
+    isAskOpen,
+    setIsAskOpen,
     isDailyBriefPreparing,
     setIsDailyBriefPreparing,
     hasShownDailyBriefThisSession,

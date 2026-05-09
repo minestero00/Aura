@@ -76,6 +76,8 @@ export interface UseAuraAppResult {
   todayWeatherAdvice: TodayWeatherAdvice | null;
   usage: UsageResponse | null;
   isDailyBriefModalVisible: boolean;
+  /** Ask(채팅)을 별도 modal로 띄울지 — bottom nav에서 분리, 우측 상단 FAB 진입. */
+  isAskOpen: boolean;
   selectedTab: AppTabKey;
   selectedSettingsSection: SettingsSectionKey;
   selectedTravelMode: "driving" | "transit";
@@ -130,4 +132,8 @@ export interface UseAuraAppResult {
   handleActionableErrorPrimary: () => Promise<void>;
   /** 사용자가 modal을 닫았을 때 (잠시 미루기). */
   handleDismissActionableError: () => void;
+  /** 우측 상단 채팅 FAB → Ask modal 열기. */
+  handleOpenAsk: () => void;
+  /** Ask modal 닫기. */
+  handleCloseAsk: () => void;
 }

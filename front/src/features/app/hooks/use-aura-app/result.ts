@@ -35,6 +35,7 @@ interface BuildResultParams {
   isDailyBriefPreparing: UseAuraAppResult["isDailyBriefPreparing"];
   isDailyBriefModalVisible: UseAuraAppResult["isDailyBriefModalVisible"];
   setIsDailyBriefModalVisible: (value: boolean) => void;
+  isAskOpen: UseAuraAppResult["isAskOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
   isDeviceCalendarPermissionGranted: UseAuraAppResult["isDeviceCalendarPermissionGranted"];
   isGmailSubmitting: UseAuraAppResult["isGmailSubmitting"];
@@ -85,6 +86,8 @@ interface BuildResultParams {
     handleSetTravelMode: UseAuraAppResult["handleSetTravelMode"];
     handleActionableErrorPrimary: UseAuraAppResult["handleActionableErrorPrimary"];
     handleDismissActionableError: UseAuraAppResult["handleDismissActionableError"];
+    handleOpenAsk: UseAuraAppResult["handleOpenAsk"];
+    handleCloseAsk: UseAuraAppResult["handleCloseAsk"];
   };
   openHandlers: {
     handleOpenGmailSettings: UseAuraAppResult["handleOpenGmailSettings"];
@@ -132,6 +135,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isCalendarTravelLoading: params.isCalendarTravelLoading,
     isDailyBriefPreparing: params.isDailyBriefPreparing,
     isDailyBriefModalVisible: params.isDailyBriefModalVisible,
+    isAskOpen: params.isAskOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
     isDeviceCalendarPermissionGranted: params.isDeviceCalendarPermissionGranted,
     isGmailSubmitting: params.isGmailSubmitting,
@@ -201,6 +205,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     labelNewsCategory: category => getCategoryLabel(params.language, category),
     handleActionableErrorPrimary: params.handlers.handleActionableErrorPrimary,
     handleDismissActionableError: params.handlers.handleDismissActionableError,
+    handleOpenAsk: params.handlers.handleOpenAsk,
+    handleCloseAsk: params.handlers.handleCloseAsk,
     handleSelectTab: tab => {
       params.setSelectedTab(tab);
       if (tab !== "settings") {
