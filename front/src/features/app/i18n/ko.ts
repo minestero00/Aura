@@ -23,9 +23,10 @@ export const KO_COPY: AppCopy = {
     signingIn: '로그인하는 중...',
     googleButton: 'Google 계정으로 시작',
     kakaoButton: '카카오로 시작',
-    kakaoComingSoon: '현재는 카카오 로그인을 준비 중입니다. 다른 방법으로 로그인해주세요.',
+    kakaoComingSoon:
+      '현재는 카카오 로그인을 준비 중입니다. 다른 방법으로 로그인해주세요.',
     phoneButton: '휴대전화로 시작',
-    emailButton: 'Dumb 계정으로 로그인',
+    emailButton: 'dumb 계정으로 로그인',
     dumbHint: '이미 dumb 계정이 있으신가요?',
     back: '뒤로',
     phoneTitle: '휴대전화 인증',
@@ -33,8 +34,8 @@ export const KO_COPY: AppCopy = {
     sendOtp: '인증 문자 받기',
     verifyOtp: '인증 완료',
     otpPlaceholder: '6자리 코드',
-    emailTitle: 'Dumb 계정으로 로그인',
-    emailHelper: 'Dumb에서 사용하던 이메일과 비밀번호를 그대로 입력하세요.',
+    emailTitle: 'dumb 계정으로 로그인',
+    emailHelper: 'dumb에서 사용하던 이메일과 비밀번호를 그대로 입력하세요.',
     signIn: '로그인',
   },
   mail: {
@@ -43,7 +44,8 @@ export const KO_COPY: AppCopy = {
     subtitle: '중요한 메일만 빠르게 보고, 무시한 발신자는 자동으로 제외해요.',
     dailyBriefTitle: '데일리 브리프',
     dailyBriefSubtitle: '메일과 뉴스의 핵심만 먼저 준비했어요.',
-    dailyBriefEmpty: '메일과 뉴스가 준비되면 여기서 오늘의 브리프를 볼 수 있답니다.',
+    dailyBriefEmpty:
+      '메일과 뉴스가 준비되면 여기서 오늘의 브리프를 볼 수 있답니다.',
     dailyBriefPreparing: '오늘의 브리프를 준비하는 중...',
     dailyBriefRefresh: '브리프 새로고침',
     dailyBriefOpenMail: '메일 보기',
@@ -51,7 +53,8 @@ export const KO_COPY: AppCopy = {
     dailyBriefEmailLabel: '메일',
     dailyBriefNewsLabel: '뉴스',
     gmailNotConnectedTitle: 'Gmail이 연결되지 않음..',
-    gmailNotConnectedBody: 'Google 로그인 직후 Gmail 연결을 자동으로 시도합니다. 아직 연결되지 않았다면 설정에서 다시 연결해주세요.',
+    gmailNotConnectedBody:
+      'Google 로그인 직후 Gmail 연결을 자동으로 시도합니다. 아직 연결되지 않았다면 설정에서 다시 연결해주세요.',
     todayBriefTitle: '오늘의 메일 브리핑',
     summarizeToday: '오늘 메일 요약하기',
     updatingBrief: '메일 브리핑을 업데이트하는 중...',
@@ -83,15 +86,19 @@ export const KO_COPY: AppCopy = {
     deviceTitle: '기기 캘린더',
     deviceSubtitle: '이 휴대폰에 저장된 일정 앱의 이벤트를 읽습니다.',
     deviceConnectTitle: '기기 캘린더 권한 필요',
-    deviceConnectBody: '휴대폰 캘린더 앱의 일정을 읽으려면 캘린더 권한을 허용하세요.',
+    deviceConnectBody:
+      '휴대폰 캘린더 앱의 일정을 읽으려면 캘린더 권한을 허용하세요.',
     deviceConnectAction: '기기 캘린더 허용',
     weatherTitle: '오늘의 날씨 조언',
-    weatherSubtitle: '현재 위치 날씨를 바탕으로 우산과 옷차림을 빠르게 안내합니다.',
+    weatherSubtitle:
+      '현재 위치 날씨를 바탕으로 우산과 옷차림을 빠르게 안내합니다.',
     weatherRefresh: '날씨 다시 불러오기',
     weatherLoading: '오늘 날씨를 불러오는 중...',
-    weatherUnavailable: '날씨 조언을 불러오지 못했습니다. 위치 권한을 확인한 뒤 다시 시도해주세요.',
+    weatherUnavailable:
+      '날씨 조언을 불러오지 못했습니다. 위치 권한을 확인한 뒤 다시 시도해주세요.',
     reconnectTitle: '캘린더 권한 필요',
-    reconnectBody: '한 번만 Google 접근을 다시 연결하면 여기서 일정을 볼 수 있습니다.',
+    reconnectBody:
+      '한 번만 Google 접근을 다시 연결하면 여기서 일정을 볼 수 있습니다.',
     reconnectAction: 'Google 다시 연결',
     loadAgenda: '일정 불러오기',
     loading: '일정을 불러오는 중...',
@@ -125,7 +132,8 @@ export const KO_COPY: AppCopy = {
     title: 'AURA 설정',
     subtitle: 'Gmail 접근, 발신자 무시, 뉴스 토픽, 앱 언어를 여기서 관리해요!',
     gmailTitle: 'Gmail 접근',
-    gmailSubtitle: '접근 권한이 만료됐거나 계정을 해제하고 싶다면 여기서 관리해주세요.',
+    gmailSubtitle:
+      '접근 권한이 만료됐거나 계정을 해제하고 싶다면 여기서 관리해주세요.',
     currentStatus: '현재 상태',
     connected: '연결됨',
     address: '주소',
@@ -164,7 +172,8 @@ export const KO_COPY: AppCopy = {
     languageEnglish: '영어',
     languageKorean: '한국어',
     notificationsTitle: '데일리 브리핑 알림',
-    notificationsSubtitle: '매일 아침 AURA 알림을 받고, 열면 최신 메일과 뉴스를 바로 준비해요.',
+    notificationsSubtitle:
+      '매일 아침 AURA 알림을 받고, 열면 최신 메일과 뉴스를 바로 준비해요.',
     notificationsStatus: '상태',
     notificationsPermission: '권한',
     notificationsTime: '도착 시간',
@@ -193,7 +202,8 @@ export const KO_COPY: AppCopy = {
     menuDataPrivacy: '데이터 및 개인정보',
     dataPrivacyMenuHint: '무엇을 읽고 저장하고 전송하는지',
     dataPrivacyTitle: '데이터 및 개인정보',
-    dataPrivacySubtitle: 'AURA가 어떤 데이터를 왜 사용하는지 한눈에 확인하세요.',
+    dataPrivacySubtitle:
+      'AURA가 어떤 데이터를 왜 사용하는지 한눈에 확인하세요.',
     dataPrivacyGoogleTitle: 'Google 로그인',
     dataPrivacyGoogleBody:
       'AURA는 로그인과 세션 보안을 위해 Google 계정 식별 정보만 사용하며, 비밀번호는 저장하지 않습니다.',
@@ -238,6 +248,10 @@ export const KO_COPY: AppCopy = {
     assistantLabel: 'AURA',
     userLabel: '나',
     typing: 'AURA가 답변을 작성하는 중...',
-    quickPrompts: ['오늘 가장 급한 메일은 뭐야?', '오늘 뉴스 핵심을 3줄로 알려줘.', '내일까지 미뤄도 되는 일은 뭐야?'],
+    quickPrompts: [
+      '오늘 가장 급한 메일은 뭐야?',
+      '오늘 뉴스 핵심을 3줄로 알려줘.',
+      '내일까지 미뤄도 되는 일은 뭐야?',
+    ],
   },
 };

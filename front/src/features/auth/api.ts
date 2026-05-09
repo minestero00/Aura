@@ -4,9 +4,15 @@ import type { MeResponse } from "@features/auth/types";
 /**
  * Sign-in / refresh / logout are handled by Supabase Client SDK on the device.
  * Backend only verifies JWTs and serves /auth/me.
+ *
+ * Pass `accessToken` explicitly when called from inside a Supabase listener
+ * (onAuthStateChange) — calling supabase.auth.getSession() while the SDK is
+ * still emitting a SIGNED_IN event deadlocks the request, so the fetch never
+ * even leaves the device. Outside of listeners, omit it and apiRequest will
+ * pull the live JWT itself.
  */
-export async function fetchMe() {
-  return apiRequest<MeResponse>("/api/v1/auth/me", { method: "GET" });
+export async function fetchMe(accessToken?: string) {
+  return apiRequest<MeResponse>("/api/v1/auth/me", { method: "GET", accessToken });
 }
 
 export async function connectGmailIntegration(input: {

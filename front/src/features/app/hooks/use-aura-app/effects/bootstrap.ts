@@ -109,7 +109,12 @@ export function useAuraBootstrapEffects(deps: AuraEffectsDeps) {
         if (event === "SIGNED_IN") mark("evt-signed-in");
         try {
           if (event === "SIGNED_IN") mark("me-call");
-          const me = await fetchMe();
+          // 명시적으로 listener의 session.access_token을 넘긴다.
+          // 그렇지 않으면 apiRequest 내부 getCurrentAccessToken()이
+          // supabase.auth.getSession()을 호출하는데, listener emit 도중
+          // 같은 client의 getSession을 부르면 SDK가 wait state에 빠져
+          // fetch가 영영 시작 안 됨(백엔드에 요청 0건 도달).
+          const me = await fetchMe(session.access_token);
           if (event === "SIGNED_IN") {
             mark("me-done");
             summarize("sign-in complete");
