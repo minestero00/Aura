@@ -2,6 +2,7 @@ import { AppError } from "../../../lib/errors/app-error.js";
 import { briefingsService } from "../../briefings/service.js";
 import { authStore } from "../../auth/store.js";
 import { requireUser } from "../../auth/guards.js";
+import { getRedisClient } from "../../../lib/cache/redis.js";
 import { filterIgnoredMessages } from "./filtering.js";
 import {
   createGmailReplyDraft,
@@ -11,6 +12,25 @@ import {
 } from "./gmail-api.js";
 import { exchangeServerAuthCode } from "./google-oauth.js";
 import { generateReplyDraft, summarizeGmailMessages } from "./summarizer.js";
+
+// Daily summary는 사용자별·하루치 결과라 같은 사용자가 같은 날 여러 번
+// 요청해도 결과가 거의 같다. Anthropic 호출이 비싸므로 6시간 TTL로 캐시 →
+// usage 차감 한 번으로 고정 + frontend fallback 자동 호출에도 안전.
+const DAILY_SUMMARY_CACHE_TTL_SECONDS = 6 * 60 * 60;
+const DAILY_SUMMARY_KEY_PREFIX = "gmail:daily-summary";
+
+function buildDailySummaryCacheKey(
+  userId: string,
+  language: "en" | "ko",
+  ignoredSenderKeys: string[]
+) {
+  // ignored sender 변경되면 결과 달라지므로 sorted hash 일부만 키에.
+  const ignoreSig = ignoredSenderKeys.length === 0
+    ? "none"
+    : [...ignoredSenderKeys].sort().join(",").slice(0, 80);
+  const dayBucket = new Date().toISOString().slice(0, 10); // YYYY-MM-DD UTC
+  return `${DAILY_SUMMARY_KEY_PREFIX}:${userId}:${language}:${dayBucket}:${ignoreSig}`;
+}
 
 function toIntegrationPayload(userId: string) {
   const connection = authStore.getGmailConnection(userId);
@@ -137,16 +157,42 @@ export const gmailService = {
   ) {
     requireUser(userId);
 
+    const language = options.language ?? "en";
+    const ignoredSenderKeys = options.ignoredSenderKeys ?? [];
+    const cacheKey = buildDailySummaryCacheKey(userId, language, ignoredSenderKeys);
+
+    const redis = await getRedisClient().catch(() => null);
+    if (redis) {
+      const cached = await redis.get(cacheKey).catch(() => null);
+      if (cached) {
+        try {
+          return JSON.parse(cached) as {
+            digest: Awaited<ReturnType<typeof summarizeGmailMessages>>;
+            messages: Awaited<ReturnType<typeof fetchDailyGmailMessages>>;
+          };
+        } catch {
+          // 깨진 캐시는 무시하고 새로 계산.
+        }
+      }
+    }
+
     const messages = filterIgnoredMessages(
       await fetchDailyGmailMessages(userId, 20),
-      options.ignoredSenderKeys ?? []
+      ignoredSenderKeys
     );
-    const digest = await summarizeGmailMessages(messages, options.language ?? "en", userId);
+    const digest = await summarizeGmailMessages(messages, language, userId);
+    const result = { digest, messages };
 
-    return {
-      digest,
-      messages
-    };
+    if (redis) {
+      // digest가 빈 케이스도 캐시 — 그래야 같은 날 또 호출해도 Anthropic 안 부름.
+      // Gmail 토큰 갱신 등 환경 바뀌면 사용자가 ignored sender 토글이나
+      // 명시적 새로고침으로 cache key가 바뀌거나 짧아진 TTL로 자동 갱신.
+      await redis
+        .set(cacheKey, JSON.stringify(result), { EX: DAILY_SUMMARY_CACHE_TTL_SECONDS })
+        .catch(() => undefined);
+    }
+
+    return result;
   },
   async createReplyDraft(userId: string, messageId: string, language: "en" | "ko" = "en") {
     requireUser(userId);
