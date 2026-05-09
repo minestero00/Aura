@@ -28,8 +28,11 @@ export {
   startBackgroundMonitoring,
   stopBackgroundMonitoring,
   subscribeBackgroundEnter,
-  subscribeBackgroundError
+  subscribeBackgroundError,
+  requestBackgroundLocationPermission,
+  openLocationSettings
 } from "./native-geofence";
+export type { BackgroundPermissionResult } from "./native-geofence";
 export {
   presentTransitArrivalNotification,
   cancelTransitArrivalNotifications,

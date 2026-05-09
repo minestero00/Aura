@@ -1,4 +1,4 @@
-import { NativeEventEmitter, NativeModules, Platform } from "react-native";
+import { Linking, NativeEventEmitter, NativeModules, PermissionsAndroid, Platform } from "react-native";
 
 interface GeofenceRegionInput {
   id: string;
@@ -67,4 +67,42 @@ export function subscribeBackgroundError(handler: (event: GeofenceErrorEvent) =>
     handler(event);
   });
   return () => sub.remove();
+}
+
+export type BackgroundPermissionResult = "granted" | "denied" | "settings-needed";
+
+/**
+ * Background location 권한 요청.
+ * - Android 11+ (API 30+): ACCESS_BACKGROUND_LOCATION는 in-app prompt 안 뜸 →
+ *   사용자를 system Settings로 보내야 한다. fine location은 in-app으로 받음.
+ * - Android 10 (API 29): system prompt로 받을 수 있음.
+ * - iOS: native가 startMonitoring 시 requestAlwaysAuthorization 호출. 사용자가
+ *   "When in Use" 선택했으면 in-app으로 다시 못 묻고 Settings에서만 변경 가능.
+ */
+export async function requestBackgroundLocationPermission(): Promise<BackgroundPermissionResult> {
+  if (Platform.OS === "android") {
+    try {
+      const fine = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      );
+      if (fine !== PermissionsAndroid.RESULTS.GRANTED) return "denied";
+      const apiLevel = typeof Platform.Version === "number" ? Platform.Version : 0;
+      if (apiLevel < 29) return "granted";
+      const bg = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION
+      );
+      if (bg === PermissionsAndroid.RESULTS.GRANTED) return "granted";
+      // Android 11+: NEVER_ASK_AGAIN/DENIED 모두 settings로 보내야 변경 가능.
+      return "settings-needed";
+    } catch {
+      return "denied";
+    }
+  }
+  // iOS — Settings 외 in-app 변경 경로 없음.
+  return "settings-needed";
+}
+
+/** OS 설정의 앱 상세 페이지 열기 — 사용자가 "Always" 선택 가능. */
+export async function openLocationSettings(): Promise<void> {
+  await Linking.openSettings();
 }

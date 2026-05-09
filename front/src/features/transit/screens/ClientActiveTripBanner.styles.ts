@@ -87,6 +87,19 @@ export function buildClientActiveTripBannerStyles(theme: AuraTheme) {
       lineHeight: 18,
       textAlign: "center",
       marginTop: 4
+    },
+    settingsLink: {
+      alignSelf: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      marginTop: 4,
+      borderRadius: 999,
+      backgroundColor: colors.accentSoft
+    },
+    settingsLinkText: {
+      color: colors.accent,
+      fontSize: 13,
+      fontWeight: "800"
     }
   });
 }

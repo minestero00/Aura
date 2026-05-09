@@ -4,6 +4,10 @@ import { useAuraTheme } from "@features/app/styles";
 import { advanceActiveTripLeg, clearActiveTrip } from "../client-trip";
 import type { ActiveTripState } from "../client-trip";
 import type { DirectionsLeg } from "../types";
+import {
+  openLocationSettings,
+  requestBackgroundLocationPermission
+} from "../native-geofence";
 import { useGeofenceTracker } from "../use-geofence-tracker";
 import { buildClientActiveTripBannerStyles } from "./ClientActiveTripBanner.styles";
 
@@ -27,6 +31,7 @@ interface BannerCopy {
   helperWalking: string;
   helperBackgroundOn: string;
   helperBackgroundLimit: string;
+  enableBackgroundButton: string;
   notificationDeniedHint: string;
   distanceLabel: (meters: number, stopName: string) => string;
   walk: string;
@@ -52,7 +57,8 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     helper: "정류장에 가까워지면 자동으로 다음 단계로 넘어가요. 필요하면 수동으로 진행해도 됩니다.",
     helperWalking: "도보 구간도 다음 정류장에 도착하면 자동으로 넘어가요.",
     helperBackgroundOn: "앱이 꺼져 있어도 도착 시 알림을 보내드려요.",
-    helperBackgroundLimit: "현재 앱이 화면에 떠 있을 때만 위치를 확인합니다.",
+    helperBackgroundLimit: "지금은 앱이 화면에 떠 있을 때만 위치를 확인해요. 백그라운드에서도 알림을 받으려면 위치 권한을 \"항상 허용\"으로 바꿔주세요.",
+    enableBackgroundButton: "위치 권한 설정 열기",
     notificationDeniedHint: "알림 권한이 꺼져 있어 도착 알림이 표시되지 않을 수 있어요.",
     distanceLabel: (meters, stop) => `${stop}까지 약 ${meters}m`,
     walk: "도보",
@@ -76,7 +82,8 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     helper: "When you're near the stop, AURA advances automatically. You can also tap manually.",
     helperWalking: "Walking legs also auto-advance once you reach the next stop.",
     helperBackgroundOn: "AURA will notify you on arrival even when the app is closed.",
-    helperBackgroundLimit: "Location is only checked while the app is in the foreground.",
+    helperBackgroundLimit: "Location is only checked while the app is in the foreground. To receive arrival alerts in the background, set location permission to \"Always\".",
+    enableBackgroundButton: "Open location settings",
     notificationDeniedHint: "Notification permission is off — arrival alerts may not show.",
     distanceLabel: (meters, stop) => `~${meters}m to ${stop}`,
     walk: "Walk",
@@ -273,6 +280,20 @@ export function ClientActiveTripBanner({
       <Text style={styles.helperText}>
         {geofence.backgroundActive ? t.helperBackgroundOn : t.helperBackgroundLimit}
       </Text>
+      {!geofence.backgroundActive ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={async () => {
+            const result = await requestBackgroundLocationPermission();
+            if (result === "settings-needed") {
+              await openLocationSettings();
+            }
+          }}
+          style={styles.settingsLink}
+        >
+          <Text style={styles.settingsLinkText}>{t.enableBackgroundButton}</Text>
+        </Pressable>
+      ) : null}
       {geofence.notificationDenied ? (
         <Text style={styles.helperText}>{t.notificationDeniedHint}</Text>
       ) : null}
