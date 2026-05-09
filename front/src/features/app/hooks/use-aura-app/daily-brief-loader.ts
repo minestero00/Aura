@@ -29,6 +29,12 @@ export async function prepareDailyBriefForSession(
       deps.setNewsArticles(cached.news.articles);
       deps.setDailyEmailDigest(gmailConnected ? cached.email.digest : null);
       deps.setDailyEmailMessages(gmailConnected ? cached.email.messages : []);
+      // Gmail 연결됐는데 캐시된 snapshot에 email이 비어있으면(예: 캐시 생성 당시
+      // Gmail API 비활성/장애였거나 토큰 stale) 백그라운드로 직접 메일을 다시
+      // 받아 채운다. 사용자가 뉴스 보는 동안 메일 카드도 자연스럽게 채워짐.
+      if (gmailConnected && !cached.email.digest) {
+        void loadDailyEmailBriefForSession(deps, session);
+      }
       return;
     }
   }
@@ -49,6 +55,12 @@ export async function prepareDailyBriefForSession(
     deps.setDailyEmailMessages(gmailConnected ? snapshot.email.messages : []);
     if (userId) {
       void saveDailyBriefCache(userId, deps.language, snapshot);
+    }
+    // 뉴스는 도착했는데 backend snapshot이 메일을 못 만든 케이스(Gmail API
+    // 일시 장애, 토큰 stale 등) — 백그라운드로 메일만 별도 직접 fetch해서
+    // 뉴스와 함께 화면에 보이게.
+    if (gmailConnected && !snapshot.email.digest) {
+      void loadDailyEmailBriefForSession(deps, session);
     }
   } catch (error: unknown) {
     if (tryHandleActionableError(error, deps.setActionableError)) {
