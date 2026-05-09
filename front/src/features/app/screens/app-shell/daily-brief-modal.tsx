@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { createAppStyles, type AuraTheme } from "@features/app/styles";
 import type { UseAuraAppResult } from "@features/app/types";
 
@@ -16,11 +16,16 @@ export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
 
   return (
     <Modal animationType="fade" transparent visible={app.isDailyBriefModalVisible}>
-      <Pressable
-        style={styles.dailyBriefModalBackdrop}
-        onPress={app.handleCloseDailyBriefModal}
-      >
-        <Pressable onPress={() => undefined} style={styles.dailyBriefModalCard}>
+      {/* outer/inner nested Pressable 패턴은 ScrollView swipe gesture를 가로채
+          스크롤이 막힌다. backdrop은 absolute Pressable로 분리하고 modal card는
+          순수 View로 두어 ScrollView가 정상 스크롤되게 한다. */}
+      <View style={styles.dailyBriefModalBackdrop}>
+        <Pressable
+          accessibilityLabel="Close daily brief"
+          onPress={app.handleCloseDailyBriefModal}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.dailyBriefModalCard}>
           <View style={styles.dailyBriefModalHeader}>
             <View style={styles.dailyBriefHeaderMain}>
               <Text style={styles.dailyBriefEyebrow}>AURA BRIEF</Text>
@@ -85,8 +90,8 @@ export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
             {hasNoContent ? <Text style={styles.dailyBriefEmptyText}>{app.copy.mail.dailyBriefEmpty}</Text> : null}
           </ScrollView>
 
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
