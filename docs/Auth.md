@@ -49,9 +49,13 @@
 ### Dumb 계정
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 56" width="360" height="56" role="img" aria-label="Dumb 계정으로 로그인">
+  <defs>
+    <clipPath id="dumbLogoClip">
+      <rect x="88" y="17" width="22" height="22" rx="6"/>
+    </clipPath>
+  </defs>
   <rect x="0.5" y="0.5" width="359" height="55" rx="14" fill="#F1F0F7" stroke="#E2E3EC"/>
-  <rect x="88" y="17" width="22" height="22" rx="6" fill="#0F1226"/>
-  <text x="99" y="33" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" text-anchor="middle">D</text>
+  <image href="https://raw.githubusercontent.com/e-commerce-dumb/Aura/main/Image/DumbIcon/dumb_logo.svg" x="88" y="17" width="22" height="22" preserveAspectRatio="xMidYMid slice" clip-path="url(#dumbLogoClip)"/>
   <text x="120" y="35" fill="#0F1226" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" letter-spacing="0.2">Dumb 계정으로 로그인</text>
 </svg>
 
