@@ -28,6 +28,25 @@ export const auraMotion = {
  * If you change tokens.css, mirror the change here so native app and design-system
  * reference stay in sync.
  */
+/**
+ * AURA color tokens. 의미 명확화:
+ *
+ * - background:        screen base. AppShell 밖 화면(loading, signIn fallback 등).
+ *                      AppShell 안은 LinearGradient가 root이므로 안 씀.
+ * - backgroundSecondary: 채팅 assistant 버블 같이 "약간 더 진한 chat-tone" 전용.
+ *                      카드 sub-area는 surfaceMuted, screen base는 background.
+ * - surface:           순백 input/badge용. 카드는 elevated.
+ * - surfaceMuted:      카드 안 sub-card / 입력 box 톤. "carded sub-area".
+ * - elevated:          카드(formCard/sectionCard) 본 톤. 살짝 보라 끝.
+ * - accent:            brand 보라 — primary CTA fill, focus, link.
+ * - accentSoft:        tonal button fill, 작은 badge.
+ * - accentText:        accent fill 위 텍스트(흰색).
+ * - dangerSoft/Text:   destructive 액션.
+ * - urgent/urgentSoft: transit 도착 임박 등 시간 압박.
+ * - overlay:           modal backdrop.
+ *
+ * 새 시각 의미 추가 시 새 토큰을 만들고(직접 hex 쓰지 말고) light/dark 모두 정의.
+ */
 export interface AuraTheme {
   isDark: boolean;
   colors: {

@@ -160,46 +160,7 @@ export function buildShellStyles(theme: AuraTheme) {
       letterSpacing: 0.2,
       fontWeight: "600"
     },
-    container: { flex: 1, justifyContent: "center", padding: 20, gap: 16, backgroundColor: colors.background },
-    heroCard: {
-      padding: 24,
-      borderRadius: 32,
-      backgroundColor: colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: colors.lineStrong,
-      overflow: "hidden",
-      shadowColor: theme.isDark ? "#3a6be5" : "#88a7ff",
-      shadowOpacity: theme.isDark ? 0.24 : 0.22,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 4
-    },
-    heroWaveWrap: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
-    heroWave: { position: "absolute", borderRadius: 999 },
-    heroWaveTop: {
-      top: -66,
-      right: -40,
-      width: 260,
-      height: 132,
-      backgroundColor: theme.isDark ? "rgba(123, 171, 255, 0.3)" : "rgba(95, 146, 255, 0.22)",
-      transform: [{ rotate: "-9deg" }]
-    },
-    heroWaveMiddle: {
-      top: -16,
-      right: -28,
-      width: 250,
-      height: 118,
-      backgroundColor: theme.isDark ? "rgba(93, 151, 255, 0.26)" : "rgba(67, 125, 246, 0.22)",
-      transform: [{ rotate: "-7deg" }]
-    },
-    heroWaveBottom: {
-      top: 42,
-      right: -44,
-      width: 270,
-      height: 110,
-      backgroundColor: theme.isDark ? "rgba(147, 190, 255, 0.22)" : "rgba(126, 171, 255, 0.2)",
-      transform: [{ rotate: "-11deg" }]
-    },
+    container: { flex: 1, justifyContent: "center", padding: 20, gap: 16 },
     heroForeground: { position: "relative", zIndex: 1 },
     // hero를 panel 카드 없이 배경 그라디언트 위에 그대로 얹는 spacing
     heroBare: { paddingHorizontal: 4, paddingTop: 12, paddingBottom: 16, gap: 6 },
