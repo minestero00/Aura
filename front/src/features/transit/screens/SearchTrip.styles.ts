@@ -36,31 +36,72 @@ export function buildSearchTripStyles(theme: AuraTheme) {
       gap: 8
     },
     primaryButtonText: { color: colors.accentText, fontSize: 15, fontWeight: "800" },
+
     optionCard: {
-      padding: 14,
+      padding: 16,
       borderRadius: 16,
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.lineStrong,
-      gap: 10
-    },
-    optionHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
       gap: 12
     },
-    optionDuration: { color: colors.textPrimary, fontSize: 18, fontWeight: "800" },
-    optionMeta: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
-    legChipRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 },
-    legChip: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 999,
-      borderWidth: 1
+    optionHeaderRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      flexWrap: "wrap",
+      gap: 8
     },
-    legChipText: { fontSize: 12, fontWeight: "700" },
-    legArrow: { color: colors.textMuted, fontSize: 13 },
+    optionDuration: { color: colors.textPrimary, fontSize: 22, fontWeight: "900" },
+    optionMeta: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
+
+    timeline: { gap: 0, marginTop: 2 },
+    timelineRow: { flexDirection: "row", alignItems: "stretch", gap: 12 },
+    timelineRail: {
+      width: 28,
+      alignItems: "center"
+    },
+    timelineConnector: {
+      width: 2,
+      flex: 1,
+      backgroundColor: colors.lineStrong,
+      marginVertical: 2
+    },
+    lineBadge: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center"
+    },
+    lineBadgeText: { color: "#FFFFFF", fontSize: 12, fontWeight: "800" },
+    lineBadgeEnd: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: colors.elevated,
+      borderWidth: 2,
+      borderColor: colors.textMuted,
+      marginVertical: 7
+    },
+    walkingDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.textMuted,
+      marginVertical: 10
+    },
+    timelineBody: {
+      flex: 1,
+      paddingTop: 4,
+      paddingBottom: 12,
+      gap: 2
+    },
+    timelineBodyLast: { paddingBottom: 4 },
+    stopName: { color: colors.textPrimary, fontSize: 15, fontWeight: "700" },
+    stopLineSuffix: { color: colors.textSecondary, fontSize: 13, fontWeight: "600" },
+    stopHeadsign: { color: colors.textMuted, fontSize: 12, fontWeight: "600" },
+    walkingLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "700" },
+
     helperText: { color: colors.textMuted, fontSize: 13, lineHeight: 18 },
     errorText: { color: colors.dangerText, fontSize: 13, lineHeight: 18 }
   });

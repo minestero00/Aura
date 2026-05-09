@@ -21,10 +21,12 @@ interface SearchTripScreenProps {
   onCancel: () => void;
 }
 
+type TransitLeg = Extract<DirectionsLeg, { mode: "transit" }>;
+type WalkingLeg = Extract<DirectionsLeg, { mode: "walking" }>;
+
 /**
  * Client-driven transit의 진입 화면. 사용자가 목적지를 입력하면 backend
- * Directions로 경로 옵션 N개를 받아 카드로 표시. 옵션 선택은 caller에 위임
- * (Step 3에서 AsyncStorage 저장 + Region Monitoring 등록).
+ * Directions로 경로 옵션 N개를 받아 네이버 지도 스타일 timeline 카드로 표시.
  */
 export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchTripScreenProps) {
   const theme = useAuraTheme();
@@ -121,25 +123,8 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
             style={styles.optionCard}
             onPress={() => onSelectOption(option, destination.trim())}
           >
-            <View style={styles.optionHeader}>
-              <Text style={styles.optionDuration}>
-                {Math.max(1, Math.round(option.totalDurationSec / 60))}
-                {language === "ko" ? "분" : " min"}
-              </Text>
-              <Text style={styles.optionMeta}>
-                {language === "ko"
-                  ? `환승 ${option.transferCount}회 · 약 ${formatKm(option.totalDistanceMeters)}`
-                  : `${option.transferCount} transfer · ${formatKm(option.totalDistanceMeters)}`}
-              </Text>
-            </View>
-            <View style={styles.legChipRow}>
-              {option.legs.map((leg, i) => (
-                <React.Fragment key={`leg-${i}`}>
-                  {i > 0 ? <Text style={styles.legArrow}>›</Text> : null}
-                  <LegChip leg={leg} styles={styles} theme={theme} />
-                </React.Fragment>
-              ))}
-            </View>
+            <OptionHeader option={option} styles={styles} language={language} />
+            <OptionTimeline option={option} styles={styles} language={language} />
           </Pressable>
         ))}
 
@@ -165,43 +150,189 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
   );
 }
 
-function LegChip({
-  leg,
+function OptionHeader({
+  option,
   styles,
-  theme
+  language
 }: {
-  leg: DirectionsLeg;
+  option: DirectionsOption;
   styles: ReturnType<typeof buildSearchTripStyles>;
-  theme: ReturnType<typeof useAuraTheme>;
+  language: "ko" | "en";
 }) {
-  if (leg.mode === "walking") {
-    return (
-      <View
-        style={[
-          styles.legChip,
-          { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.line }
-        ]}
-      >
-        <Text style={[styles.legChipText, { color: theme.colors.textSecondary }]}>🚶</Text>
-      </View>
-    );
-  }
-  // transit
-  const isSubway = /SUBWAY|RAIL|TRAM|METRO/i.test(leg.transitKind);
-  const bg = isSubway ? "#E0F2FE" : "#FEF3C7";
-  const fg = isSubway ? "#0369A1" : "#92400E";
-  const icon = isSubway ? "🚇" : "🚌";
-  const label = leg.lineShort ?? leg.lineName ?? leg.transitKind;
+  const totalMin = Math.max(1, Math.round(option.totalDurationSec / 60));
+  const walkingSec = option.legs.reduce(
+    (sum, l) => (l.mode === "walking" ? sum + l.durationSec : sum),
+    0
+  );
+  const walkingMin = Math.round(walkingSec / 60);
+  const km =
+    option.totalDistanceMeters < 1000
+      ? `${option.totalDistanceMeters}m`
+      : `${(option.totalDistanceMeters / 1000).toFixed(1)}km`;
+
+  const metaParts =
+    language === "ko"
+      ? [
+          walkingMin > 0 ? `도보 ${walkingMin}분` : null,
+          `환승 ${option.transferCount}회`,
+          km
+        ]
+      : [
+          walkingMin > 0 ? `${walkingMin} min walk` : null,
+          `${option.transferCount} transfer`,
+          km
+        ];
+
   return (
-    <View style={[styles.legChip, { backgroundColor: bg, borderColor: bg }]}>
-      <Text style={[styles.legChipText, { color: fg }]}>
-        {icon} {label}
+    <View style={styles.optionHeaderRow}>
+      <Text style={styles.optionDuration}>
+        {totalMin}
+        {language === "ko" ? "분" : " min"}
       </Text>
+      <Text style={styles.optionMeta}>{metaParts.filter(Boolean).join(" · ")}</Text>
     </View>
   );
 }
 
-function formatKm(meters: number) {
-  if (meters < 1000) return `${meters}m`;
-  return `${(meters / 1000).toFixed(1)}km`;
+function OptionTimeline({
+  option,
+  styles,
+  language
+}: {
+  option: DirectionsOption;
+  styles: ReturnType<typeof buildSearchTripStyles>;
+  language: "ko" | "en";
+}) {
+  const transitLegs = option.legs.filter((l): l is TransitLeg => l.mode === "transit");
+  // transit이 하나도 없는 경우 (도보만) — 거리 정도만 표시.
+  if (transitLegs.length === 0) {
+    const walking = option.legs.filter((l): l is WalkingLeg => l.mode === "walking");
+    const min = Math.max(1, Math.round(walking.reduce((s, l) => s + l.durationSec, 0) / 60));
+    return (
+      <View style={styles.timelineRow}>
+        <View style={styles.timelineRail}>
+          <View style={styles.walkingDot} />
+        </View>
+        <View style={styles.timelineBody}>
+          <Text style={styles.walkingLabel}>
+            {language === "ko" ? `도보 ${min}분` : `Walk ${min} min`}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.timeline}>
+      {transitLegs.map((leg, idx) => {
+        const isLast = idx === transitLegs.length - 1;
+        return (
+          <View key={`t-${idx}`} style={styles.timelineRow}>
+            <View style={styles.timelineRail}>
+              <View
+                style={[styles.lineBadge, { backgroundColor: lineColor(leg) }]}
+              >
+                <Text style={styles.lineBadgeText}>{lineBadgeLabel(leg)}</Text>
+              </View>
+              <View style={styles.timelineConnector} />
+            </View>
+            <View style={styles.timelineBody}>
+              <Text style={styles.stopName}>
+                {leg.departureStop.name}
+                <Text style={styles.stopLineSuffix}>{` (${lineFullLabel(leg)})`}</Text>
+              </Text>
+              {leg.headsign ? (
+                <Text style={styles.stopHeadsign}>
+                  {language === "ko" ? `${leg.headsign} 방면` : `Toward ${leg.headsign}`}
+                </Text>
+              ) : null}
+              <Text style={styles.stopHeadsign}>
+                {language === "ko"
+                  ? `${leg.numStops}정거장 · ${Math.max(1, Math.round(leg.durationSec / 60))}분`
+                  : `${leg.numStops} stops · ${Math.max(1, Math.round(leg.durationSec / 60))} min`}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+      {/* 마지막 도착 stop */}
+      <View style={styles.timelineRow}>
+        <View style={styles.timelineRail}>
+          <View style={styles.lineBadgeEnd} />
+        </View>
+        <View style={[styles.timelineBody, styles.timelineBodyLast]}>
+          <Text style={styles.stopName}>
+            {transitLegs[transitLegs.length - 1].arrivalStop.name}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const SUBWAY_LINE_COLORS: Record<string, string> = {
+  "1": "#0052A4",
+  "2": "#00A84D",
+  "3": "#EF7C1C",
+  "4": "#00A4E3",
+  "5": "#996CAC",
+  "6": "#CD7C2F",
+  "7": "#747F00",
+  "8": "#E6186C",
+  "9": "#BB8336"
+};
+
+const NAMED_LINE_COLORS: Array<[RegExp, string]> = [
+  [/신분당/, "#D31145"],
+  [/분당/, "#FFCD12"],
+  [/경의중앙|중앙선/, "#77C4A3"],
+  [/공항|airport/i, "#0090D2"],
+  [/수인|수인분당/, "#FABE00"],
+  [/경춘/, "#0C8E72"],
+  [/경강|gyeonggang/i, "#0054A6"],
+  [/우이신설|우이/, "#B0CE18"],
+  [/김포골드|김포/, "#A17800"],
+  [/신림/, "#6789CA"],
+  [/itx/i, "#002664"],
+  [/ktx/i, "#293896"]
+];
+
+function lineColor(leg: TransitLeg): string {
+  const short = (leg.lineShort ?? "").trim();
+  const name = (leg.lineName ?? "").trim();
+  const numericMatch = short.match(/(\d+)/) ?? name.match(/(\d+)\s*호선/);
+  if (numericMatch && SUBWAY_LINE_COLORS[numericMatch[1]]) {
+    return SUBWAY_LINE_COLORS[numericMatch[1]];
+  }
+  for (const [pattern, color] of NAMED_LINE_COLORS) {
+    if (pattern.test(short) || pattern.test(name)) return color;
+  }
+  // 버스 — 기본 파란색(간선버스 톤). 색상 세분화는 추후.
+  if (leg.transitKind === "BUS") return "#3B6FE0";
+  return "#4A4E66";
+}
+
+function lineBadgeLabel(leg: TransitLeg): string {
+  const short = (leg.lineShort ?? "").trim();
+  if (short) {
+    const numeric = short.match(/(\d+)/);
+    if (numeric) return numeric[1];
+    return short.slice(0, 2);
+  }
+  const name = (leg.lineName ?? "").trim();
+  const numeric2 = name.match(/(\d+)\s*호선/);
+  if (numeric2) return numeric2[1];
+  if (/신분당/.test(name)) return "신분";
+  if (/분당/.test(name)) return "분당";
+  if (/공항/.test(name)) return "공항";
+  if (/경의중앙/.test(name)) return "중앙";
+  if (leg.transitKind === "BUS") return name.slice(0, 2) || "버스";
+  return name.slice(0, 2) || "—";
+}
+
+function lineFullLabel(leg: TransitLeg): string {
+  if (leg.lineShort && leg.lineName && leg.lineShort !== leg.lineName) {
+    return `${leg.lineName} ${leg.lineShort}`;
+  }
+  return leg.lineShort ?? leg.lineName ?? leg.transitKind;
 }
