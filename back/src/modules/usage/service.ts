@@ -14,7 +14,8 @@ export type UsageFeature =
   | "email_summary"
   | "daily_overview"
   | "chat"
-  | "transit_eta";
+  | "transit_eta"
+  | "transit_directions";
 
 interface QuotaRow {
   id: string;
