@@ -103,20 +103,19 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       backgroundColor: colors.elevated
     },
     modalSecondaryActionsRow: { flexDirection: "row", gap: 10 },
+    // Modal action — secondary는 tonal(accentSoft), primary는 accent fill로 통일
     modalActionButton: {
       minHeight: 44,
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 14,
-      backgroundColor: colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: colors.line
+      backgroundColor: colors.accentSoft
     },
     modalPrimaryActionButton: { width: "100%" },
     modalSecondaryActionButton: { flex: 1, minWidth: 0 },
     modalActionButtonPrimary: { backgroundColor: colors.accent },
-    modalActionButtonText: { color: colors.textPrimary, fontSize: 14, fontWeight: "700" },
+    modalActionButtonText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
     modalActionButtonTextPrimary: { color: colors.accentText },
     dailyBriefModalBackdrop: {
       flex: 1,
@@ -235,23 +234,21 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       backgroundColor: colors.surface
     },
     dailyBriefSecondaryActionRow: { flexDirection: "row", gap: 10 },
+    // Daily brief footer action — modalActionButton과 같은 위계
     dailyBriefActionButton: {
       minHeight: 46,
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: 12,
-      backgroundColor: colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: colors.lineStrong
+      backgroundColor: colors.accentSoft
     },
     dailyBriefPrimaryActionButton: {
       width: "100%",
-      backgroundColor: colors.accent,
-      borderColor: colors.accent
+      backgroundColor: colors.accent
     },
     dailyBriefSecondaryActionButton: { flex: 1, minWidth: 0 },
-    dailyBriefActionButtonText: { color: colors.textPrimary, fontSize: 13, fontWeight: "700" },
+    dailyBriefActionButtonText: { color: colors.accent, fontSize: 13, fontWeight: "700" },
     dailyBriefPrimaryActionText: { color: colors.accentText },
     bottomNav: {
       flexDirection: "row",

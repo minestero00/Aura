@@ -42,17 +42,16 @@ export function buildContentStyles(theme: AuraTheme) {
     inlineLoading: { marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
     inlineLoadingText: { color: colors.textSecondary, fontSize: 14, fontWeight: "600" },
     sectionSubtitle: { color: colors.textSecondary, fontSize: 14, lineHeight: 22, marginBottom: 14 },
-    secondaryButton: {
-      minHeight: 52,
-      borderRadius: 18,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: colors.lineStrong,
-      paddingHorizontal: 16
-    },
-    secondaryButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: "700" },
+    // ── 버튼 4단계 위계 ──────────────────────────────────────────────
+    // 1) primary: 강한 accent fill — 카드당 1개. 가장 중요한 CTA.
+    // 2) secondary(=tonal): accentSoft + accent text — 보조이지만 여전히 brand.
+    //    카드 안에서도 시각적으로 "행동" 의도가 살아남.
+    // 3) outline: neutral border — 보조의 보조. 취소 등.
+    // 4) danger: dangerSoft + dangerText — destructive.
+    //
+    // 그라디언트 위 흰 카드 안에서 보이는 톤 일관성을 위해 secondary는
+    // 더이상 backgroundSecondary(연한 회색-보라)를 쓰지 않는다 — 카드 외부
+    // 색을 카드 안에 가져오면 의미가 무너진다(Phase B와 함께).
     primaryButton: {
       minHeight: 56,
       borderRadius: 18,
@@ -68,6 +67,15 @@ export function buildContentStyles(theme: AuraTheme) {
     },
     primaryButtonText: { color: colors.accentText, fontSize: 16, fontWeight: "700" },
     primaryButtonDisabled: { backgroundColor: colors.lineStrong, shadowOpacity: 0, elevation: 0 },
+    secondaryButton: {
+      minHeight: 52,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accentSoft,
+      paddingHorizontal: 16
+    },
+    secondaryButtonText: { color: colors.accent, fontSize: 16, fontWeight: "700" },
     buttonRow: { marginTop: 18, gap: 12 },
     outlineButton: {
       minHeight: 52,
@@ -76,12 +84,20 @@ export function buildContentStyles(theme: AuraTheme) {
       justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.lineStrong,
-      backgroundColor: colors.surface,
+      backgroundColor: "transparent",
       paddingHorizontal: 16
     },
-    outlineButtonText: { color: colors.textPrimary, fontSize: 16, fontWeight: "700" },
-    dangerButton: { minHeight: 52, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: colors.dangerSoft, paddingHorizontal: 16, borderWidth: 1, borderColor: colors.line },
+    outlineButtonText: { color: colors.textSecondary, fontSize: 16, fontWeight: "700" },
+    dangerButton: {
+      minHeight: 52,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.dangerSoft,
+      paddingHorizontal: 16
+    },
     dangerButtonText: { color: colors.dangerText, fontSize: 16, fontWeight: "800" },
+    // 컴팩트 변형 — 좁은 공간(예: 카드 헤더 옆 액션). 톤은 outline과 동일 neutral.
     outlineButtonCompact: {
       minHeight: 40,
       borderRadius: 14,
@@ -89,7 +105,7 @@ export function buildContentStyles(theme: AuraTheme) {
       justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.lineStrong,
-      backgroundColor: colors.surfaceMuted,
+      backgroundColor: "transparent",
       paddingHorizontal: 12
     },
     digestCard: { marginTop: 18, padding: 16, borderRadius: 22, backgroundColor: colors.backgroundSecondary, borderWidth: 1, borderColor: colors.line },
