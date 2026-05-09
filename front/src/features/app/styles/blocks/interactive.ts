@@ -250,9 +250,8 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     dailyBriefSecondaryActionButton: { flex: 1, minWidth: 0 },
     dailyBriefActionButtonText: { color: colors.accent, fontSize: 13, fontWeight: "700" },
     dailyBriefPrimaryActionText: { color: colors.accentText },
-    // BottomNav를 absolute로 띄워서 ScrollView가 그 아래까지 흐르고 빈 공간이
-    // 안 보이게. iOS 표준 패턴(Mail/Music). 각 ScrollView contentContainerStyle의
-    // paddingBottom이 BottomNav 영역만큼 밀어줘야 마지막 콘텐츠가 가려지지 않는다.
+    // Floating bottom nav — absolute로 떠있고 위쪽 두 모서리만 둥글게.
+    // 그라디언트 위에 살짝 부유하는 흰 카드 톤(SignIn formCard와 통일).
     bottomNav: {
       position: "absolute",
       left: 0,
@@ -262,14 +261,14 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       paddingHorizontal: 16,
       paddingTop: 4,
       paddingBottom: 22,
-      borderTopWidth: 1,
-      borderTopColor: colors.line,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
       backgroundColor: colors.elevated,
-      shadowColor: theme.isDark ? "#000000" : "#9fb4e0",
-      shadowOpacity: theme.isDark ? 0.34 : 0.16,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: -6 },
-      elevation: 7
+      shadowColor: theme.isDark ? "#000000" : "#5746E8",
+      shadowOpacity: theme.isDark ? 0.34 : 0.18,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: -8 },
+      elevation: 8
     },
     bottomNavRow: {
       flexDirection: "row",
