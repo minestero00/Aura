@@ -48,12 +48,10 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
   }, [deps.authState, deps.hasLoadedCalendarAgenda, deps.isCalendarLoading, deps.selectedTab]);
 
   useEffect(() => {
-    if (
-      !deps.authState ||
-      deps.selectedTab !== "todo" ||
-      deps.isWeatherLoading ||
-      deps.hasLoadedTodayWeather
-    ) {
+    // 날씨는 일정 탭 진입 시점에만 받지 않고 sign-in 직후 선제 로드 —
+    // 사용자가 일정 탭 들어갔을 때 이미 데이터가 있어 대기 시간 0.
+    // 권한 거부 케이스는 ActionAlertModal로 별도 분기되므로 자동 호출 안전.
+    if (!deps.authState || deps.isWeatherLoading || deps.hasLoadedTodayWeather) {
       return;
     }
 
@@ -61,8 +59,7 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
   }, [
     deps.authState?.session.accessToken,
     deps.hasLoadedTodayWeather,
-    deps.isWeatherLoading,
-    deps.selectedTab
+    deps.isWeatherLoading
   ]);
 
   useEffect(() => {

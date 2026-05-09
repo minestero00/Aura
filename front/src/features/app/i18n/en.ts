@@ -32,6 +32,7 @@ export const EN_COPY: AppCopy = {
     askAction: 'Ask AURA',
     askSubtitle: 'Get answers grounded in your mail and news brief',
     handleHint: 'Pull up to expand',
+    coachmark: 'Tap here to open more menus!',
   },
   tabs: {
     mail: 'Mail',

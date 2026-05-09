@@ -41,8 +41,8 @@ export function ActionAlertModal({ copy, error, onPrimary, onDismiss }: ActionAl
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onDismiss}>
-      <View style={styles.backdrop}>
-        <View style={styles.card}>
+      <Pressable style={styles.backdrop} onPress={onDismiss}>
+        <Pressable onPress={() => undefined} style={styles.card}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.body}>{body}</Text>
           <Pressable
@@ -57,8 +57,8 @@ export function ActionAlertModal({ copy, error, onPrimary, onDismiss }: ActionAl
           <Pressable style={styles.secondary} onPress={onDismiss} accessibilityRole="button">
             <Text style={styles.secondaryText}>{copy.actionable.dismiss}</Text>
           </Pressable>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

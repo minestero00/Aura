@@ -66,8 +66,9 @@ export function MessageList({
         transparent
         visible={selectedMessage !== null}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setSelectedMessage(null)}>
+          <Pressable onPress={() => undefined} style={styles.modalCard}>
+            <View style={styles.modalHandle} />
             <Text style={styles.sectionTitle}>{copy.mail.mailSettings}</Text>
             <Text style={styles.helperText}>{selectedMessage?.from ?? ""}</Text>
 
@@ -91,8 +92,8 @@ export function MessageList({
                 <Text style={styles.outlineButtonText}>{copy.common.close}</Text>
               </Pressable>
             </View>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );

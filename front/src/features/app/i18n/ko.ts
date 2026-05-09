@@ -32,6 +32,7 @@ export const KO_COPY: AppCopy = {
     askAction: 'AURA 채팅',
     askSubtitle: '메일·뉴스 브리핑을 그라운드 삼아 바로 물어보기',
     handleHint: '위로 끌어 올리기',
+    coachmark: '여길 누르면 세부 메뉴들을 볼 수 있어요!',
   },
   tabs: {
     mail: '메일',

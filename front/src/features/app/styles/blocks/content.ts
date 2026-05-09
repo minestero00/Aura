@@ -52,51 +52,57 @@ export function buildContentStyles(theme: AuraTheme) {
     // 그라디언트 위 흰 카드 안에서 보이는 톤 일관성을 위해 secondary는
     // 더이상 backgroundSecondary(연한 회색-보라)를 쓰지 않는다 — 카드 외부
     // 색을 카드 안에 가져오면 의미가 무너진다(Phase B와 함께).
+    // 버튼은 default flex:1 — buttonRow가 horizontal flex여서 여러 개면 자동
+    // 균등 분산. 한 개일 때도 row 100% 차지(같음). 라벨 길면 numberOfLines={1} 권장.
     primaryButton: {
-      minHeight: 56,
-      borderRadius: 18,
+      flex: 1,
+      minHeight: 50,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.accent,
-      paddingHorizontal: 16,
+      paddingHorizontal: 12,
       shadowColor: colors.accent,
       shadowOpacity: theme.isDark ? 0.2 : 0.24,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 6 },
       elevation: 2
     },
-    primaryButtonText: { color: colors.accentText, fontSize: 16, fontWeight: "700" },
+    primaryButtonText: { color: colors.accentText, fontSize: 14, fontWeight: "700" },
     primaryButtonDisabled: { backgroundColor: colors.lineStrong, shadowOpacity: 0, elevation: 0 },
     secondaryButton: {
-      minHeight: 52,
-      borderRadius: 18,
+      flex: 1,
+      minHeight: 46,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.accentSoft,
-      paddingHorizontal: 16
+      paddingHorizontal: 12
     },
-    secondaryButtonText: { color: colors.accent, fontSize: 16, fontWeight: "700" },
-    buttonRow: { marginTop: 18, gap: 12 },
+    secondaryButtonText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+    buttonRow: { marginTop: 14, gap: 8, flexDirection: "row", flexWrap: "wrap" },
     outlineButton: {
-      minHeight: 52,
-      borderRadius: 18,
+      flex: 1,
+      minHeight: 46,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
       borderColor: colors.lineStrong,
       backgroundColor: "transparent",
-      paddingHorizontal: 16
+      paddingHorizontal: 12
     },
-    outlineButtonText: { color: colors.textSecondary, fontSize: 16, fontWeight: "700" },
+    outlineButtonText: { color: colors.textSecondary, fontSize: 14, fontWeight: "700" },
     dangerButton: {
-      minHeight: 52,
-      borderRadius: 18,
+      flex: 1,
+      minHeight: 46,
+      borderRadius: 14,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.dangerSoft,
-      paddingHorizontal: 16
+      paddingHorizontal: 12
     },
-    dangerButtonText: { color: colors.dangerText, fontSize: 16, fontWeight: "800" },
+    dangerButtonText: { color: colors.dangerText, fontSize: 14, fontWeight: "800" },
     // 컴팩트 변형 — 좁은 공간(예: 카드 헤더 옆 액션). 톤은 outline과 동일 neutral.
     outlineButtonCompact: {
       minHeight: 40,
@@ -108,16 +114,23 @@ export function buildContentStyles(theme: AuraTheme) {
       backgroundColor: "transparent",
       paddingHorizontal: 12
     },
-    // sub-card는 카드 안에 들어가므로 surfaceMuted(엷은 회색-보라)로 통일.
-    // 카드 외부 배경(backgroundSecondary)을 카드 안에 가져오면 의미 mismatch.
-    digestCard: { marginTop: 18, padding: 16, borderRadius: 22, backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.line },
+    // sub-card — 흰 카드 안에 들어가므로 살짝 차분한 ivory 톤(neutral) +
+    // 더 진한 border. 보라 끝 surfaceMuted는 카드와 톤 충돌이라 변경.
+    digestCard: {
+      marginTop: 18,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: theme.isDark ? "#15173A" : "#F7F7F9",
+      borderWidth: 1,
+      borderColor: theme.isDark ? "#2D3045" : "#ECECF1"
+    },
     compactDigestCard: {
       marginTop: 14,
       padding: 16,
-      borderRadius: 22,
-      backgroundColor: colors.surfaceMuted,
+      borderRadius: 16,
+      backgroundColor: theme.isDark ? "#15173A" : "#F7F7F9",
       borderWidth: 1,
-      borderColor: colors.line,
+      borderColor: theme.isDark ? "#2D3045" : "#ECECF1",
       gap: 10
     },
     digestLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
@@ -129,10 +142,10 @@ export function buildContentStyles(theme: AuraTheme) {
     messageCard: {
       marginTop: 12,
       padding: 14,
-      borderRadius: 20,
+      borderRadius: 14,
       borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.surfaceMuted
+      borderColor: theme.isDark ? "#2D3045" : "#ECECF1",
+      backgroundColor: theme.isDark ? "#15173A" : "#F7F7F9"
     },
     messageHeaderRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
     messageHeaderMain: { flex: 1 },

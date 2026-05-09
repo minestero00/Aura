@@ -51,22 +51,35 @@ export function buildInteractiveStyles(theme: AuraTheme) {
     urgentMailCardSubject: { color: colors.textPrimary, fontSize: 13, fontWeight: "800" },
     urgentMailCardMeta: { marginTop: 2, color: colors.textMuted, fontSize: 11 },
     urgentMailCardSnippet: { marginTop: 5, color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
+    // 하단 sheet 스타일 — iOS 표준 ActionSheet 톤. 백드롭 페이드 + sheet 하단.
     modalBackdrop: {
       flex: 1,
       backgroundColor: colors.overlay,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20
+      justifyContent: "flex-end"
     },
     modalCard: {
       width: "100%",
-      maxWidth: 420,
       maxHeight: "78%",
-      borderRadius: 28,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
       backgroundColor: colors.elevated,
-      borderWidth: 1,
-      borderColor: colors.line,
-      overflow: "hidden"
+      paddingHorizontal: 20,
+      paddingTop: 14,
+      paddingBottom: 28,
+      gap: 12,
+      shadowColor: theme.isDark ? "#000000" : "#0F1226",
+      shadowOpacity: theme.isDark ? 0.32 : 0.10,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: -6 },
+      elevation: 12
+    },
+    modalHandle: {
+      alignSelf: "center",
+      width: 40,
+      height: 4,
+      borderRadius: 999,
+      backgroundColor: colors.lineStrong,
+      marginBottom: 4
     },
     modalBodyScroll: { flex: 1 },
     modalBodyContent: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16 },

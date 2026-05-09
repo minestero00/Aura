@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -25,6 +25,8 @@ import { DailyBriefModal } from "@features/app/screens/app-shell/daily-brief-mod
 import { ActionAlertModal } from "@features/app/components/action-alert-modal";
 import { ChatFab } from "@features/app/components/chat-fab";
 import { NavExpandDrawer } from "@features/app/components/nav-expand-drawer";
+import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
+import { loadNavExpandHintSeen, markNavExpandHintSeen } from "@features/app/storage";
 
 interface AppShellProps {
   app: UseAuraAppResult;
@@ -42,6 +44,23 @@ export function AppShell({ app }: AppShellProps) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const tabIndex = Math.max(0, TAB_ORDER.indexOf(app.selectedTab));
+
+  // 첫 로그인 후 BottomNav handle 위에 안내 말풍선 1회. ×로 닫으면 storage에
+  // 마킹 → 다음 launch부터 안 뜸. 자동 로그인은 storage 기준이라 자연스레 skip.
+  const [showNavExpandCoachmark, setShowNavExpandCoachmark] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void loadNavExpandHintSeen().then(seen => {
+      if (!cancelled && !seen) setShowNavExpandCoachmark(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  function dismissNavExpandCoachmark() {
+    setShowNavExpandCoachmark(false);
+    void markNavExpandHintSeen().catch(() => undefined);
+  }
 
   // BottomNav 탭 누르면 selectedTab → useEffect에서 ScrollView 동기화.
   // 스와이프로 탭 바뀌면 onMomentumScrollEnd → handleSelectTab 호출 (handleSelectTab
@@ -228,6 +247,13 @@ export function AppShell({ app }: AppShellProps) {
         copy={app.copy}
         onDismiss={app.handleCloseNavExpand}
         onOpenAsk={app.handleOpenAsk}
+      />
+
+      <NavExpandCoachmark
+        visible={showNavExpandCoachmark && !app.isNavExpanded}
+        copy={app.copy}
+        bottomOffset={insets.bottom + 92}
+        onDismiss={dismissNavExpandCoachmark}
       />
 
       <Modal

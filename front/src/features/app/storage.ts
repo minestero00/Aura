@@ -4,6 +4,7 @@ import type { AppLanguage } from "@features/app/i18n";
 
 const APP_LANGUAGE_KEY = "aura.app.language";
 const ASK_FAB_HIDDEN_KEY = "aura.app.askFabHidden";
+const NAV_EXPAND_HINT_SEEN_KEY = "aura.app.navExpandHintSeen";
 
 export function detectSystemLanguage(): AppLanguage {
   let locale: string | undefined;
@@ -57,4 +58,14 @@ export async function loadAskFabHidden(): Promise<boolean> {
 
 export async function saveAskFabHidden(hidden: boolean) {
   await AsyncStorage.setItem(ASK_FAB_HIDDEN_KEY, hidden ? "1" : "0");
+}
+
+/** BottomNav handle 위 안내 말풍선 — 사용자가 X로 닫으면 다시 안 보임. */
+export async function loadNavExpandHintSeen(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(NAV_EXPAND_HINT_SEEN_KEY);
+  return raw === "1";
+}
+
+export async function markNavExpandHintSeen() {
+  await AsyncStorage.setItem(NAV_EXPAND_HINT_SEEN_KEY, "1");
 }

@@ -29,6 +29,7 @@ export interface AppCopy {
     askAction: string;
     askSubtitle: string;
     handleHint: string;
+    coachmark: string;
   };
   tabs: {
     mail: string;

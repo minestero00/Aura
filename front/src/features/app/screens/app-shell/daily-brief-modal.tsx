@@ -16,8 +16,11 @@ export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
 
   return (
     <Modal animationType="fade" transparent visible={app.isDailyBriefModalVisible}>
-      <View style={styles.dailyBriefModalBackdrop}>
-        <View style={styles.dailyBriefModalCard}>
+      <Pressable
+        style={styles.dailyBriefModalBackdrop}
+        onPress={app.handleCloseDailyBriefModal}
+      >
+        <Pressable onPress={() => undefined} style={styles.dailyBriefModalCard}>
           <View style={styles.dailyBriefModalHeader}>
             <View style={styles.dailyBriefHeaderMain}>
               <Text style={styles.dailyBriefEyebrow}>AURA BRIEF</Text>
@@ -82,8 +85,8 @@ export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
             {hasNoContent ? <Text style={styles.dailyBriefEmptyText}>{app.copy.mail.dailyBriefEmpty}</Text> : null}
           </ScrollView>
 
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }
