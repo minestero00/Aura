@@ -28,6 +28,8 @@ export interface AppCopy {
     title: string;
     askAction: string;
     askSubtitle: string;
+    transitAction: string;
+    transitSubtitle: string;
     handleHint: string;
     coachmark: string;
   };

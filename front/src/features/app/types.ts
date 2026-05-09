@@ -85,6 +85,8 @@ export interface UseAuraAppResult {
   isAskFabHidden: boolean;
   /** Bottom nav를 위로 끌어올린 expanded drawer 표시 여부. */
   isNavExpanded: boolean;
+  /** 버스 도착 알림 modal — drawer에서 진입. */
+  isTransitOpen: boolean;
   selectedTab: AppTabKey;
   selectedSettingsSection: SettingsSectionKey;
   selectedTravelMode: "driving" | "transit";
@@ -149,4 +151,8 @@ export interface UseAuraAppResult {
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */
   handleCloseNavExpand: () => void;
+  /** 버스 도착 알림 modal 열기 (drawer 항목에서 호출). */
+  handleOpenTransit: () => void;
+  /** 버스 도착 알림 modal 닫기. */
+  handleCloseTransit: () => void;
 }

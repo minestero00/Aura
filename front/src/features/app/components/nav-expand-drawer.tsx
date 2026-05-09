@@ -10,12 +10,24 @@ interface NavExpandDrawerProps {
   copy: AppCopy;
   onDismiss: () => void;
   onOpenAsk: () => void;
+  onOpenTransit: () => void;
 }
 
 const SPARKLE_CHAT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
   <path d="M16 6.5l.6 1.5L18 8.5l-1.4.5-.6 1.5-.6-1.5L14 8.5l1.4-.5z" fill="currentColor"/>
+</svg>`;
+
+// Bus glyph (Phosphor 톤) — transit 진입 항목용
+const BUS_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="3" width="16" height="15" rx="2"/>
+  <path d="M4 11h16"/>
+  <path d="M7 18v2"/>
+  <path d="M17 18v2"/>
+  <circle cx="8" cy="14.5" r="0.8" fill="currentColor"/>
+  <circle cx="16" cy="14.5" r="0.8" fill="currentColor"/>
 </svg>`;
 
 /**
@@ -29,7 +41,8 @@ export function NavExpandDrawer({
   visible,
   copy,
   onDismiss,
-  onOpenAsk
+  onOpenAsk,
+  onOpenTransit
 }: NavExpandDrawerProps) {
   const theme = useAuraTheme();
   const styles = useMemo(() => buildNavExpandDrawerStyles(theme), [theme]);
@@ -37,6 +50,10 @@ export function NavExpandDrawer({
   function handleAskPress() {
     onDismiss();
     onOpenAsk();
+  }
+  function handleTransitPress() {
+    onDismiss();
+    onOpenTransit();
   }
 
   return (
@@ -58,6 +75,20 @@ export function NavExpandDrawer({
             <View style={styles.actionMain}>
               <Text style={styles.actionLabel}>{copy.navExpand.askAction}</Text>
               <Text style={styles.actionSubtitle}>{copy.navExpand.askSubtitle}</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleTransitPress}
+            style={styles.actionRow}
+          >
+            <View style={styles.actionIcon}>
+              <SvgXml xml={BUS_SVG} width={22} height={22} color={theme.colors.accentText} />
+            </View>
+            <View style={styles.actionMain}>
+              <Text style={styles.actionLabel}>{copy.navExpand.transitAction}</Text>
+              <Text style={styles.actionSubtitle}>{copy.navExpand.transitSubtitle}</Text>
             </View>
           </Pressable>
         </Pressable>

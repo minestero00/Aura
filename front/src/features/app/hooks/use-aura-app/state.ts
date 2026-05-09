@@ -71,6 +71,7 @@ export function useAuraAppState() {
   const [isAskOpen, setIsAskOpen] = useState(false);
   const [isAskFabHidden, setIsAskFabHidden] = useState(false);
   const [isNavExpanded, setIsNavExpanded] = useState(false);
+  const [isTransitOpen, setIsTransitOpen] = useState(false);
   const [isDailyBriefPreparing, setIsDailyBriefPreparing] = useState(false);
   const [hasShownDailyBriefThisSession, setHasShownDailyBriefThisSession] = useState(false);
   const [areDailyBriefNotificationsEnabled, setAreDailyBriefNotificationsEnabled] = useState(false);
@@ -173,6 +174,8 @@ export function useAuraAppState() {
     setIsAskFabHidden,
     isNavExpanded,
     setIsNavExpanded,
+    isTransitOpen,
+    setIsTransitOpen,
     isDailyBriefPreparing,
     setIsDailyBriefPreparing,
     hasShownDailyBriefThisSession,

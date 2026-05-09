@@ -38,6 +38,7 @@ interface BuildResultParams {
   isAskOpen: UseAuraAppResult["isAskOpen"];
   isAskFabHidden: UseAuraAppResult["isAskFabHidden"];
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
+  isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
   isDeviceCalendarPermissionGranted: UseAuraAppResult["isDeviceCalendarPermissionGranted"];
   isGmailSubmitting: UseAuraAppResult["isGmailSubmitting"];
@@ -93,6 +94,8 @@ interface BuildResultParams {
     handleToggleAskFabHidden: UseAuraAppResult["handleToggleAskFabHidden"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
     handleCloseNavExpand: UseAuraAppResult["handleCloseNavExpand"];
+    handleOpenTransit: UseAuraAppResult["handleOpenTransit"];
+    handleCloseTransit: UseAuraAppResult["handleCloseTransit"];
   };
   openHandlers: {
     handleOpenGmailSettings: UseAuraAppResult["handleOpenGmailSettings"];
@@ -143,6 +146,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isAskOpen: params.isAskOpen,
     isAskFabHidden: params.isAskFabHidden,
     isNavExpanded: params.isNavExpanded,
+    isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
     isDeviceCalendarPermissionGranted: params.isDeviceCalendarPermissionGranted,
     isGmailSubmitting: params.isGmailSubmitting,
@@ -217,6 +221,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleToggleAskFabHidden: params.handlers.handleToggleAskFabHidden,
     handleOpenNavExpand: params.handlers.handleOpenNavExpand,
     handleCloseNavExpand: params.handlers.handleCloseNavExpand,
+    handleOpenTransit: params.handlers.handleOpenTransit,
+    handleCloseTransit: params.handlers.handleCloseTransit,
     handleSelectTab: tab => {
       params.setSelectedTab(tab);
       if (tab !== "settings") {

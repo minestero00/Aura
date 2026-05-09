@@ -31,6 +31,8 @@ export const EN_COPY: AppCopy = {
     title: 'Quick menu',
     askAction: 'Ask AURA',
     askSubtitle: 'Get answers grounded in your mail and news brief',
+    transitAction: 'Bus arrival alert',
+    transitSubtitle: 'Start a trip and get pinged one stop before your destination',
     handleHint: 'Pull up to expand',
     coachmark: 'Tap here to open more menus!',
   },

@@ -138,6 +138,12 @@ export function useAuraApp(): UseAuraAppResult {
   function handleCloseNavExpand() {
     state.setIsNavExpanded(false);
   }
+  function handleOpenTransit() {
+    state.setIsTransitOpen(true);
+  }
+  function handleCloseTransit() {
+    state.setIsTransitOpen(false);
+  }
 
   function handleOpenNotificationSettings() {
     state.setSelectedTab("settings");
@@ -183,7 +189,9 @@ export function useAuraApp(): UseAuraAppResult {
       handleCloseAsk,
       handleToggleAskFabHidden,
       handleOpenNavExpand,
-      handleCloseNavExpand
+      handleCloseNavExpand,
+      handleOpenTransit,
+      handleCloseTransit
     },
     openHandlers: {
       handleOpenGmailSettings,

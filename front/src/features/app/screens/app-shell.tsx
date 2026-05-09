@@ -26,6 +26,8 @@ import { ActionAlertModal } from "@features/app/components/action-alert-modal";
 import { ChatFab } from "@features/app/components/chat-fab";
 import { NavExpandDrawer } from "@features/app/components/nav-expand-drawer";
 import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
+import { TransitModal } from "@features/app/components/transit-modal";
+import { mergeAgendaDays } from "@features/calendar/merge";
 import { loadNavExpandHintSeen, markNavExpandHintSeen } from "@features/app/storage";
 
 interface AppShellProps {
@@ -247,6 +249,14 @@ export function AppShell({ app }: AppShellProps) {
         copy={app.copy}
         onDismiss={app.handleCloseNavExpand}
         onOpenAsk={app.handleOpenAsk}
+        onOpenTransit={app.handleOpenTransit}
+      />
+
+      <TransitModal
+        visible={app.isTransitOpen}
+        copy={app.copy}
+        agendaDays={mergeAgendaDays(app.calendarAgendaDays, app.deviceCalendarAgendaDays)}
+        onDismiss={app.handleCloseTransit}
       />
 
       <NavExpandCoachmark
