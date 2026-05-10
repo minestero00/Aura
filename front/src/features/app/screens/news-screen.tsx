@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { formatNewsTime } from "@features/news/format";
 import { AuraLoader } from "@features/app/components/aura-loader";
+import { ReloadButton } from "@features/app/components/reload-button";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 
@@ -43,19 +44,19 @@ export function NewsScreen({
         </View>
 
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{copy.news.todayBriefTitle}</Text>
-          <Text style={styles.helperText}>
-            {copy.news.activeCategories}:{" "}
-            {enabledCategories.map(category => labelCategory(category)).join(", ")}
-          </Text>
-          <View style={styles.buttonRow}>
-            <Pressable
+          <View style={cardHeader.row}>
+            <View style={cardHeader.main}>
+              <Text style={styles.sectionTitle}>{copy.news.todayBriefTitle}</Text>
+              <Text style={styles.helperText}>
+                {copy.news.activeCategories}:{" "}
+                {enabledCategories.map(category => labelCategory(category)).join(", ")}
+              </Text>
+            </View>
+            <ReloadButton
+              accessibilityLabel={copy.news.loadBrief}
               disabled={isNewsLoading}
               onPress={() => void onLoadDailyNewsBrief()}
-              style={styles.secondaryButton}
-            >
-              <Text style={styles.secondaryButtonText}>{copy.news.loadBrief}</Text>
-            </Pressable>
+            />
           </View>
 
           {newsBriefing ? (
@@ -137,3 +138,16 @@ export function NewsScreen({
     </SafeAreaView>
   );
 }
+
+const cardHeader = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 12
+  },
+  main: {
+    flex: 1
+  }
+});

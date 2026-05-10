@@ -62,6 +62,8 @@
 	</dict>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Aura uses your microphone to record voice questions and transcribe them with Whisper.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
 import { AuraLoader } from "@features/app/components/aura-loader";
 import { EmptyStateHero } from "@features/app/components/empty-state-hero";
+import { ReloadButton } from "@features/app/components/reload-button";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
@@ -87,15 +88,15 @@ export function MailScreen({
         ) : null}
 
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{copy.mail.todayBriefTitle}</Text>
-          <View style={styles.buttonRow}>
-            <Pressable
+          <View style={cardHeaderStyles.row}>
+            <View style={cardHeaderStyles.main}>
+              <Text style={styles.sectionTitle}>{copy.mail.todayBriefTitle}</Text>
+            </View>
+            <ReloadButton
+              accessibilityLabel={copy.mail.summarizeToday}
               disabled={isInboxLoading || !gmailConnected}
               onPress={() => void onLoadDailyEmailBrief()}
-              style={styles.secondaryButton}
-            >
-              <Text style={styles.secondaryButtonText}>{copy.mail.summarizeToday}</Text>
-            </Pressable>
+            />
           </View>
 
           {dailyEmailDigest ? (
@@ -178,5 +179,18 @@ const filterStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.3
+  }
+});
+
+const cardHeaderStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 12
+  },
+  main: {
+    flex: 1
   }
 });

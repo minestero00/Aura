@@ -7,6 +7,7 @@ import { mergeAgendaDays } from "@features/calendar/merge";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import { AgendaDayCard } from "@features/app/screens/todo/agenda-day-card";
 import { AuraLoader } from "@features/app/components/aura-loader";
+import { ReloadButton } from "@features/app/components/reload-button";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import { TravelModeSelector } from "@features/app/screens/todo/travel-mode-selector";
 import type { TodayWeatherAdvice } from "@features/weather/types";
@@ -99,22 +100,11 @@ export function TodoScreen({
               <Text style={styles.sectionTitle}>{copy.todo.weatherTitle}</Text>
               <Text style={styles.sectionSubtitle}>{copy.todo.weatherSubtitle}</Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
+            <ReloadButton
               accessibilityLabel={copy.todo.weatherRefresh}
               disabled={isWeatherLoading}
               onPress={() => void onLoadTodayWeatherAdvice()}
-              hitSlop={10}
-              style={[
-                weatherStyles.reloadButton,
-                {
-                  backgroundColor: theme.colors.surfaceMuted,
-                  opacity: isWeatherLoading ? 0.55 : 1
-                }
-              ]}
-            >
-              <Text style={[weatherStyles.reloadIcon, { color: theme.colors.textSecondary }]}>↻</Text>
-            </Pressable>
+            />
           </View>
 
           {todayWeatherAdvice ? (
@@ -136,8 +126,17 @@ export function TodoScreen({
         </View>
 
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{copy.todo.title}</Text>
-          <Text style={styles.sectionSubtitle}>{copy.todo.subtitle}</Text>
+          <View style={weatherStyles.headerRow}>
+            <View style={weatherStyles.headerMain}>
+              <Text style={styles.sectionTitle}>{copy.todo.title}</Text>
+              <Text style={styles.sectionSubtitle}>{copy.todo.subtitle}</Text>
+            </View>
+            <ReloadButton
+              accessibilityLabel={copy.todo.loadAgenda}
+              disabled={isAnyLoading || (!calendarConnected && !isDeviceCalendarPermissionGranted)}
+              onPress={() => void handleLoadMergedAgenda()}
+            />
+          </View>
 
           <Text style={styles.inputLabel}>{copy.todo.travelBasisTitle}</Text>
           <TravelModeSelector
@@ -146,16 +145,6 @@ export function TodoScreen({
             styles={styles}
             onSetTravelMode={onSetTravelMode}
           />
-
-          <View style={styles.buttonRow}>
-            <Pressable
-              disabled={isAnyLoading || (!calendarConnected && !isDeviceCalendarPermissionGranted)}
-              onPress={() => void handleLoadMergedAgenda()}
-              style={styles.secondaryButton}
-            >
-              <Text style={styles.secondaryButtonText}>{copy.todo.loadAgenda}</Text>
-            </Pressable>
-          </View>
 
           {isAnyLoading && mergedAgendaDays.length === 0 ? (
             <View style={[styles.compactDigestCard, { paddingVertical: 28, alignItems: "center" }]}>
@@ -196,16 +185,5 @@ const weatherStyles = StyleSheet.create({
   },
   headerMain: {
     flex: 1
-  },
-  reloadButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  reloadIcon: {
-    fontSize: 18,
-    fontWeight: "700"
   }
 });
