@@ -31,8 +31,6 @@ export function useAuraAppState() {
   const [actionableError, setActionableError] = useState<ActionableError | null>(null);
   const [settingsNoticeMessage, setSettingsNoticeMessage] = useState<string | null>(null);
   const [gmailDebugState, setGmailDebugState] = useState("idle");
-  const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
-  const [gmailDigest, setGmailDigest] = useState<GmailDigest | null>(null);
   const [replyingMessageId, setReplyingMessageId] = useState<string | null>(null);
   const [dailyEmailDigest, setDailyEmailDigest] = useState<GmailDigest | null>(null);
   const [dailyEmailMessages, setDailyEmailMessages] = useState<GmailMessage[]>([]);
@@ -114,10 +112,6 @@ export function useAuraAppState() {
     setSettingsNoticeMessage,
     gmailDebugState,
     setGmailDebugState,
-    gmailMessages,
-    setGmailMessages,
-    gmailDigest,
-    setGmailDigest,
     replyingMessageId,
     setReplyingMessageId,
     dailyEmailDigest,

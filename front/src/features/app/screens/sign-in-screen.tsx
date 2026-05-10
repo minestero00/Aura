@@ -18,6 +18,7 @@ import { SvgXml } from "react-native-svg";
 import LinearGradient from "react-native-linear-gradient";
 import { auraMotion, createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
+import { ToastMessage } from "@features/app/components/toast-message";
 import { signInRoot } from "./sign-in-screen.styles";
 
 const AURA_ICON = require("@features/app/assets/aura-icon.png");
@@ -76,6 +77,14 @@ export function SignInScreen({
   const [phoneStep, setPhoneStep] = useState<PhoneStep>("request");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [comingSoonMessage, setComingSoonMessage] = useState<string | null>(null);
+
+  // 현재 활성 sign-in 방식은 Google 뿐 — 나머지는 짧은 toast로 안내.
+  // null로 한 번 reset 후 set해야 같은 메시지로 재차 띄워도 효과 발생.
+  function showComingSoon() {
+    setComingSoonMessage(null);
+    setTimeout(() => setComingSoonMessage(copy.signIn.comingSoon), 0);
+  }
 
   // Screen entrance — top hero slides down, bottom form slides up (staggered).
   // Spec: aura-app-design-system/references/patterns.md "화면 진입 모션".
@@ -178,13 +187,12 @@ export function SignInScreen({
                 isSubmitting={isSubmitting}
                 errorMessage={errorMessage}
                 onGoogleSignIn={onGoogleSignIn}
-                onKakaoSignIn={onKakaoSignIn}
-                onPickPhone={() => {
-                  setMode("phone");
-                  setPhoneStep("request");
-                  setOtp("");
+                onKakaoSignIn={async () => {
+                  // Kakao SDK 출시 검수 통과 전까지 비활성 — toast로 안내.
+                  showComingSoon();
                 }}
-                onPickEmail={() => setMode("email")}
+                onPickPhone={() => showComingSoon()}
+                onPickEmail={() => showComingSoon()}
               />
             ) : null}
 
@@ -230,6 +238,7 @@ export function SignInScreen({
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <ToastMessage message={comingSoonMessage} onHide={() => setComingSoonMessage(null)} />
       </SafeAreaView>
     </View>
   );

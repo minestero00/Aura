@@ -1,4 +1,4 @@
-import { disconnectGmail, ignoreSender, loadEmailSummary, loadRecentEmails, removeIgnoredSender, replyToMessage } from "@features/app/hooks/use-aura-app/gmail";
+import { disconnectGmail, ignoreSender, removeIgnoredSender, replyToMessage } from "@features/app/hooks/use-aura-app/gmail";
 import { getSenderKey } from "@features/gmail/filtering";
 import { saveIgnoredSenderRules } from "@features/gmail/storage";
 import type { GmailMessage } from "@features/gmail/types";
@@ -7,14 +7,6 @@ import type { AuraHandlersContext } from "./types";
 export function createGmailHandlers(context: AuraHandlersContext) {
   async function handleDisconnectGmail() {
     await disconnectGmail(context.deps.getGmailDeps());
-  }
-
-  async function handleLoadRecentEmails() {
-    await loadRecentEmails(context.deps.getGmailDeps());
-  }
-
-  async function handleLoadEmailSummary() {
-    await loadEmailSummary(context.deps.getGmailDeps());
   }
 
   async function handleIgnoreSender(message: GmailMessage) {
@@ -50,7 +42,6 @@ export function createGmailHandlers(context: AuraHandlersContext) {
 
     context.setIgnoredSenderRules(nextRules as any[]);
     context.setIgnoredSenderDraft("");
-    context.setGmailDigest(null);
     context.setDailyEmailDigest(null);
     await saveIgnoredSenderRules(nextRules as any[]);
   }
@@ -61,8 +52,6 @@ export function createGmailHandlers(context: AuraHandlersContext) {
 
   return {
     handleDisconnectGmail,
-    handleLoadRecentEmails,
-    handleLoadEmailSummary,
     handleIgnoreSender,
     handleRemoveIgnoredSender,
     handleSaveIgnoredSenderDraft,

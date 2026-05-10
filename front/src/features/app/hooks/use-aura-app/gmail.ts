@@ -6,7 +6,7 @@ import type { GmailDigest, GmailMessage } from "@features/gmail/types";
 import type { ActionableError, AuthSessionState } from "@features/app/types";
 import { getErrorMessage } from "@features/app/hooks/use-aura-app/helpers";
 import { createSessionManager } from "@features/app/hooks/use-aura-app/session";
-export { loadDailyEmailBrief, loadEmailSummary, loadRecentEmails } from "./gmail-inbox";
+export { loadDailyEmailBrief } from "./gmail-inbox";
 export { ignoreSender, removeIgnoredSender } from "./gmail-sender-rules";
 export { replyToMessage } from "./gmail-reply";
 
@@ -20,8 +20,6 @@ export interface GmailModuleDeps {
   setActionableError: Dispatch<SetStateAction<ActionableError | null>>;
   setIsGmailSubmitting: Dispatch<SetStateAction<boolean>>;
   setIsInboxLoading: Dispatch<SetStateAction<boolean>>;
-  setGmailMessages: Dispatch<SetStateAction<GmailMessage[]>>;
-  setGmailDigest: Dispatch<SetStateAction<GmailDigest | null>>;
   setDailyEmailDigest: Dispatch<SetStateAction<GmailDigest | null>>;
   setDailyEmailMessages: Dispatch<SetStateAction<GmailMessage[]>>;
   setReplyingMessageId: Dispatch<SetStateAction<string | null>>;
@@ -91,8 +89,6 @@ export async function disconnectGmail(deps: GmailModuleDeps) {
 
   try {
     const { session } = await deps.withSessionAutoRefresh(() => disconnectGmailIntegration());
-    deps.setGmailMessages([]);
-    deps.setGmailDigest(null);
     deps.setDailyEmailDigest(null);
     deps.setDailyEmailMessages([]);
     await deps.syncMe(session);

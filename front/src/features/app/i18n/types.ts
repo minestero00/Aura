@@ -53,6 +53,7 @@ export interface AppCopy {
     kakaoComingSoon: string;
     phoneButton: string;
     emailButton: string;
+    comingSoon: string;
     dumbHint: string;
     back: string;
     phoneTitle: string;
@@ -82,9 +83,6 @@ export interface AppCopy {
     todayBriefTitle: string;
     summarizeToday: string;
     updatingBrief: string;
-    inboxPreviewTitle: string;
-    loadRecent: string;
-    summarizeInbox: string;
     replyDraft: string;
     draftingReply: string;
     noPreview: string;
@@ -195,7 +193,6 @@ export interface AppCopy {
     notificationsBlocked: string;
     notificationsEnable: string;
     notificationsDisable: string;
-    notificationsRefresh: string;
     permissionsTitle: string;
     permissionsSubtitle: string;
     permissionsDeviceCalendar: string;

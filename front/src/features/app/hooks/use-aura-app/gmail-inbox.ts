@@ -1,4 +1,4 @@
-import { fetchDailyGmailSummary, fetchGmailSummary, fetchRecentGmailMessages } from "@features/gmail/api";
+import { fetchDailyGmailSummary } from "@features/gmail/api";
 import { filterIgnoredMessages } from "@features/gmail/filtering";
 import {
   getErrorMessage,
@@ -14,48 +14,6 @@ function handleGmailLoadError(
 ) {
   if (tryHandleActionableError(error, deps.setActionableError)) return;
   deps.setErrorMessage(getErrorMessage(error, fallbackMessage));
-}
-
-export async function loadRecentEmails(deps: GmailModuleDeps) {
-  if (!deps.authState) {
-    return;
-  }
-
-  deps.setIsInboxLoading(true);
-  deps.setErrorMessage(null);
-
-  try {
-    const { result: response } = await deps.withSessionAutoRefresh(accessToken =>
-      fetchRecentGmailMessages(accessToken, 5, getIgnoredSenderKeys(deps.ignoredSenderRules))
-    );
-    deps.setGmailMessages(filterIgnoredMessages(response.messages, deps.ignoredSenderRules));
-  } catch (error: unknown) {
-    handleGmailLoadError(error, deps, "Unable to load Gmail messages right now.");
-  } finally {
-    deps.setIsInboxLoading(false);
-  }
-}
-
-export async function loadEmailSummary(deps: GmailModuleDeps) {
-  if (!deps.authState) {
-    return;
-  }
-
-  deps.setIsInboxLoading(true);
-  deps.setErrorMessage(null);
-
-  try {
-    const { result: response } = await deps.withSessionAutoRefresh(accessToken =>
-      fetchGmailSummary(accessToken, 5, getIgnoredSenderKeys(deps.ignoredSenderRules), deps.language)
-    );
-    const filteredMessages = filterIgnoredMessages(response.messages, deps.ignoredSenderRules);
-    deps.setGmailDigest(response.digest);
-    deps.setGmailMessages(filteredMessages);
-  } catch (error: unknown) {
-    handleGmailLoadError(error, deps, "Unable to summarize Gmail right now.");
-  } finally {
-    deps.setIsInboxLoading(false);
-  }
 }
 
 export async function loadDailyEmailBrief(deps: GmailModuleDeps) {

@@ -185,8 +185,6 @@ export function createAuthHandlers(context: AuraHandlersContext) {
     context.setErrorMessage(null);
     context.setSettingsNoticeMessage(null);
     context.setGmailDebugState("idle");
-    context.setGmailMessages([]);
-    context.setGmailDigest(null);
     context.setDailyEmailDigest(null);
     context.setDailyEmailMessages([]);
     context.setNewsBriefing(null);

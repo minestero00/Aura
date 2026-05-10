@@ -20,8 +20,6 @@ interface BuildResultParams {
   settingsNoticeMessage: UseAuraAppResult["settingsNoticeMessage"];
   language: AppLanguage;
   gmailDebugState: UseAuraAppResult["gmailDebugState"];
-  gmailDigest: UseAuraAppResult["gmailDigest"];
-  gmailMessages: UseAuraAppResult["gmailMessages"];
   replyingMessageId: UseAuraAppResult["replyingMessageId"];
   ignoredSenderRules: UseAuraAppResult["ignoredSenderRules"];
   ignoredSenderDraft: UseAuraAppResult["ignoredSenderDraft"];
@@ -79,8 +77,6 @@ interface BuildResultParams {
     handlePhoneRequestOtp: UseAuraAppResult["handlePhoneRequestOtp"];
     handlePhoneVerifyOtp: UseAuraAppResult["handlePhoneVerifyOtp"];
     handleEmailSignIn: UseAuraAppResult["handleEmailSignIn"];
-    handleLoadEmailSummary: UseAuraAppResult["handleLoadEmailSummary"];
-    handleLoadRecentEmails: UseAuraAppResult["handleLoadRecentEmails"];
     handleReplyToMessage: UseAuraAppResult["handleReplyToMessage"];
     handleSaveIgnoredSenderDraft: UseAuraAppResult["handleSaveIgnoredSenderDraft"];
     handleSaveMorningBriefTime: UseAuraAppResult["handleSaveMorningBriefTime"];
@@ -110,7 +106,6 @@ interface BuildResultParams {
 }
 
 export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult {
-  const visibleGmailMessages = filterIgnoredMessages(params.gmailMessages, params.ignoredSenderRules);
   const visibleDailyEmailMessages = filterIgnoredMessages(params.dailyEmailMessages, params.ignoredSenderRules);
   const calendarTravelHints = params.calendarTravelHintsByMode[params.selectedTravelMode] ?? [];
 
@@ -131,8 +126,6 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     settingsNoticeMessage: params.settingsNoticeMessage,
     language: params.language,
     gmailDebugState: params.gmailDebugState,
-    gmailDigest: params.gmailDigest,
-    gmailMessages: visibleGmailMessages,
     replyingMessageId: params.replyingMessageId,
     ignoredSenderRules: params.ignoredSenderRules,
     ignoredSenderDraft: params.ignoredSenderDraft,
@@ -205,8 +198,6 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handlePhoneRequestOtp: params.handlers.handlePhoneRequestOtp,
     handlePhoneVerifyOtp: params.handlers.handlePhoneVerifyOtp,
     handleEmailSignIn: params.handlers.handleEmailSignIn,
-    handleLoadEmailSummary: params.handlers.handleLoadEmailSummary,
-    handleLoadRecentEmails: params.handlers.handleLoadRecentEmails,
     handleReplyToMessage: params.handlers.handleReplyToMessage,
     handleReset: params.handlers.handleReset,
     handleSaveIgnoredSenderDraft: params.handlers.handleSaveIgnoredSenderDraft,

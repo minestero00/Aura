@@ -19,7 +19,6 @@ export async function ignoreSender(deps: GmailModuleDeps, message: GmailMessage,
   ];
 
   deps.setIgnoredSenderRules(nextRules);
-  deps.setGmailDigest(null);
   deps.setDailyEmailDigest(null);
   await saveIgnoredSenderRules(nextRules);
 }
@@ -27,7 +26,6 @@ export async function ignoreSender(deps: GmailModuleDeps, message: GmailMessage,
 export async function removeIgnoredSender(deps: GmailModuleDeps, senderKey: string) {
   const nextRules = deps.ignoredSenderRules.filter(rule => rule.senderKey !== senderKey);
   deps.setIgnoredSenderRules(nextRules);
-  deps.setGmailDigest(null);
   deps.setDailyEmailDigest(null);
   await saveIgnoredSenderRules(nextRules);
 }
