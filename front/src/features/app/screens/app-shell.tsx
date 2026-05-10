@@ -199,6 +199,9 @@ export function AppShell({ app }: AppShellProps) {
             language={app.language}
             labelCategory={app.labelNewsCategory}
             morningBriefTime={app.authState!.me.preferences.morningBriefTime}
+            eveningBriefTime={app.authState!.me.preferences.eveningBriefTime}
+            departureAlertsEnabled={app.authState!.me.preferences.departureAlertsEnabled}
+            departureBufferMinutes={app.authState!.me.preferences.departureBufferMinutes}
             usage={app.usage}
             selectedSettingsSection={app.selectedSettingsSection}
             onConnectGmail={app.handleConnectGmail}
@@ -220,6 +223,9 @@ export function AppShell({ app }: AppShellProps) {
             onRemoveIgnoredSender={app.handleRemoveIgnoredSender}
             onSaveIgnoredSenderDraft={app.handleSaveIgnoredSenderDraft}
             onSaveMorningBriefTime={app.handleSaveMorningBriefTime}
+            onSaveEveningBriefTime={app.handleSaveEveningBriefTime}
+            onSetDepartureAlertsEnabled={app.handleSetDepartureAlertsEnabled}
+            onSetDepartureBufferMinutes={app.handleSetDepartureBufferMinutes}
             onLogout={app.handleLogout}
             onSetLanguage={app.handleSetLanguage}
             onSelectSettingsSection={app.handleSelectSettingsSection}

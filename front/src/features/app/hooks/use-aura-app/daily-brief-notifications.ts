@@ -101,6 +101,72 @@ export async function enableDailyBriefNotifications(deps: DailyBriefModuleDeps) 
   }
 }
 
+export async function saveEveningBriefTime(deps: DailyBriefModuleDeps, draft: string) {
+  if (!deps.authState) return;
+
+  const normalized = normalizeMorningBriefTime(draft);
+  if (!normalized) {
+    deps.setErrorMessage(
+      deps.language === "ko"
+        ? "저녁 알림 시간은 HH:MM 형식으로 입력해야 합니다."
+        : "Evening time must use HH:MM format."
+    );
+    return;
+  }
+
+  try {
+    deps.setErrorMessage(null);
+    await deps.withSessionAutoRefresh(() =>
+      updateUserPreferences({ eveningBriefTime: normalized })
+    );
+    await deps.syncMe();
+  } catch (error: unknown) {
+    deps.setErrorMessage(
+      getErrorMessage(
+        error,
+        deps.language === "ko" ? "저녁 알림 시간을 저장할 수 없습니다." : "Unable to save evening brief time."
+      )
+    );
+  }
+}
+
+export async function setDepartureAlertsEnabled(deps: DailyBriefModuleDeps, enabled: boolean) {
+  if (!deps.authState) return;
+  try {
+    deps.setErrorMessage(null);
+    await deps.withSessionAutoRefresh(() =>
+      updateUserPreferences({ departureAlertsEnabled: enabled })
+    );
+    await deps.syncMe();
+  } catch (error: unknown) {
+    deps.setErrorMessage(
+      getErrorMessage(
+        error,
+        deps.language === "ko" ? "출발 알림 설정을 저장할 수 없습니다." : "Unable to save departure alerts setting."
+      )
+    );
+  }
+}
+
+export async function setDepartureBufferMinutes(deps: DailyBriefModuleDeps, minutes: number) {
+  if (!deps.authState) return;
+  const clamped = Math.max(0, Math.min(60, Math.round(minutes)));
+  try {
+    deps.setErrorMessage(null);
+    await deps.withSessionAutoRefresh(() =>
+      updateUserPreferences({ departureBufferMinutes: clamped })
+    );
+    await deps.syncMe();
+  } catch (error: unknown) {
+    deps.setErrorMessage(
+      getErrorMessage(
+        error,
+        deps.language === "ko" ? "여유 시간을 저장할 수 없습니다." : "Unable to save buffer minutes."
+      )
+    );
+  }
+}
+
 export async function disableDailyBriefNotifications(deps: DailyBriefModuleDeps) {
   if (!deps.authState) {
     return;

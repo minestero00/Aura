@@ -193,6 +193,13 @@ export interface AppCopy {
     notificationsBlocked: string;
     notificationsEnable: string;
     notificationsDisable: string;
+    notificationsEveningTitle: string;
+    notificationsEveningSubtitle: string;
+    notificationsEveningTime: string;
+    departureTitle: string;
+    departureSubtitle: string;
+    departureEnabledLabel: string;
+    departureBufferLabel: string;
     permissionsTitle: string;
     permissionsSubtitle: string;
     permissionsDeviceCalendar: string;

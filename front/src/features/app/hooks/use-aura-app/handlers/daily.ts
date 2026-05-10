@@ -1,4 +1,14 @@
-import { disableDailyBriefNotifications, enableDailyBriefNotifications, loadDailyEmailBriefForSession, loadDailyNewsBriefForSession, refreshDailyBrief, saveMorningBriefTime } from "@features/app/hooks/use-aura-app/daily-brief";
+import {
+  disableDailyBriefNotifications,
+  enableDailyBriefNotifications,
+  loadDailyEmailBriefForSession,
+  loadDailyNewsBriefForSession,
+  refreshDailyBrief,
+  saveEveningBriefTime,
+  saveMorningBriefTime,
+  setDepartureAlertsEnabled,
+  setDepartureBufferMinutes
+} from "@features/app/hooks/use-aura-app/daily-brief";
 import type { AuthSessionState } from "@features/app/types";
 import type { AuraHandlersContext } from "./types";
 
@@ -33,12 +43,24 @@ export function createDailyHandlers(context: AuraHandlersContext) {
     await saveMorningBriefTime(context.deps.getDailyBriefDeps());
   }
 
+  async function handleSaveEveningBriefTime(draft: string) {
+    await saveEveningBriefTime(context.deps.getDailyBriefDeps(), draft);
+  }
+
   async function handleEnableDailyBriefNotifications() {
     await enableDailyBriefNotifications(context.deps.getDailyBriefDeps());
   }
 
   async function handleDisableDailyBriefNotifications() {
     await disableDailyBriefNotifications(context.deps.getDailyBriefDeps());
+  }
+
+  async function handleSetDepartureAlertsEnabled(enabled: boolean) {
+    await setDepartureAlertsEnabled(context.deps.getDailyBriefDeps(), enabled);
+  }
+
+  async function handleSetDepartureBufferMinutes(minutes: number) {
+    await setDepartureBufferMinutes(context.deps.getDailyBriefDeps(), minutes);
   }
 
   return {
@@ -48,7 +70,10 @@ export function createDailyHandlers(context: AuraHandlersContext) {
     handleLoadDailyNewsBrief,
     handleRefreshDailyBrief,
     handleSaveMorningBriefTime,
+    handleSaveEveningBriefTime,
     handleEnableDailyBriefNotifications,
-    handleDisableDailyBriefNotifications
+    handleDisableDailyBriefNotifications,
+    handleSetDepartureAlertsEnabled,
+    handleSetDepartureBufferMinutes
   };
 }

@@ -125,6 +125,9 @@ export interface UseAuraAppResult {
   handleReset: () => Promise<void>;
   handleSaveIgnoredSenderDraft: () => Promise<void>;
   handleSaveMorningBriefTime: () => Promise<void>;
+  handleSaveEveningBriefTime: (draft: string) => Promise<void>;
+  handleSetDepartureAlertsEnabled: (enabled: boolean) => Promise<void>;
+  handleSetDepartureBufferMinutes: (minutes: number) => Promise<void>;
   handleSelectTab: (tab: AppTabKey) => void;
   handleSelectSettingsSection: (section: SettingsSectionKey) => void;
   handleSetLanguage: (language: AppLanguage) => Promise<void>;

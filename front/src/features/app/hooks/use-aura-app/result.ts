@@ -80,6 +80,9 @@ interface BuildResultParams {
     handleReplyToMessage: UseAuraAppResult["handleReplyToMessage"];
     handleSaveIgnoredSenderDraft: UseAuraAppResult["handleSaveIgnoredSenderDraft"];
     handleSaveMorningBriefTime: UseAuraAppResult["handleSaveMorningBriefTime"];
+    handleSaveEveningBriefTime: UseAuraAppResult["handleSaveEveningBriefTime"];
+    handleSetDepartureAlertsEnabled: UseAuraAppResult["handleSetDepartureAlertsEnabled"];
+    handleSetDepartureBufferMinutes: UseAuraAppResult["handleSetDepartureBufferMinutes"];
     handleSetLanguage: UseAuraAppResult["handleSetLanguage"];
     handleToggleNewsCategory: UseAuraAppResult["handleToggleNewsCategory"];
     handleSetTravelMode: UseAuraAppResult["handleSetTravelMode"];
@@ -202,6 +205,9 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleReset: params.handlers.handleReset,
     handleSaveIgnoredSenderDraft: params.handlers.handleSaveIgnoredSenderDraft,
     handleSaveMorningBriefTime: params.handlers.handleSaveMorningBriefTime,
+    handleSaveEveningBriefTime: params.handlers.handleSaveEveningBriefTime,
+    handleSetDepartureAlertsEnabled: params.handlers.handleSetDepartureAlertsEnabled,
+    handleSetDepartureBufferMinutes: params.handlers.handleSetDepartureBufferMinutes,
     handleSetLanguage: params.handlers.handleSetLanguage,
     handleToggleNewsCategory: params.handlers.handleToggleNewsCategory,
     labelNewsCategory: category => getCategoryLabel(params.language, category),

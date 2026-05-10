@@ -8,9 +8,8 @@ import { SettingsStatusRow, SettingsSubpageHeader } from "@features/app/screens/
 import { toPickerDate } from "@features/app/screens/settings/types";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
 
-// iOS spinner는 사용자가 휠 돌리는 동안 onChange가 연속 발생 — 매번 저장하면 API 폭주.
-// Android dialog는 OK 누른 시점 1회만 발생하므로 debounce 불필요.
 const IOS_SAVE_DEBOUNCE_MS = 600;
+const BUFFER_OPTIONS = [0, 5, 10, 15, 20, 30];
 
 export function NotificationsSection(props: SettingsSectionProps) {
   const {
@@ -20,50 +19,76 @@ export function NotificationsSection(props: SettingsSectionProps) {
     isNotificationPermissionGranted,
     morningBriefTime,
     morningBriefTimeDraft,
+    eveningBriefTime,
+    departureAlertsEnabled,
+    departureBufferMinutes,
     onMorningBriefTimeDraftChange,
     onDisableDailyBriefNotifications,
     onEnableDailyBriefNotifications,
     onSaveMorningBriefTime,
+    onSaveEveningBriefTime,
+    onSetDepartureAlertsEnabled,
+    onSetDepartureBufferMinutes,
     onSelectSettingsSection
   } = props;
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const morningDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const eveningDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+      if (morningDebounceRef.current) clearTimeout(morningDebounceRef.current);
+      if (eveningDebounceRef.current) clearTimeout(eveningDebounceRef.current);
     };
   }, []);
 
-  function applySelectedDate(selectedDate: Date | undefined) {
+  function applyMorningPick(selectedDate: Date | undefined) {
     if (!selectedDate) return;
     const hours = String(selectedDate.getHours()).padStart(2, "0");
     const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
     onMorningBriefTimeDraftChange(`${hours}:${minutes}`);
 
     if (Platform.OS === "android") {
-      // Android dialog OK → 즉시 저장.
       void onSaveMorningBriefTime();
       return;
     }
-
-    // iOS: 사용자가 spinner 멈춘 후 약간의 디바운스를 두고 저장.
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    debounceRef.current = setTimeout(() => {
+    if (morningDebounceRef.current) clearTimeout(morningDebounceRef.current);
+    morningDebounceRef.current = setTimeout(() => {
       void onSaveMorningBriefTime();
     }, IOS_SAVE_DEBOUNCE_MS);
   }
 
-  function openAndroidTimePicker() {
+  function applyEveningPick(selectedDate: Date | undefined) {
+    if (!selectedDate) return;
+    const hours = String(selectedDate.getHours()).padStart(2, "0");
+    const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
+    const draft = `${hours}:${minutes}`;
+
+    if (Platform.OS === "android") {
+      void onSaveEveningBriefTime(draft);
+      return;
+    }
+    if (eveningDebounceRef.current) clearTimeout(eveningDebounceRef.current);
+    eveningDebounceRef.current = setTimeout(() => {
+      void onSaveEveningBriefTime(draft);
+    }, IOS_SAVE_DEBOUNCE_MS);
+  }
+
+  function openAndroidMorningPicker() {
     DateTimePickerAndroid.open({
       value: toPickerDate(morningBriefTimeDraft),
       mode: "time",
       is24Hour: true,
-      onChange: (_, selectedDate) => applySelectedDate(selectedDate)
+      onChange: (_, selectedDate) => applyMorningPick(selectedDate)
+    });
+  }
+
+  function openAndroidEveningPicker() {
+    DateTimePickerAndroid.open({
+      value: toPickerDate(eveningBriefTime?.slice(0, 5) ?? "20:00"),
+      mode: "time",
+      is24Hour: true,
+      onChange: (_, selectedDate) => applyEveningPick(selectedDate)
     });
   }
 
@@ -99,14 +124,14 @@ export function NotificationsSection(props: SettingsSectionProps) {
 
             <View style={styles.sectionCard}>
               {Platform.OS === "android" ? (
-                <Pressable onPress={openAndroidTimePicker} style={styles.outlineButton}>
+                <Pressable onPress={openAndroidMorningPicker} style={styles.outlineButton}>
                   <Text style={styles.outlineButtonText}>{morningBriefTimeDraft || "09:00"}</Text>
                 </Pressable>
               ) : (
                 <DateTimePicker
                   display="spinner"
                   mode="time"
-                  onChange={(_, selectedDate) => applySelectedDate(selectedDate)}
+                  onChange={(_, selectedDate) => applyMorningPick(selectedDate)}
                   value={toPickerDate(morningBriefTimeDraft)}
                 />
               )}
@@ -127,6 +152,76 @@ export function NotificationsSection(props: SettingsSectionProps) {
                     : copy.settings.notificationsEnable}
                 </Text>
               </Pressable>
+            </View>
+          </View>
+
+          {/* 저녁 브리핑 */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{copy.settings.notificationsEveningTitle}</Text>
+            <Text style={styles.helperText}>{copy.settings.notificationsEveningSubtitle}</Text>
+            <Text style={styles.detailLine}>
+              {copy.settings.notificationsEveningTime}: {eveningBriefTime?.slice(0, 5) ?? "20:00"}
+            </Text>
+
+            <View style={styles.sectionCard}>
+              {Platform.OS === "android" ? (
+                <Pressable onPress={openAndroidEveningPicker} style={styles.outlineButton}>
+                  <Text style={styles.outlineButtonText}>{eveningBriefTime?.slice(0, 5) ?? "20:00"}</Text>
+                </Pressable>
+              ) : (
+                <DateTimePicker
+                  display="spinner"
+                  mode="time"
+                  onChange={(_, selectedDate) => applyEveningPick(selectedDate)}
+                  value={toPickerDate(eveningBriefTime?.slice(0, 5) ?? "20:00")}
+                />
+              )}
+            </View>
+          </View>
+
+          {/* 출발 알림 */}
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>{copy.settings.departureTitle}</Text>
+            <Text style={styles.helperText}>{copy.settings.departureSubtitle}</Text>
+            <SettingsStatusRow
+              styles={styles}
+              label={copy.settings.departureEnabledLabel}
+              isOk={departureAlertsEnabled}
+              issueText={copy.settings.notificationsDisabled}
+              onIssuePress={() => onSetDepartureAlertsEnabled(true)}
+            />
+
+            <View style={styles.buttonRow}>
+              <Pressable
+                onPress={() => void onSetDepartureAlertsEnabled(!departureAlertsEnabled)}
+                style={styles.secondaryButton}
+              >
+                <Text style={styles.secondaryButtonText}>
+                  {departureAlertsEnabled
+                    ? copy.settings.notificationsDisable
+                    : copy.settings.notificationsEnable}
+                </Text>
+              </Pressable>
+            </View>
+
+            <Text style={[styles.detailLine, { marginTop: 12 }]}>
+              {copy.settings.departureBufferLabel}: {departureBufferMinutes}
+            </Text>
+            <View style={[styles.buttonRow, { flexWrap: "wrap" }]}>
+              {BUFFER_OPTIONS.map(value => {
+                const isActive = departureBufferMinutes === value;
+                return (
+                  <Pressable
+                    key={`buffer-${value}`}
+                    onPress={() => void onSetDepartureBufferMinutes(value)}
+                    style={isActive ? styles.secondaryButton : styles.outlineButton}
+                  >
+                    <Text style={isActive ? styles.secondaryButtonText : styles.outlineButtonText}>
+                      {value}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         </ScrollView>

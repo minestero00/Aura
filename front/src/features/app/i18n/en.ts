@@ -221,6 +221,13 @@ export const EN_COPY: AppCopy = {
     notificationsBlocked: 'Blocked',
     notificationsEnable: 'Enable daily brief',
     notificationsDisable: 'Disable daily brief',
+    notificationsEveningTitle: 'Evening brief',
+    notificationsEveningSubtitle: 'Tomorrow agenda summary',
+    notificationsEveningTime: 'Evening time',
+    departureTitle: 'Departure alerts',
+    departureSubtitle: 'Auto-notify when to leave for upcoming events',
+    departureEnabledLabel: 'Departure alerts enabled',
+    departureBufferLabel: 'Buffer (minutes)',
     permissionsTitle: 'Permissions',
     permissionsSubtitle:
       'Manage the access AURA needs to show your briefings and schedule.',

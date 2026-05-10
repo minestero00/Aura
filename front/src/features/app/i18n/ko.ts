@@ -215,6 +215,13 @@ export const KO_COPY: AppCopy = {
     notificationsBlocked: '차단됨',
     notificationsEnable: '데일리 브리핑 켜기',
     notificationsDisable: '데일리 브리핑 끄기',
+    notificationsEveningTitle: '저녁 브리핑',
+    notificationsEveningSubtitle: '내일 일정 정리 알림',
+    notificationsEveningTime: '저녁 알림 시간',
+    departureTitle: '출발 알림',
+    departureSubtitle: '캘린더 일정 시간에 맞춰 출발 시각 자동 안내',
+    departureEnabledLabel: '출발 알림 사용',
+    departureBufferLabel: '여유 시간 (분)',
     permissionsTitle: '권한',
     permissionsSubtitle:
       '브리핑과 일정을 보여주기 위해 필요한 접근 권한을 관리헤요.',

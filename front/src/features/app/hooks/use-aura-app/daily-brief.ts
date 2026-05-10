@@ -14,7 +14,10 @@ export {
   disableDailyBriefNotifications,
   enableDailyBriefNotifications,
   refreshDailyBriefNotificationState,
-  saveMorningBriefTime
+  saveMorningBriefTime,
+  saveEveningBriefTime,
+  setDepartureAlertsEnabled,
+  setDepartureBufferMinutes
 } from "./daily-brief-notifications";
 
 export interface DailyBriefModuleDeps {

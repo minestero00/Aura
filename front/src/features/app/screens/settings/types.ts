@@ -21,6 +21,9 @@ export interface SettingsScreenProps {
   isGoogleCalendarConnected: boolean;
   isNotificationPermissionGranted: boolean;
   morningBriefTime: string | null;
+  eveningBriefTime: string | null;
+  departureAlertsEnabled: boolean;
+  departureBufferMinutes: number;
   language: AppLanguage;
   labelCategory: (category: NewsCategory) => string;
   selectedSettingsSection: SettingsSectionKey;
@@ -41,6 +44,9 @@ export interface SettingsScreenProps {
   onRemoveIgnoredSender: (senderKey: string) => Promise<void>;
   onSaveIgnoredSenderDraft: () => Promise<void>;
   onSaveMorningBriefTime: () => Promise<void>;
+  onSaveEveningBriefTime: (draft: string) => Promise<void>;
+  onSetDepartureAlertsEnabled: (enabled: boolean) => Promise<void>;
+  onSetDepartureBufferMinutes: (minutes: number) => Promise<void>;
   onSelectSettingsSection: (section: SettingsSectionKey) => void;
   onSetLanguage: (language: AppLanguage) => Promise<void>;
   onDisableDailyBriefNotifications: () => Promise<void>;
