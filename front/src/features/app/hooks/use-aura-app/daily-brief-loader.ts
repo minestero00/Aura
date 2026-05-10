@@ -35,6 +35,11 @@ export async function prepareDailyBriefForSession(
       if (gmailConnected && !cached.email.digest) {
         void loadDailyEmailBriefForSession(deps, session);
       }
+      // 뉴스가 비어있으면(외부 API 일시 장애 또는 첫 로그인 직후 캐시 빈 케이스)
+      // 백그라운드로 직접 다시 fetch — 사용자에게 "뉴스가 없습니다" 빈 카드 안 보이게.
+      if (cached.news.articles.length === 0 || !cached.news.briefing?.headline) {
+        void loadDailyNewsBriefForSession(deps, session);
+      }
       return;
     }
   }
@@ -61,6 +66,12 @@ export async function prepareDailyBriefForSession(
     // 뉴스와 함께 화면에 보이게.
     if (gmailConnected && !snapshot.email.digest) {
       void loadDailyEmailBriefForSession(deps, session);
+    }
+    // 메일과 같은 안전망 — 뉴스 articles가 비어있거나 briefing headline이 없으면
+    // 별도로 직접 fetch. 외부 뉴스 API 일시 장애 / Anthropic 응답 fail / token budget
+    // 도달 등에서 사용자에게 빈 카드 안 보이게.
+    if (snapshot.news.articles.length === 0 || !snapshot.news.briefing?.headline) {
+      void loadDailyNewsBriefForSession(deps, session);
     }
   } catch (error: unknown) {
     if (tryHandleActionableError(error, deps.setActionableError)) {
