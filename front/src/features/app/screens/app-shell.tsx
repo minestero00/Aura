@@ -326,6 +326,7 @@ export function AppShell({ app }: AppShellProps) {
             dailyEmailMessages={app.dailyEmailMessages}
             errorMessage={app.errorMessage}
             isChatLoading={app.isChatLoading}
+            language={app.language}
             onChatInputChange={app.handleChatInputDraftChange}
             onSendChatMessage={app.handleSendChatMessage}
           />

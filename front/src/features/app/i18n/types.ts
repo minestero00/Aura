@@ -264,6 +264,11 @@ export interface AppCopy {
     inputLabel: string;
     inputPlaceholder: string;
     send: string;
+    voiceStart: string;
+    voiceStop: string;
+    voiceTranscribing: string;
+    voicePermissionDenied: string;
+    voiceFailed: string;
     assistantLabel: string;
     userLabel: string;
     typing: string;

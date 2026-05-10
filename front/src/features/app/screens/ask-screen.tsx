@@ -1,22 +1,27 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { AppCopy } from '@features/app/i18n';
+import type { AppCopy, AppLanguage } from '@features/app/i18n';
 import { createAppStyles, useAuraTheme } from '@features/app/styles';
 import type { ChatMessage } from '@features/chat/types';
 import type { GmailMessage } from '@features/gmail/types';
 import { isUrgentMailQuestion } from '@features/chat/intent';
 import { EmptyStateHero } from '@features/app/components/empty-state-hero';
+import { ToastMessage } from '@features/app/components/toast-message';
+import { voiceRecorder, type VoiceState } from '@features/voice/recorder';
 
 interface AskScreenProps {
   chatInputDraft: string;
@@ -26,6 +31,7 @@ interface AskScreenProps {
   dailyEmailMessages: GmailMessage[];
   errorMessage: string | null;
   isChatLoading: boolean;
+  language: AppLanguage;
   onChatInputChange: (value: string) => void;
   onSendChatMessage: (message?: string) => Promise<void>;
 }
@@ -38,6 +44,7 @@ export function AskScreen({
   dailyEmailMessages,
   errorMessage,
   isChatLoading,
+  language,
   onChatInputChange,
   onSendChatMessage,
 }: AskScreenProps) {
@@ -47,6 +54,79 @@ export function AskScreen({
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const trimmedDraft = chatInputDraft.trim();
   const sendDisabled = isChatLoading || trimmedDraft.length === 0;
+
+  const [voiceState, setVoiceState] = useState<VoiceState>('idle');
+  const [voiceToast, setVoiceToast] = useState<string | null>(null);
+  const recordingPulse = useRef(new Animated.Value(0)).current;
+
+  // 녹음 중 빨강 dot pulse 애니메이션 — 사용자에게 active 상태 직관적 피드백.
+  useEffect(() => {
+    if (voiceState !== 'recording') {
+      recordingPulse.stopAnimation();
+      recordingPulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(recordingPulse, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(recordingPulse, {
+          toValue: 0,
+          duration: 700,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [voiceState, recordingPulse]);
+
+  // 화면 unmount 시 녹음 중이면 cancel — 시스템 리소스 정리.
+  useEffect(() => {
+    return () => {
+      void voiceRecorder.cancel();
+    };
+  }, []);
+
+  function showVoiceToast(message: string) {
+    setVoiceToast(null);
+    setTimeout(() => setVoiceToast(message), 0);
+  }
+
+  async function handleVoiceTap() {
+    if (voiceState === 'transcribing') return;
+    if (voiceState === 'idle') {
+      try {
+        await voiceRecorder.start();
+        setVoiceState('recording');
+      } catch (error) {
+        showVoiceToast(copy.ask.voicePermissionDenied);
+        setVoiceState('idle');
+      }
+      return;
+    }
+    // recording → transcribing → text 채움 → idle
+    setVoiceState('transcribing');
+    try {
+      const text = await voiceRecorder.stopAndTranscribe(language);
+      if (text.trim().length === 0) {
+        showVoiceToast(copy.ask.voiceFailed);
+      } else {
+        // 기존 draft 뒤에 이어붙임 — 사용자가 텍스트 입력 중간에 음성 추가 가능.
+        const next = chatInputDraft.length > 0 ? `${chatInputDraft} ${text}`.trim() : text;
+        onChatInputChange(next);
+      }
+    } catch {
+      showVoiceToast(copy.ask.voiceFailed);
+    } finally {
+      setVoiceState('idle');
+    }
+  }
 
   // 새 메시지 / 스트리밍 텍스트 성장에 맞춰 자동으로 맨 아래까지 스크롤.
   // onContentSizeChange는 리스트 콘텐츠 크기 변화마다 호출됨 — 사용자
@@ -247,6 +327,37 @@ export function AskScreen({
           />
           <View style={styles.askComposerActions}>
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={voiceState === 'recording' ? copy.ask.voiceStop : copy.ask.voiceStart}
+              onPress={() => void handleVoiceTap()}
+              disabled={voiceState === 'transcribing'}
+              hitSlop={6}
+              style={[
+                voiceStyles.micButton,
+                {
+                  backgroundColor:
+                    voiceState === 'recording'
+                      ? '#FEE2E2'
+                      : theme.colors.surfaceMuted,
+                  opacity: voiceState === 'transcribing' ? 0.55 : 1,
+                },
+              ]}
+            >
+              {voiceState === 'transcribing' ? (
+                <ActivityIndicator color={theme.colors.textSecondary} size="small" />
+              ) : voiceState === 'recording' ? (
+                <Animated.View
+                  style={[
+                    voiceStyles.recordingDot,
+                    { opacity: recordingPulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) },
+                  ]}
+                />
+              ) : (
+                <Text style={[voiceStyles.micIcon, { color: theme.colors.textSecondary }]}>🎙️</Text>
+              )}
+            </Pressable>
+
+            <Pressable
               disabled={sendDisabled}
               onPress={() => void onSendChatMessage()}
               style={[
@@ -263,6 +374,27 @@ export function AskScreen({
           </View>
         </View>
       </KeyboardAvoidingView>
+      <ToastMessage message={voiceToast} onHide={() => setVoiceToast(null)} />
     </SafeAreaView>
   );
 }
+
+const voiceStyles = StyleSheet.create({
+  micButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  micIcon: {
+    fontSize: 20,
+  },
+  recordingDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#DC2626',
+  },
+});
