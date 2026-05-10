@@ -1,17 +1,22 @@
 import React, { useMemo } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
 import { buildNavExpandDrawerStyles } from "./nav-expand-drawer.styles";
 
 interface NavExpandDrawerProps {
-  visible: boolean;
+  /** 0 = closed, 1 = fully open. AppShell이 owner — BottomNav PanResponder가 swipe 진행 동안 setValue. */
+  sheetProgress: Animated.Value;
+  /** drawer interactive 가능 여부. swipe 진행 중에는 false (BottomNav가 처리), expanded 상태에서만 true. */
+  isOpen: boolean;
   copy: AppCopy;
   onDismiss: () => void;
   onOpenAsk: () => void;
   onOpenTransit: () => void;
 }
+
+const SHEET_OFFSCREEN_OFFSET = 600;
 
 const SPARKLE_CHAT_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -19,7 +24,6 @@ const SPARKLE_CHAT_SVG = `
   <path d="M16 6.5l.6 1.5L18 8.5l-1.4.5-.6 1.5-.6-1.5L14 8.5l1.4-.5z" fill="currentColor"/>
 </svg>`;
 
-// Bus glyph (Phosphor 톤) — transit 진입 항목용
 const BUS_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
   <rect x="4" y="3" width="16" height="15" rx="2"/>
@@ -31,14 +35,16 @@ const BUS_SVG = `
 </svg>`;
 
 /**
- * BottomNav를 위로 끌어올리면 나타나는 sheet. 현재는 AURA 채팅 빠른 진입
- * 항목 1개. 향후 빠른 액션(일정 추가, 메일 검색 등)을 같은 패턴으로 늘릴
- * 자리이다 — actionRow 컴포넌트를 그대로 복제.
+ * 손가락 따라 자연스럽게 올라오는 sheet. AppShell의 sheetProgress(0..1)를 받아
+ * - sheet translateY: SHEET_OFFSCREEN_OFFSET → 0 (progress 따라)
+ * - backdrop opacity: 0 → 0.45 (progress 따라)
  *
- * Modal + transparent backdrop으로 단순 구현. 백드롭 탭으로 닫기.
+ * Modal 미사용 — absolute layered View로 항상 mount. swipe 진행 중에도 BottomNav PanResponder가
+ * sheetProgress를 setValue해서 sheet/backdrop이 실시간 따라옴.
  */
 export function NavExpandDrawer({
-  visible,
+  sheetProgress,
+  isOpen,
   copy,
   onDismiss,
   onOpenAsk,
@@ -46,6 +52,17 @@ export function NavExpandDrawer({
 }: NavExpandDrawerProps) {
   const theme = useAuraTheme();
   const styles = useMemo(() => buildNavExpandDrawerStyles(theme), [theme]);
+
+  const sheetTranslate = sheetProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [SHEET_OFFSCREEN_OFFSET, 0],
+    extrapolate: "clamp"
+  });
+  const backdropOpacity = sheetProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.45],
+    extrapolate: "clamp"
+  });
 
   function handleAskPress() {
     onDismiss();
@@ -57,9 +74,17 @@ export function NavExpandDrawer({
   }
 
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onDismiss}>
-      <Pressable style={styles.backdrop} onPress={onDismiss}>
-        {/* sheet 자체 클릭은 dismiss로 propagate되지 않게 */}
+    <View pointerEvents={isOpen ? "auto" : "none"} style={styles.overlay}>
+      <Animated.View
+        pointerEvents={isOpen ? "auto" : "none"}
+        style={[styles.backdrop, { opacity: backdropOpacity }]}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
+      </Animated.View>
+
+      <Animated.View
+        style={[styles.sheetWrapper, { transform: [{ translateY: sheetTranslate }] }]}
+      >
         <Pressable onPress={() => undefined} style={styles.sheet}>
           <View style={styles.handle} />
           <Text style={styles.title}>{copy.navExpand.title}</Text>
@@ -92,7 +117,7 @@ export function NavExpandDrawer({
             </View>
           </Pressable>
         </Pressable>
-      </Pressable>
-    </Modal>
+      </Animated.View>
+    </View>
   );
 }

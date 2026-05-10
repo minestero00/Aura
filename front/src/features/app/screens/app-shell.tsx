@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   Modal,
   Pressable,
   ScrollView,
@@ -46,6 +47,18 @@ export function AppShell({ app }: AppShellProps) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const tabIndex = Math.max(0, TAB_ORDER.indexOf(app.selectedTab));
+
+  // BottomNav swipe-driven sheet — 0(closed) ~ 1(fully open). swipe 진행 동안 BottomNav PanResponder가
+  // setValue로 실시간 갱신, release 시 confirm/cancel. isNavExpanded 변화 시 spring으로 final state.
+  const sheetProgress = useRef(new Animated.Value(app.isNavExpanded ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.spring(sheetProgress, {
+      toValue: app.isNavExpanded ? 1 : 0,
+      tension: 70,
+      friction: 11,
+      useNativeDriver: true
+    }).start();
+  }, [app.isNavExpanded, sheetProgress]);
 
   // 첫 로그인 후 BottomNav handle 위에 안내 말풍선 1회. ×로 닫으면 storage에
   // 마킹 → 다음 launch부터 안 뜸. 자동 로그인은 storage 기준이라 자연스레 skip.
@@ -242,12 +255,15 @@ export function AppShell({ app }: AppShellProps) {
         selectedTab={app.selectedTab}
         theme={theme}
         onPullUp={app.handleOpenNavExpand}
+        onCancelExpand={app.handleCloseNavExpand}
+        sheetProgress={sheetProgress}
       />
 
       <ChatFab onPress={app.handleOpenAsk} hidden={app.isAskFabHidden} />
 
       <NavExpandDrawer
-        visible={app.isNavExpanded}
+        sheetProgress={sheetProgress}
+        isOpen={app.isNavExpanded}
         copy={app.copy}
         onDismiss={app.handleCloseNavExpand}
         onOpenAsk={app.handleOpenAsk}

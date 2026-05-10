@@ -4,10 +4,21 @@ import type { AuraTheme } from "@features/app/styles";
 export function buildNavExpandDrawerStyles(theme: AuraTheme) {
   const { colors } = theme;
   return StyleSheet.create({
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 1000,
+      elevation: 1000
+    },
     backdrop: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: "flex-end"
+      ...StyleSheet.absoluteFillObject,
+      // opacity는 sheetProgress로 동적 조절. 기본 색은 검정 + 알파는 inline에서.
+      backgroundColor: "#000000"
+    },
+    sheetWrapper: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0
     },
     sheet: {
       backgroundColor: colors.elevated,
