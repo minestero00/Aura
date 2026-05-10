@@ -1,4 +1,4 @@
-import { fetchDailyBrief } from "@features/briefings/api";
+import { fetchDailyBrief, recordBriefOpened } from "@features/briefings/api";
 import { loadCachedDailyBrief, saveDailyBriefCache } from "@features/briefings/cache";
 import { fetchDailyGmailSummary } from "@features/gmail/api";
 import { filterIgnoredMessages } from "@features/gmail/filtering";
@@ -25,6 +25,11 @@ export async function prepareDailyBriefForSession(
     const cached = await loadCachedDailyBrief(userId, deps.language);
     if (cached) {
       deps.setIsDailyBriefModalVisible(true);
+      // 학습용: brief modal을 열 때마다 record (cache hit 포함). best-effort.
+      void deps.withSessionAutoRefresh(
+        accessToken => recordBriefOpened(accessToken, deps.language),
+        session
+      ).catch(() => undefined);
       deps.setNewsBriefing(cached.news.briefing);
       deps.setNewsArticles(cached.news.articles);
       deps.setDailyEmailDigest(gmailConnected ? cached.email.digest : null);
@@ -48,6 +53,11 @@ export async function prepareDailyBriefForSession(
   deps.setIsDailyBriefModalVisible(true);
   deps.setIsDailyBriefPreparing(true);
   deps.setErrorMessage(null);
+  // cache miss 분기에서도 동일하게 열람 시각 기록.
+  void deps.withSessionAutoRefresh(
+    accessToken => recordBriefOpened(accessToken, deps.language),
+    session
+  ).catch(() => undefined);
 
   try {
     const { result: response } = await deps.withSessionAutoRefresh(

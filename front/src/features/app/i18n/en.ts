@@ -246,6 +246,8 @@ export const EN_COPY: AppCopy = {
     permissionsGoogleCalendar: 'Google Calendar',
     permissionsHealth: 'Health Connect (sleep/steps/HR)',
     permissionsHealthConnect: 'Connect Health Connect',
+    notificationsSuggestedTime: 'Suggested time (7-day avg):',
+    notificationsApplySuggestion: 'Apply',
     permissionsOpenSettings: 'Open app settings',
     permissionsReconnectGoogle: 'Reconnect Google',
     menuGmail: 'Google Account',

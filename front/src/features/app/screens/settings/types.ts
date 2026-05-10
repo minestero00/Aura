@@ -57,6 +57,9 @@ export interface SettingsScreenProps {
   onToggleAskFabHidden: () => Promise<void>;
   isHealthConnected: boolean;
   onConnectHealth: () => Promise<void>;
+  suggestedMorningTime: string | null;
+  onApplySuggestedMorningTime: () => Promise<void>;
+  onLoadSuggestedMorningTime: () => Promise<void>;
 }
 
 export const NEWS_CATEGORIES: NewsCategory[] = [

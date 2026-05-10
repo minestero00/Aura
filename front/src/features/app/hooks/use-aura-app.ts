@@ -13,6 +13,7 @@ import { useAuraAppState } from "@features/app/hooks/use-aura-app/state";
 import { getCopy } from "@features/app/i18n";
 import { saveAskFabHidden } from "@features/app/storage";
 import { requestHealthPermission, syncYesterdayHealth } from "@features/health/sync";
+import { fetchSuggestedMorningTime } from "@features/briefings/api";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
 import type {
@@ -140,6 +141,24 @@ export function useAuraApp(): UseAuraAppResult {
     const ok = await syncYesterdayHealth();
     state.setIsHealthConnected(ok);
   }
+  async function handleLoadSuggestedMorningTime() {
+    const session = state.authState?.session;
+    if (!session) return;
+    try {
+      const { result } = await withSessionAutoRefresh(
+        accessToken => fetchSuggestedMorningTime(accessToken),
+        session
+      );
+      state.setSuggestedMorningTime(result.suggestedMorningBriefTime ?? null);
+    } catch {
+      // best-effort — Settings에 표시 안 되면 UI에서 row 자체가 숨겨짐.
+    }
+  }
+  async function handleApplySuggestedMorningTime() {
+    if (!state.suggestedMorningTime) return;
+    state.setMorningBriefTimeDraft(state.suggestedMorningTime.slice(0, 5));
+    await handlers.handleSaveMorningBriefTime();
+  }
   function handleOpenNavExpand() {
     state.setIsNavExpanded(true);
   }
@@ -197,6 +216,8 @@ export function useAuraApp(): UseAuraAppResult {
       handleCloseAsk,
       handleToggleAskFabHidden,
       handleConnectHealth,
+      handleApplySuggestedMorningTime,
+      handleLoadSuggestedMorningTime,
       handleOpenNavExpand,
       handleCloseNavExpand,
       handleOpenTransit,

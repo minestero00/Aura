@@ -38,6 +38,7 @@ interface BuildResultParams {
   isAskFabHidden: UseAuraAppResult["isAskFabHidden"];
   isHealthConnected: UseAuraAppResult["isHealthConnected"];
   wellnessTip: UseAuraAppResult["wellnessTip"];
+  suggestedMorningTime: UseAuraAppResult["suggestedMorningTime"];
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
   isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
@@ -97,6 +98,8 @@ interface BuildResultParams {
     handleCloseAsk: UseAuraAppResult["handleCloseAsk"];
     handleToggleAskFabHidden: UseAuraAppResult["handleToggleAskFabHidden"];
     handleConnectHealth: UseAuraAppResult["handleConnectHealth"];
+    handleApplySuggestedMorningTime: UseAuraAppResult["handleApplySuggestedMorningTime"];
+    handleLoadSuggestedMorningTime: UseAuraAppResult["handleLoadSuggestedMorningTime"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
     handleCloseNavExpand: UseAuraAppResult["handleCloseNavExpand"];
     handleOpenTransit: UseAuraAppResult["handleOpenTransit"];
@@ -150,6 +153,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isAskFabHidden: params.isAskFabHidden,
     isHealthConnected: params.isHealthConnected,
     wellnessTip: params.wellnessTip,
+    suggestedMorningTime: params.suggestedMorningTime,
     isNavExpanded: params.isNavExpanded,
     isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
@@ -228,6 +232,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleCloseAsk: params.handlers.handleCloseAsk,
     handleToggleAskFabHidden: params.handlers.handleToggleAskFabHidden,
     handleConnectHealth: params.handlers.handleConnectHealth,
+    handleApplySuggestedMorningTime: params.handlers.handleApplySuggestedMorningTime,
+    handleLoadSuggestedMorningTime: params.handlers.handleLoadSuggestedMorningTime,
     handleOpenNavExpand: params.handlers.handleOpenNavExpand,
     handleCloseNavExpand: params.handlers.handleCloseNavExpand,
     handleOpenTransit: params.handlers.handleOpenTransit,

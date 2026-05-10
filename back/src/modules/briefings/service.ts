@@ -9,6 +9,7 @@ import type { NewsArticle } from "../news/types.js";
 import { healthService } from "../health/service.js";
 import { usageService } from "../usage/service.js";
 import { briefingsRepository } from "./repository.js";
+import { briefOpenEventsRepository } from "./open-events-repo.js";
 import type { DailyBriefResponse, DailyBriefSnapshot } from "./types.js";
 import { buildWellnessTip } from "./wellness.js";
 
@@ -382,5 +383,12 @@ export const briefingsService = {
   },
   touchUserSchedule(userId: string) {
     scheduleUser(userId);
+  },
+  async recordOpenEvent(userId: string, language: "en" | "ko") {
+    await briefOpenEventsRepository.record(userId, language);
+  },
+  async getSuggestedMorningTime(userId: string): Promise<string | null> {
+    const { user } = await requireUserContext(userId);
+    return briefOpenEventsRepository.suggestedMorningTime(userId, user.timezone, 7);
   }
 };

@@ -240,6 +240,8 @@ export const KO_COPY: AppCopy = {
     permissionsGoogleCalendar: 'Google 캘린더',
     permissionsHealth: 'Health Connect (수면/걸음/심박)',
     permissionsHealthConnect: 'Health Connect 연결',
+    notificationsSuggestedTime: '추천 시간 (지난 7일 평균):',
+    notificationsApplySuggestion: '적용',
     permissionsOpenSettings: '앱 설정 열기',
     permissionsReconnectGoogle: 'Google 다시 연결',
     menuGmail: 'Google 계정',

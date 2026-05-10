@@ -29,8 +29,16 @@ export function NotificationsSection(props: SettingsSectionProps) {
     onSaveEveningBriefTime,
     onSetDepartureAlertsEnabled,
     onSetDepartureBufferMinutes,
-    onSelectSettingsSection
+    onSelectSettingsSection,
+    suggestedMorningTime,
+    onApplySuggestedMorningTime,
+    onLoadSuggestedMorningTime
   } = props;
+
+  // Settings의 알림 화면 진입 시 한 번 7일 평균을 fetch.
+  useEffect(() => {
+    void onLoadSuggestedMorningTime();
+  }, []);
 
   const morningDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eveningDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -153,6 +161,17 @@ export function NotificationsSection(props: SettingsSectionProps) {
                 </Text>
               </Pressable>
             </View>
+
+            {suggestedMorningTime ? (
+              <View style={[styles.buttonRow, { marginTop: 8 }]}>
+                <Text style={styles.helperText}>
+                  {copy.settings.notificationsSuggestedTime} {suggestedMorningTime.slice(0, 5)}
+                </Text>
+                <Pressable onPress={() => void onApplySuggestedMorningTime()} style={styles.outlineButton}>
+                  <Text style={styles.outlineButtonText}>{copy.settings.notificationsApplySuggestion}</Text>
+                </Pressable>
+              </View>
+            ) : null}
           </View>
 
           {/* 저녁 브리핑 */}

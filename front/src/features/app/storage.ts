@@ -5,6 +5,24 @@ import type { AppLanguage } from "@features/app/i18n";
 const APP_LANGUAGE_KEY = "aura.app.language";
 const ASK_FAB_HIDDEN_KEY = "aura.app.askFabHidden";
 const NAV_EXPAND_HINT_SEEN_KEY = "aura.app.navExpandHintSeen";
+const DAILY_BRIEF_LAST_SHOWN_KEY = "aura.app.dailyBriefLastShownDate";
+
+export function todayLocalDateKey(): string {
+  // YYYY-MM-DD (사용자 local).
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+}
+
+export async function loadLastDailyBriefShownDate(): Promise<string | null> {
+  return AsyncStorage.getItem(DAILY_BRIEF_LAST_SHOWN_KEY);
+}
+
+export async function saveLastDailyBriefShownDate(date: string): Promise<void> {
+  await AsyncStorage.setItem(DAILY_BRIEF_LAST_SHOWN_KEY, date);
+}
 
 export function detectSystemLanguage(): AppLanguage {
   let locale: string | undefined;

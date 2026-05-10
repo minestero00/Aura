@@ -86,6 +86,8 @@ export interface UseAuraAppResult {
   isHealthConnected: boolean;
   /** 어제 health 데이터 기반 한 줄 톤 조절 — backend wellness 모듈이 결정론적으로 생성. */
   wellnessTip: string | null;
+  /** 7일간 brief 열람 시각 평균 — 사용자에게 push 시간 추천. null이면 데이터 부족. */
+  suggestedMorningTime: string | null;
   /** Bottom nav를 위로 끌어올린 expanded drawer 표시 여부. */
   isNavExpanded: boolean;
   /** 버스 도착 알림 modal — drawer에서 진입. */
@@ -155,6 +157,10 @@ export interface UseAuraAppResult {
   handleToggleAskFabHidden: () => Promise<void>;
   /** Health Connect(Android) 시스템 화면 deeplink + 권한 부여 후 sync 시도. */
   handleConnectHealth: () => Promise<void>;
+  /** 추천 시간(suggestedMorningTime)을 morningBriefTime에 적용. */
+  handleApplySuggestedMorningTime: () => Promise<void>;
+  /** Settings 진입 시 7일 평균 시간을 fetch — 추천 row 표시용. */
+  handleLoadSuggestedMorningTime: () => Promise<void>;
   /** Bottom nav 끌어올림 → expanded drawer 열기. */
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */

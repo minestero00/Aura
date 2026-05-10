@@ -18,3 +18,18 @@ export async function fetchDailyBrief(
     accessToken
   });
 }
+
+export async function recordBriefOpened(accessToken: string, language: AppLanguage) {
+  return apiRequest<{ ok: true }>(`/api/v1/briefings/opened`, {
+    method: "POST",
+    accessToken,
+    body: JSON.stringify({ language })
+  });
+}
+
+export async function fetchSuggestedMorningTime(accessToken: string) {
+  return apiRequest<{ suggestedMorningBriefTime: string | null }>(
+    `/api/v1/briefings/suggested-time`,
+    { method: "GET", accessToken }
+  );
+}

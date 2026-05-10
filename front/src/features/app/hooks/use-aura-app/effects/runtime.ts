@@ -34,19 +34,37 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
     }
 
     deps.hasStartedInitialDailyBriefRef.current = true;
-    // brief 생성에 어제 health 데이터를 반영하기 위해 먼저 native에서 sync 시도.
-    // 권한 없거나 native 모듈 미구현이면 silent skip이라 brief에 영향 없음.
+    // 하루 1회만 자동 표시 — 오늘 local 날짜와 마지막 표시 날짜를 비교.
+    // 사용자가 명시적으로 reload하거나 push tap으로 들어온 경우(pendingDailyBriefOpen)는
+    // 별도 effect에서 처리되므로 여기서는 cold-start 자동 표시만 제어.
     void (async () => {
       try {
-        const { syncYesterdayHealth } = await import("@features/health/sync");
-        await syncYesterdayHealth();
+        const { loadLastDailyBriefShownDate, saveLastDailyBriefShownDate, todayLocalDateKey } =
+          await import("@features/app/storage");
+        const today = todayLocalDateKey();
+        const last = await loadLastDailyBriefShownDate();
+        if (last === today) {
+          // 오늘 이미 본 적 있음 — modal 자동 표시 skip. 사용자 manual reload만.
+          return;
+        }
+        try {
+          const { syncYesterdayHealth } = await import("@features/health/sync");
+          await syncYesterdayHealth();
+        } catch {
+          // silent — health는 best-effort.
+        }
+        await deps.prepareDailyBriefForSession(
+          deps.authState!.session,
+          deps.authState!.me.integrations.gmailConnected
+        );
+        await saveLastDailyBriefShownDate(today);
       } catch {
-        // silent — health는 best-effort.
+        // storage 실패 시에도 brief는 표시 (legacy 동작 유지).
+        await deps.prepareDailyBriefForSession(
+          deps.authState!.session,
+          deps.authState!.me.integrations.gmailConnected
+        );
       }
-      void deps.prepareDailyBriefForSession(
-        deps.authState!.session,
-        deps.authState!.me.integrations.gmailConnected
-      );
     })();
   }, [deps.authState]);
 
@@ -217,10 +235,19 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
     deps.setPendingDailyBriefOpen(false);
     deps.setHasShownDailyBriefThisSession(false);
     deps.setSelectedTab("mail");
-    void deps.prepareDailyBriefForSession(
-      deps.authState.session,
-      deps.authState.me.integrations.gmailConnected
-    );
+    void (async () => {
+      await deps.prepareDailyBriefForSession(
+        deps.authState!.session,
+        deps.authState!.me.integrations.gmailConnected
+      );
+      // push tap으로 들어온 경우에도 "오늘 이미 봤음"으로 표시 — cold-start 중복 방지.
+      try {
+        const { saveLastDailyBriefShownDate, todayLocalDateKey } = await import("@features/app/storage");
+        await saveLastDailyBriefShownDate(todayLocalDateKey());
+      } catch {
+        // best-effort.
+      }
+    })();
   }, [
     deps.authState?.me.integrations.gmailConnected,
     deps.authState?.session.accessToken,

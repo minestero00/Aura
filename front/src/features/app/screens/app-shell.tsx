@@ -249,6 +249,9 @@ export function AppShell({ app }: AppShellProps) {
             onToggleAskFabHidden={app.handleToggleAskFabHidden}
             isHealthConnected={app.isHealthConnected}
             onConnectHealth={app.handleConnectHealth}
+            suggestedMorningTime={app.suggestedMorningTime}
+            onApplySuggestedMorningTime={app.handleApplySuggestedMorningTime}
+            onLoadSuggestedMorningTime={app.handleLoadSuggestedMorningTime}
           />
         </View>
       </ScrollView>

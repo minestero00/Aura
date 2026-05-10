@@ -217,6 +217,8 @@ export interface AppCopy {
     permissionsGoogleCalendar: string;
     permissionsHealth: string;
     permissionsHealthConnect: string;
+    notificationsSuggestedTime: string;
+    notificationsApplySuggestion: string;
     permissionsOpenSettings: string;
     permissionsReconnectGoogle: string;
     menuGmail: string;

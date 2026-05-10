@@ -80,6 +80,7 @@ export function useAuraAppState() {
   const [hasLoadedTodayWeather, setHasLoadedTodayWeather] = useState(false);
   const [isHealthConnected, setIsHealthConnected] = useState(false);
   const [wellnessTip, setWellnessTip] = useState<string | null>(null);
+  const [suggestedMorningTime, setSuggestedMorningTime] = useState<string | null>(null);
 
   const hasStartedInitialDailyBriefRef = useRef(false);
   const hasAttemptedDeviceCalendarPromptRef = useRef(false);
@@ -193,6 +194,8 @@ export function useAuraAppState() {
     setIsHealthConnected,
     wellnessTip,
     setWellnessTip,
+    suggestedMorningTime,
+    setSuggestedMorningTime,
     hasStartedInitialDailyBriefRef,
     hasAttemptedDeviceCalendarPromptRef,
     lastTravelPlanSignatureRef,
