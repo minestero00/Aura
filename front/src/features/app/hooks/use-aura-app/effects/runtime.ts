@@ -8,6 +8,7 @@ import {
   subscribeToPushTokenRefresh
 } from "@features/push/register";
 import { reportCurrentLocationOnce } from "@features/departure/report";
+import { syncWidgetWithAgenda } from "@features/widget/sync";
 import type { AuraEffectsDeps } from "../effects";
 
 export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
@@ -191,6 +192,12 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
     });
     return () => sub.remove();
   }, [deps.authState?.session.accessToken]);
+
+  // Android 홈화면 위젯 — agenda 변할 때마다 native에 다음 일정 push (Android 전용, iOS는 미구현).
+  useEffect(() => {
+    const merged = mergeAgendaDays(deps.calendarAgendaDays, deps.deviceCalendarAgendaDays);
+    void syncWidgetWithAgenda(merged, deps.language);
+  }, [deps.calendarAgendaDays, deps.deviceCalendarAgendaDays, deps.language]);
 
   useEffect(() => {
     if (!deps.authState || !deps.pendingDailyBriefOpen) {

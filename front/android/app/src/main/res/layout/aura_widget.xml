@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AURA Android 홈화면 위젯 (RemoteViews 호환 layout).
+  데이터는 SharedPreferences("aura.widget")에서 AuraWidgetProvider가 읽어 채움.
+  RemoteViews는 LinearLayout/TextView/ImageView 등 제한된 view만 지원 — Compose/Glance 미사용.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/aura_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/aura_widget_background">
+
+    <TextView
+        android:id="@+id/aura_widget_eyebrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AURA"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.18"
+        android:alpha="0.86" />
+
+    <TextView
+        android:id="@+id/aura_widget_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/aura_widget_meta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:alpha="0.92"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/aura_widget_location"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:alpha="0.78"
+        android:maxLines="1"
+        android:ellipsize="end" />
+</LinearLayout>

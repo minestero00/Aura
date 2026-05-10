@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AURA widget provider 메타데이터.
+  - minWidth/minHeight: 4x2 cell (medium widget). 홈화면 grid 4 cols 가정.
+  - updatePeriodMillis 1800000 = 30분. 단 Android는 30분 미만 강제하지 않음 (배터리 보호).
+  - resizeMode: 가로/세로 둘 다 유연.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/aura_widget"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen"
+    android:previewLayout="@layout/aura_widget" />
