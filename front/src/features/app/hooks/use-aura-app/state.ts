@@ -10,7 +10,7 @@ import type {
 } from "@features/app/types";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import type { ChatMessage } from "@features/chat/types";
-import type { UnsubscribeCandidate } from "@features/gmail/api";
+import type { ExtractedCalendarEvent, UnsubscribeCandidate } from "@features/gmail/api";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
@@ -84,6 +84,9 @@ export function useAuraAppState() {
   const [suggestedMorningTime, setSuggestedMorningTime] = useState<string | null>(null);
   const [unsubscribeCandidates, setUnsubscribeCandidates] = useState<UnsubscribeCandidate[]>([]);
   const [isUnsubscribeLoading, setIsUnsubscribeLoading] = useState(false);
+  const [isCalendarExtractOpen, setIsCalendarExtractOpen] = useState(false);
+  const [isCalendarExtractLoading, setIsCalendarExtractLoading] = useState(false);
+  const [extractedEvent, setExtractedEvent] = useState<ExtractedCalendarEvent | null>(null);
 
   const hasStartedInitialDailyBriefRef = useRef(false);
   const hasAttemptedDeviceCalendarPromptRef = useRef(false);
@@ -203,6 +206,12 @@ export function useAuraAppState() {
     setUnsubscribeCandidates,
     isUnsubscribeLoading,
     setIsUnsubscribeLoading,
+    isCalendarExtractOpen,
+    setIsCalendarExtractOpen,
+    isCalendarExtractLoading,
+    setIsCalendarExtractLoading,
+    extractedEvent,
+    setExtractedEvent,
     hasStartedInitialDailyBriefRef,
     hasAttemptedDeviceCalendarPromptRef,
     lastTravelPlanSignatureRef,

@@ -84,6 +84,11 @@ export const KO_COPY: AppCopy = {
     dailyBriefEmailLabel: '메일',
     dailyBriefNewsLabel: '뉴스',
     dailyBriefWellnessLabel: '오늘의 컨디션',
+    calendarExtractTitle: '일정으로 추가',
+    calendarExtractLoading: '메일을 분석하고 있어요',
+    calendarExtractInsufficient: '메일에서 일정 정보를 충분히 찾지 못했어요',
+    calendarExtractAdd: 'Google 캘린더로 추가',
+    calendarExtractCta: '📅 일정',
     gmailNotConnectedTitle: 'Gmail이 연결되지 않음..',
     gmailNotConnectedBody:
       'Google 로그인 직후 Gmail 연결을 자동으로 시도합니다. 아직 연결되지 않았다면 설정에서 다시 연결해주세요.',

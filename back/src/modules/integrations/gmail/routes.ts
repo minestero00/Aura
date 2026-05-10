@@ -5,6 +5,7 @@ import { usageService } from "../../usage/service.js";
 import {
   connectGmailSchema,
   createReplyDraftSchema,
+  extractCalendarEventSchema,
   listGmailMessagesSchema,
   summarizeGmailSchema
 } from "./schemas.js";
@@ -100,6 +101,25 @@ gmailRouter.delete(
   requireAuth,
   asyncHandler(async (req, res) => {
     res.json(gmailService.disconnect(req.authUser!.id));
+  })
+);
+
+/**
+ * 메일 본문에서 캘린더 일정 추출 (LLM). 사용자가 mail card 버튼 누를 때만 호출 — 자동 X.
+ * email_summary feature로 quota 차감 + 토큰 기록.
+ */
+gmailRouter.post(
+  "/gmail/extract-event",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const input = extractCalendarEventSchema.parse(req.body ?? {});
+    await usageService.consumeOrThrow({
+      userId: req.authUser!.id,
+      feature: "email_summary"
+    });
+    res.json({
+      extracted: await gmailService.extractCalendarEvent(req.authUser!.id, input.messageId, input.language)
+    });
   })
 );
 

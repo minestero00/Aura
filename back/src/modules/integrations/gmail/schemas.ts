@@ -37,3 +37,8 @@ export const createReplyDraftSchema = z.object({
   messageId: z.string().min(1),
   language: z.enum(["en", "ko"]).default("en")
 });
+
+export const extractCalendarEventSchema = z.object({
+  messageId: z.string().min(1),
+  language: z.enum(["en", "ko"]).default("en")
+});

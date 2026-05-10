@@ -327,6 +327,73 @@ export async function postOneClickUnsubscribe(unsubscribeUrl: string): Promise<b
   }
 }
 
+/**
+ * 메시지 본문(plain text body)을 fetch — 일정 추출 등 본문이 필요한 LLM 호출용.
+ * Gmail API format=full로 가져와 text/plain part(없으면 text/html stripped)를 추출.
+ */
+export async function fetchGmailMessageBody(userId: string, messageId: string) {
+  const message = await gmailRequest<GmailMessageResponse & {
+    payload?: {
+      mimeType?: string;
+      body?: { data?: string };
+      parts?: Array<{
+        mimeType?: string;
+        body?: { data?: string };
+        parts?: Array<{ mimeType?: string; body?: { data?: string } }>;
+      }>;
+    };
+  }>(userId, `messages/${messageId}?format=full`);
+
+  function decodePart(data: string | undefined): string {
+    if (!data) return "";
+    try {
+      return Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+    } catch {
+      return "";
+    }
+  }
+
+  function findText(payload: NonNullable<typeof message.payload>): string {
+    if (payload.mimeType === "text/plain" && payload.body?.data) {
+      return decodePart(payload.body.data);
+    }
+    if (payload.parts) {
+      // text/plain 우선.
+      for (const part of payload.parts) {
+        if (part.mimeType === "text/plain" && part.body?.data) {
+          return decodePart(part.body.data);
+        }
+        if (part.parts) {
+          for (const sub of part.parts) {
+            if (sub.mimeType === "text/plain" && sub.body?.data) {
+              return decodePart(sub.body.data);
+            }
+          }
+        }
+      }
+      // fallback: text/html stripped.
+      for (const part of payload.parts) {
+        if (part.mimeType === "text/html" && part.body?.data) {
+          return decodePart(part.body.data).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        }
+      }
+    }
+    return "";
+  }
+
+  const body = message.payload ? findText(message.payload) : "";
+  return {
+    id: message.id,
+    threadId: message.threadId,
+    from: getHeaderValue(message, "From") || "",
+    subject: getHeaderValue(message, "Subject") || "",
+    receivedAt: message.internalDate ? new Date(Number(message.internalDate)).toISOString() : null,
+    snippet: message.snippet ?? "",
+    // LLM 비용 가드 — 6_000자 cap.
+    body: body.slice(0, 6_000)
+  };
+}
+
 export async function fetchGmailMessageForReply(userId: string, messageId: string) {
   const message = await gmailRequest<GmailMessageResponse>(
     userId,

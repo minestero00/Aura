@@ -79,6 +79,11 @@ export interface AppCopy {
     dailyBriefEmailLabel: string;
     dailyBriefNewsLabel: string;
     dailyBriefWellnessLabel: string;
+    calendarExtractTitle: string;
+    calendarExtractLoading: string;
+    calendarExtractInsufficient: string;
+    calendarExtractAdd: string;
+    calendarExtractCta: string;
     gmailNotConnectedTitle: string;
     gmailNotConnectedBody: string;
     todayBriefTitle: string;

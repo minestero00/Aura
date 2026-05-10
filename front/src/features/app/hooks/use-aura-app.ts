@@ -14,7 +14,11 @@ import { getCopy } from "@features/app/i18n";
 import { saveAskFabHidden } from "@features/app/storage";
 import { requestHealthPermission, syncYesterdayHealth } from "@features/health/sync";
 import { fetchSuggestedMorningTime } from "@features/briefings/api";
-import { fetchUnsubscribeCandidates, postOneClickUnsubscribe } from "@features/gmail/api";
+import {
+  extractCalendarEventFromMessage,
+  fetchUnsubscribeCandidates,
+  postOneClickUnsubscribe
+} from "@features/gmail/api";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
 import type {
@@ -193,6 +197,28 @@ export function useAuraApp(): UseAuraAppResult {
     state.setSelectedTab("settings");
     state.setSelectedSettingsSection("unsubscribe");
   }
+  async function handleExtractCalendarEvent(messageId: string) {
+    const session = state.authState?.session;
+    if (!session) return;
+    state.setIsCalendarExtractOpen(true);
+    state.setIsCalendarExtractLoading(true);
+    state.setExtractedEvent(null);
+    try {
+      const { result } = await withSessionAutoRefresh(
+        accessToken => extractCalendarEventFromMessage(accessToken, messageId, state.language),
+        session
+      );
+      state.setExtractedEvent(result.extracted ?? null);
+    } catch {
+      state.setExtractedEvent(null);
+    } finally {
+      state.setIsCalendarExtractLoading(false);
+    }
+  }
+  function handleCloseCalendarExtract() {
+    state.setIsCalendarExtractOpen(false);
+    state.setExtractedEvent(null);
+  }
   function handleOpenNavExpand() {
     state.setIsNavExpanded(true);
   }
@@ -254,6 +280,8 @@ export function useAuraApp(): UseAuraAppResult {
       handleLoadSuggestedMorningTime,
       handleLoadUnsubscribeCandidates,
       handleOneClickUnsubscribe,
+      handleExtractCalendarEvent,
+      handleCloseCalendarExtract,
       handleOpenNavExpand,
       handleCloseNavExpand,
       handleOpenTransit,

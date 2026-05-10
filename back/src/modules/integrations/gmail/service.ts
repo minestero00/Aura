@@ -7,6 +7,7 @@ import { getRedisClient } from "../../../lib/cache/redis.js";
 import { filterIgnoredMessages } from "./filtering.js";
 import {
   fetchDailyGmailMessages,
+  fetchGmailMessageBody,
   fetchGmailMessageForReply,
   fetchRecentGmailMessages,
   fetchUnsubscribeCandidates,
@@ -15,7 +16,7 @@ import {
   type GmailMessageSummary
 } from "./gmail-api.js";
 import { exchangeServerAuthCode } from "./google-oauth.js";
-import { generateReplyDraft, summarizeGmailMessages } from "./summarizer.js";
+import { extractCalendarEventFromMessage, generateReplyDraft, summarizeGmailMessages } from "./summarizer.js";
 
 /** Smart Triage: digest.labels [{id, label}] 를 messages 배열에 부착. 매핑 누락은 "info" fallback. */
 function attachLabelsToMessages(
@@ -256,5 +257,19 @@ export const gmailService = {
   },
   async oneClickUnsubscribe(url: string) {
     return postOneClickUnsubscribe(url);
+  },
+  async extractCalendarEvent(userId: string, messageId: string, language: "en" | "ko") {
+    requireUser(userId);
+    const message = await fetchGmailMessageBody(userId, messageId);
+    const user = authStore.findUserById(userId);
+    return extractCalendarEventFromMessage({
+      subject: message.subject,
+      from: message.from,
+      body: message.body,
+      receivedAt: message.receivedAt,
+      language,
+      userId,
+      timezone: user?.timezone ?? "UTC"
+    });
   }
 };

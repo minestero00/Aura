@@ -172,6 +172,12 @@ export interface UseAuraAppResult {
   unsubscribeCandidates: import("@features/gmail/api").UnsubscribeCandidate[];
   /** 후보 fetch 진행 중. */
   isUnsubscribeLoading: boolean;
+  /** Mail card에서 메시지 본문을 LLM이 분석해 캘린더 일정으로 변환. */
+  handleExtractCalendarEvent: (messageId: string) => Promise<void>;
+  handleCloseCalendarExtract: () => void;
+  isCalendarExtractOpen: boolean;
+  isCalendarExtractLoading: boolean;
+  extractedEvent: import("@features/gmail/api").ExtractedCalendarEvent | null;
   /** Bottom nav 끌어올림 → expanded drawer 열기. */
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */

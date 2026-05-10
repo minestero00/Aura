@@ -98,6 +98,31 @@ export async function postOneClickUnsubscribe(accessToken: string, url: string) 
   });
 }
 
+export interface ExtractedCalendarEvent {
+  hasEnoughInfo: boolean;
+  title: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  location: string | null;
+  allDay: boolean;
+  details: string | null;
+}
+
+export async function extractCalendarEventFromMessage(
+  accessToken: string,
+  messageId: string,
+  language: AppLanguage
+) {
+  return apiRequest<{ extracted: ExtractedCalendarEvent }>(
+    `/api/v1/integrations/gmail/extract-event`,
+    {
+      method: "POST",
+      accessToken,
+      body: JSON.stringify({ messageId, language })
+    }
+  );
+}
+
 export async function createGmailReplyDraft(
   accessToken: string,
   messageId: string,

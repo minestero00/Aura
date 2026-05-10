@@ -27,6 +27,7 @@ import { ActionAlertModal } from "@features/app/components/action-alert-modal";
 import { ChatFab } from "@features/app/components/chat-fab";
 import { NavExpandDrawer } from "@features/app/components/nav-expand-drawer";
 import { ReplyDraftModal } from "@features/app/components/reply-draft-modal";
+import { CalendarExtractModal } from "@features/app/components/calendar-extract-modal";
 import { openComposeInExternalApp } from "@features/gmail/compose";
 import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
 import { TransitModal } from "@features/app/components/transit-modal";
@@ -155,6 +156,7 @@ export function AppShell({ app }: AppShellProps) {
             onOpenIgnoredSenderSettings={app.handleOpenIgnoredSenderSettings}
             onLoadDailyEmailBrief={app.handleLoadDailyEmailBrief}
             onReplyToMessage={app.handleReplyToMessage}
+            onExtractCalendarEvent={app.handleExtractCalendarEvent}
             replyingMessageId={app.replyingMessageId}
           />
         </View>
@@ -293,6 +295,14 @@ export function AppShell({ app }: AppShellProps) {
           app.handleDismissReplyDraft();
         }}
         onDismiss={app.handleDismissReplyDraft}
+      />
+
+      <CalendarExtractModal
+        visible={app.isCalendarExtractOpen}
+        isLoading={app.isCalendarExtractLoading}
+        event={app.extractedEvent}
+        copy={app.copy}
+        onClose={app.handleCloseCalendarExtract}
       />
 
       <TransitModal

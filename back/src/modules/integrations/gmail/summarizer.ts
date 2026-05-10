@@ -180,3 +180,82 @@ export async function generateReplyDraft(
 
   return parsed;
 }
+
+export interface ExtractedCalendarEvent {
+  hasEnoughInfo: boolean;
+  title: string;
+  startsAt: string | null; // ISO 8601 (timezone 포함). null이면 미확정.
+  endsAt: string | null;
+  location: string | null;
+  allDay: boolean;
+  details: string | null;
+}
+
+const EMPTY_EVENT: ExtractedCalendarEvent = {
+  hasEnoughInfo: false,
+  title: "",
+  startsAt: null,
+  endsAt: null,
+  location: null,
+  allDay: false,
+  details: null
+};
+
+/**
+ * Gmail 메시지 본문에서 일정(약속/회의/예약/항공편 등)을 추출. 정보 불충분이면
+ * hasEnoughInfo=false 반환 — frontend가 modal에서 알림.
+ */
+export async function extractCalendarEventFromMessage(input: {
+  subject: string;
+  from: string;
+  body: string;
+  receivedAt: string | null;
+  language: "en" | "ko";
+  userId?: string;
+  timezone: string;
+}): Promise<ExtractedCalendarEvent> {
+  const result = await createAnthropicJsonSummary<ExtractedCalendarEvent>({
+    maxTokens: 380,
+    system:
+      input.language === "ko"
+        ? "당신은 이메일에서 캘린더에 추가할 일정을 추출한다. 일정이 명확하면 hasEnoughInfo=true, 그렇지 않으면 false. startsAt/endsAt은 ISO 8601 (시간대 오프셋 포함). 종일 일정이면 allDay=true 이고 시간 부분은 사용자 timezone 자정으로 두라. 추출 못하면 빈 문자열/null. 모든 텍스트는 한국어."
+        : "Extract a single calendar event from the email if any. Set hasEnoughInfo=true only when both date and time (or all-day) are clearly known. startsAt/endsAt as ISO 8601 with timezone. Use user's timezone for all-day. If unknown, leave empty string/null.",
+    payload: {
+      responseLanguage: input.language,
+      userTimezone: input.timezone,
+      receivedAt: input.receivedAt,
+      from: input.from,
+      subject: input.subject,
+      body: input.body,
+      schemaHint: {
+        hasEnoughInfo: "boolean",
+        title: "short event title",
+        startsAt: "ISO 8601 string or null",
+        endsAt: "ISO 8601 string or null",
+        location: "string or null",
+        allDay: "boolean",
+        details: "1~2 sentence summary in the same language as responseLanguage"
+      }
+    },
+    fallback: EMPTY_EVENT
+  });
+
+  if (input.userId && result.usage) {
+    await usageService.recordModelUsage({
+      userId: input.userId,
+      feature: "email_summary",
+      ...result.usage
+    });
+  }
+
+  const parsed = result.data ?? EMPTY_EVENT;
+  return {
+    hasEnoughInfo: Boolean(parsed.hasEnoughInfo),
+    title: typeof parsed.title === "string" ? parsed.title.slice(0, 200) : "",
+    startsAt: typeof parsed.startsAt === "string" && parsed.startsAt ? parsed.startsAt : null,
+    endsAt: typeof parsed.endsAt === "string" && parsed.endsAt ? parsed.endsAt : null,
+    location: typeof parsed.location === "string" && parsed.location ? parsed.location : null,
+    allDay: Boolean(parsed.allDay),
+    details: typeof parsed.details === "string" && parsed.details ? parsed.details.slice(0, 600) : null
+  };
+}

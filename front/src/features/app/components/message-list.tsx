@@ -9,6 +9,7 @@ interface MessageListProps {
   messages: GmailMessage[];
   onOpenIgnoredSenderSettings: (message: GmailMessage) => void;
   onReplyToMessage: (message: GmailMessage) => Promise<void>;
+  onExtractCalendarEvent: (messageId: string) => Promise<void>;
   replyingMessageId: string | null;
   showReceivedAt?: boolean;
 }
@@ -46,6 +47,7 @@ export function MessageList({
   messages,
   onOpenIgnoredSenderSettings,
   onReplyToMessage,
+  onExtractCalendarEvent,
   replyingMessageId,
   showReceivedAt = true
 }: MessageListProps) {
@@ -78,6 +80,13 @@ export function MessageList({
                 <Text style={styles.replyButtonText}>
                   {replyingMessageId === message.id ? copy.mail.draftingReply : copy.mail.replyDraft}
                 </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => void onExtractCalendarEvent(message.id)}
+                style={styles.replyButton}
+              >
+                <Text style={styles.replyButtonText}>{copy.mail.calendarExtractCta}</Text>
               </Pressable>
 
               <Pressable

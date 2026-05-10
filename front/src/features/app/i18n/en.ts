@@ -88,6 +88,11 @@ export const EN_COPY: AppCopy = {
     dailyBriefEmailLabel: 'Mail',
     dailyBriefNewsLabel: 'News',
     dailyBriefWellnessLabel: 'Today\'s vibe',
+    calendarExtractTitle: 'Add as event',
+    calendarExtractLoading: 'Analyzing the email',
+    calendarExtractInsufficient: 'Couldn\'t find enough event info in this email',
+    calendarExtractAdd: 'Add to Google Calendar',
+    calendarExtractCta: '📅 Event',
     gmailNotConnectedTitle: 'Gmail not connected',
     gmailNotConnectedBody:
       'Gmail access is connected automatically right after Google sign-in. If it is still not connected, open Settings and reconnect Gmail there.',

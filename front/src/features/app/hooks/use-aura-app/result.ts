@@ -41,6 +41,9 @@ interface BuildResultParams {
   suggestedMorningTime: UseAuraAppResult["suggestedMorningTime"];
   unsubscribeCandidates: UseAuraAppResult["unsubscribeCandidates"];
   isUnsubscribeLoading: UseAuraAppResult["isUnsubscribeLoading"];
+  isCalendarExtractOpen: UseAuraAppResult["isCalendarExtractOpen"];
+  isCalendarExtractLoading: UseAuraAppResult["isCalendarExtractLoading"];
+  extractedEvent: UseAuraAppResult["extractedEvent"];
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
   isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
@@ -104,6 +107,8 @@ interface BuildResultParams {
     handleLoadSuggestedMorningTime: UseAuraAppResult["handleLoadSuggestedMorningTime"];
     handleLoadUnsubscribeCandidates: UseAuraAppResult["handleLoadUnsubscribeCandidates"];
     handleOneClickUnsubscribe: UseAuraAppResult["handleOneClickUnsubscribe"];
+    handleExtractCalendarEvent: UseAuraAppResult["handleExtractCalendarEvent"];
+    handleCloseCalendarExtract: UseAuraAppResult["handleCloseCalendarExtract"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
     handleCloseNavExpand: UseAuraAppResult["handleCloseNavExpand"];
     handleOpenTransit: UseAuraAppResult["handleOpenTransit"];
@@ -161,6 +166,9 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     suggestedMorningTime: params.suggestedMorningTime,
     unsubscribeCandidates: params.unsubscribeCandidates,
     isUnsubscribeLoading: params.isUnsubscribeLoading,
+    isCalendarExtractOpen: params.isCalendarExtractOpen,
+    isCalendarExtractLoading: params.isCalendarExtractLoading,
+    extractedEvent: params.extractedEvent,
     isNavExpanded: params.isNavExpanded,
     isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
@@ -243,6 +251,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleLoadSuggestedMorningTime: params.handlers.handleLoadSuggestedMorningTime,
     handleLoadUnsubscribeCandidates: params.handlers.handleLoadUnsubscribeCandidates,
     handleOneClickUnsubscribe: params.handlers.handleOneClickUnsubscribe,
+    handleExtractCalendarEvent: params.handlers.handleExtractCalendarEvent,
+    handleCloseCalendarExtract: params.handlers.handleCloseCalendarExtract,
     handleOpenUnsubscribeSettings: params.openHandlers.handleOpenUnsubscribeSettings,
     handleOpenNavExpand: params.handlers.handleOpenNavExpand,
     handleCloseNavExpand: params.handlers.handleCloseNavExpand,
