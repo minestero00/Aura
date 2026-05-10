@@ -4,10 +4,10 @@ import { transcribeAudioFile } from "./api";
 
 export type VoiceState = "idle" | "recording" | "transcribing";
 
-// react-native-audio-recorder-player v4는 default export가 singleton instance라
-// new로 생성 안 함.
+// react-native-audio-recorder-player v3 — default export가 class. instance 생성.
+// v4는 nitro-modules 의존을 추가해서 v3로 고정.
 class VoiceRecorder {
-  private player = AudioRecorderPlayer;
+  private player = new AudioRecorderPlayer();
   private currentPath: string | null = null;
   private isActive = false;
 

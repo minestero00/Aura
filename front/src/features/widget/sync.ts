@@ -11,8 +11,9 @@ interface NativeAuraWidget {
   clearNextEvent: () => Promise<void>;
 }
 
+// iOS는 AuraWidgetBridge.swift(@objc(AuraWidget))로 같은 module name 노출 — RN은 platform 무관 단일 호출.
 const moduleHandle: NativeAuraWidget | undefined =
-  Platform.OS === "android"
+  Platform.OS === "android" || Platform.OS === "ios"
     ? (NativeModules.AuraWidget as NativeAuraWidget | undefined)
     : undefined;
 
@@ -43,7 +44,7 @@ function pickNextEvent(days: CalendarAgendaDay[]): CalendarAgendaEvent | null {
 
 /**
  * RN 앱이 calendar agenda를 fetch한 후 호출. 다음 시작/진행 중 일정을 골라
- * native widget에 push. Android only — iOS는 G.1.2에서 별도 구현.
+ * native widget에 push. iOS/Android 모두 같은 NativeModules.AuraWidget 인터페이스.
  *
  * 빈 케이스(오늘 + 내일 모두 일정 없음)는 emptyMessage만 push.
  */
