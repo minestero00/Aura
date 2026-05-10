@@ -29,6 +29,9 @@ export interface UserPreferencesRecord {
   morningBriefTime: string;
   eveningBriefTime: string;
   timezone: string;
+  // Phase 3 — 출발 시간 자동 푸시.
+  departureAlertsEnabled: boolean;
+  departureBufferMinutes: number;
   updatedAt: Date;
 }
 
@@ -58,6 +61,8 @@ function createDefaultPreferences(userId: string, timezone: string): UserPrefere
     morningBriefTime: "08:00:00",
     eveningBriefTime: "20:00:00",
     timezone,
+    departureAlertsEnabled: true,
+    departureBufferMinutes: 5,
     updatedAt: new Date()
   };
 }
@@ -205,9 +210,11 @@ async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
     push_enabled: boolean;
     morning_brief_time: string | null;
     evening_brief_time: string | null;
+    departure_alerts_enabled: boolean | null;
+    departure_buffer_minutes: number | null;
     updated_at: Date | string;
   }>(
-    "SELECT user_id, news_categories, summary_length, push_enabled, morning_brief_time::text, evening_brief_time::text, updated_at FROM aura.user_preferences WHERE user_id = $1",
+    "SELECT user_id, news_categories, summary_length, push_enabled, morning_brief_time::text, evening_brief_time::text, departure_alerts_enabled, departure_buffer_minutes, updated_at FROM aura.user_preferences WHERE user_id = $1",
     [userId]
   );
   const prefsQueryMs = Date.now() - prefsQueryStart;
@@ -233,6 +240,8 @@ async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
       morningBriefTime: prefRow.morning_brief_time ?? "08:00:00",
       eveningBriefTime: prefRow.evening_brief_time ?? "20:00:00",
       timezone: user.timezone,
+      departureAlertsEnabled: prefRow.departure_alerts_enabled ?? true,
+      departureBufferMinutes: prefRow.departure_buffer_minutes ?? 5,
       updatedAt: toDate(prefRow.updated_at)
     });
   }
@@ -351,8 +360,27 @@ export const authStore = {
       runBackground(
         (async () => {
           await db.query(
-            "INSERT INTO aura.user_preferences (user_id, news_categories, summary_length, morning_brief_time, evening_brief_time, push_enabled) VALUES ($1, $2, $3, $4::time, $5::time, $6) ON CONFLICT (user_id) DO UPDATE SET news_categories = EXCLUDED.news_categories, summary_length = EXCLUDED.summary_length, morning_brief_time = EXCLUDED.morning_brief_time, evening_brief_time = EXCLUDED.evening_brief_time, push_enabled = EXCLUDED.push_enabled, updated_at = now()",
-            [userId, updated.newsCategories.join(","), updated.summaryLength, updated.morningBriefTime, updated.eveningBriefTime, updated.pushEnabled]
+            `INSERT INTO aura.user_preferences (user_id, news_categories, summary_length, morning_brief_time, evening_brief_time, push_enabled, departure_alerts_enabled, departure_buffer_minutes)
+             VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8)
+             ON CONFLICT (user_id) DO UPDATE SET
+               news_categories = EXCLUDED.news_categories,
+               summary_length = EXCLUDED.summary_length,
+               morning_brief_time = EXCLUDED.morning_brief_time,
+               evening_brief_time = EXCLUDED.evening_brief_time,
+               push_enabled = EXCLUDED.push_enabled,
+               departure_alerts_enabled = EXCLUDED.departure_alerts_enabled,
+               departure_buffer_minutes = EXCLUDED.departure_buffer_minutes,
+               updated_at = now()`,
+            [
+              userId,
+              updated.newsCategories.join(","),
+              updated.summaryLength,
+              updated.morningBriefTime,
+              updated.eveningBriefTime,
+              updated.pushEnabled,
+              updated.departureAlertsEnabled,
+              updated.departureBufferMinutes
+            ]
           );
           if (patch.timezone) {
             await db.query(

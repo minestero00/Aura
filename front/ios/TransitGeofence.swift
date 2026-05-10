@@ -61,7 +61,7 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
           let lat = dict["lat"] as? Double,
           let lng = dict["lng"] as? Double
         else { continue }
-        let radius = (dict["radius"] as? Double) ?? 150.0
+        let radius = (dict["radius"] as? Double) ?? 350.0
         let clamped = min(radius, self.locationManager.maximumRegionMonitoringDistance)
         let region = CLCircularRegion(
           center: CLLocationCoordinate2D(latitude: lat, longitude: lng),

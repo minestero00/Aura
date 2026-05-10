@@ -15,6 +15,7 @@
 		D5DE9E5067EF78B529279BA5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		F11A9F4E2FAF4BC40031AE70 /* TransitGeofence.m in Sources */ = {isa = PBXBuildFile; fileRef = F11A9F4C2FAF4BC40031AE70 /* TransitGeofence.m */; };
 		F11A9F4F2FAF4BC40031AE70 /* TransitGeofence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11A9F4D2FAF4BC40031AE70 /* TransitGeofence.swift */; };
+		F11A9F512FB052640031AE70 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F11A9F502FB052640031AE70 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11A9F4C2FAF4BC40031AE70 /* TransitGeofence.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TransitGeofence.m; sourceTree = "<group>"; };
 		F11A9F4D2FAF4BC40031AE70 /* TransitGeofence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitGeofence.swift; sourceTree = "<group>"; };
+		F11A9F502FB052640031AE70 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				53F017926DFE412990962A17 /* AuraApp-Bridging-Header.h */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
+				F11A9F502FB052640031AE70 /* GoogleService-Info.plist */,
 				9A0AA00100000000000A0004 /* InfoPlist.strings */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -173,6 +176,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				F11A9F512FB052640031AE70 /* GoogleService-Info.plist in Resources */,
 				D5DE9E5067EF78B529279BA5 /* PrivacyInfo.xcprivacy in Resources */,
 				9A0AA00100000000000A0001 /* InfoPlist.strings in Resources */,
 			);
@@ -205,9 +209,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AuraApp/Pods-AuraApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AuraApp/Pods-AuraApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -244,9 +252,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AuraApp/Pods-AuraApp-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AuraApp/Pods-AuraApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

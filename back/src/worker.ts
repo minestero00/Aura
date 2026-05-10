@@ -4,6 +4,42 @@ import { hasEncryptionKey } from "./lib/security/encryption.js";
 import { authStore } from "./modules/auth/store.js";
 import { briefingsService } from "./modules/briefings/service.js";
 import { jobsService } from "./modules/jobs/service.js";
+import { evaluateAllUsersDepartures } from "./modules/departure/service.js";
+
+const DEPARTURE_EVALUATE_INTERVAL_MS = 5 * 60 * 1000;
+let departureTimer: NodeJS.Timeout | null = null;
+
+function startDepartureLoop() {
+  if (departureTimer) return;
+  // 매 5분마다 모든 enabled 사용자에 대해 출발 알림 평가. 이전 호출이 진행 중이면 skip.
+  let inFlight = false;
+  departureTimer = setInterval(async () => {
+    if (inFlight) return;
+    inFlight = true;
+    try {
+      await evaluateAllUsersDepartures();
+    } catch (error) {
+      console.log(
+        JSON.stringify({
+          level: "warn",
+          service: "aura-worker",
+          module: "departure",
+          message: "evaluateAllUsersDepartures failed",
+          error: error instanceof Error ? error.message : String(error)
+        })
+      );
+    } finally {
+      inFlight = false;
+    }
+  }, DEPARTURE_EVALUATE_INTERVAL_MS);
+}
+
+function stopDepartureLoop() {
+  if (departureTimer) {
+    clearInterval(departureTimer);
+    departureTimer = null;
+  }
+}
 
 async function bootstrapWorker() {
   if (!hasEncryptionKey() && config.nodeEnv === "production") {
@@ -13,6 +49,7 @@ async function bootstrapWorker() {
   await authStore.initialize();
   briefingsService.startScheduler();
   jobsService.startWorker();
+  startDepartureLoop();
 
   async function shutdown(signal: string) {
     console.log(
@@ -24,6 +61,7 @@ async function bootstrapWorker() {
       })
     );
 
+    stopDepartureLoop();
     await Promise.all([
       jobsService.close(),
       authStore.close(),

@@ -19,6 +19,9 @@ export interface AuthPreferences {
   pushEnabled: boolean;
   morningBriefTime: string;
   eveningBriefTime: string;
+  // Phase 3 — 출발 시간 자동 푸시.
+  departureAlertsEnabled: boolean;
+  departureBufferMinutes: number;
 }
 
 export interface AuthIntegrations {

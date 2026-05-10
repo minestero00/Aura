@@ -2,109 +2,46 @@ import { Platform } from "react-native";
 import PushNotificationIOS, {
   type PushNotification
 } from "@react-native-community/push-notification-ios";
-import type { AppLanguage } from "@features/app/i18n";
 
-const DAILY_BRIEF_NOTIFICATION_ID = "aura-daily-briefing";
+// Daily brief 알림은 backend cron이 FCM/APNs로 발송 (back/src/modules/briefings/push.ts).
+// frontend는 더 이상 OS-scheduled local notification을 만들지 않는다 — 권한 ensure만 담당.
+// 단, 사용자가 푸시를 탭해서 앱이 열린 경우의 라우팅은 여전히 frontend 책임.
+
 const DAILY_BRIEF_TYPE = "daily-briefing";
 
 export interface DailyBriefNotificationStatus {
-  enabled: boolean;
   permissionGranted: boolean;
-}
-
-function getNextNineAM() {
-  return getNextBriefDate("09:00:00");
-}
-
-function getNextBriefDate(time: string) {
-  const [hourString, minuteString] = time.split(":");
-  const hour = Number(hourString);
-  const minute = Number(minuteString);
-  const next = new Date();
-  next.setHours(hour, minute, 0, 0);
-
-  if (next.getTime() <= Date.now()) {
-    next.setDate(next.getDate() + 1);
-  }
-
-  return next;
-}
-
-function buildCopy(language: AppLanguage) {
-  if (language === "ko") {
-    return {
-      title: "AURA",
-      body: "오늘의 브리핑이 도착했습니다"
-    };
-  }
-
-  return {
-    title: "AURA",
-    body: "Today's briefing is ready"
-  };
 }
 
 function isDailyBriefNotification(notification: PushNotification | null) {
   if (!notification) {
     return false;
   }
-
   return notification.getData().type === DAILY_BRIEF_TYPE;
 }
 
-export async function scheduleDailyBriefingNotification(language: AppLanguage, time = "09:00:00") {
-  if (Platform.OS !== "ios") {
-    return false;
+/**
+ * 알림 권한을 요청하고 부여 여부 반환. 권한이 거부 상태면 silent하게 false 반환
+ * (사용자에겐 settings 화면에서 status row로 안내). iOS는 PushNotificationIOS,
+ * Android는 system 권한 + post notification permission(API 33+)이 별도지만 RN의
+ * Notifications 라이브러리가 처리. 현 단계는 iOS만 명시적으로 다루고 Android는
+ * permission denied 상태가 아니라 가정.
+ */
+export async function ensureDailyBriefNotificationPermission(): Promise<boolean> {
+  if (Platform.OS === "ios") {
+    const result = await PushNotificationIOS.requestPermissions({
+      alert: true,
+      badge: true,
+      sound: true
+    });
+    return Boolean(result.alert || result.badge || result.sound);
   }
-
-  const permissions = await PushNotificationIOS.requestPermissions({
-    alert: true,
-    badge: true,
-    sound: true
-  });
-
-  const permissionGranted = Boolean(permissions.alert || permissions.badge || permissions.sound);
-
-  if (!permissionGranted) {
-    return false;
-  }
-
-  PushNotificationIOS.removePendingNotificationRequests([DAILY_BRIEF_NOTIFICATION_ID]);
-
-  const copy = buildCopy(language);
-
-  PushNotificationIOS.addNotificationRequest({
-    id: DAILY_BRIEF_NOTIFICATION_ID,
-    title: copy.title,
-    body: copy.body,
-    fireDate: getNextBriefDate(time),
-    repeats: true,
-    repeatsComponent: {
-      hour: true,
-      minute: true
-    },
-    userInfo: {
-      type: DAILY_BRIEF_TYPE
-    }
-  });
-
   return true;
-}
-
-export function cancelDailyBriefingNotification() {
-  if (Platform.OS !== "ios") {
-    return;
-  }
-
-  PushNotificationIOS.removePendingNotificationRequests([DAILY_BRIEF_NOTIFICATION_ID]);
 }
 
 export async function getDailyBriefNotificationStatus(): Promise<DailyBriefNotificationStatus> {
   if (Platform.OS !== "ios") {
-    return {
-      enabled: false,
-      permissionGranted: false
-    };
+    return { permissionGranted: true };
   }
 
   const permissionGranted = await new Promise<boolean>(resolve => {
@@ -113,16 +50,7 @@ export async function getDailyBriefNotificationStatus(): Promise<DailyBriefNotif
     });
   });
 
-  const enabled = await new Promise<boolean>(resolve => {
-    PushNotificationIOS.getPendingNotificationRequests(requests => {
-      resolve(requests.some(request => request.id === DAILY_BRIEF_NOTIFICATION_ID));
-    });
-  });
-
-  return {
-    enabled,
-    permissionGranted
-  };
+  return { permissionGranted };
 }
 
 export async function getInitialDailyBriefOpen() {

@@ -6,6 +6,7 @@ export interface AppCopy {
     close: string;
     loadingSession: string;
     ok: string;
+    exitConfirm: string;
   };
   actionable: {
     gmailReconnectTitle: string;

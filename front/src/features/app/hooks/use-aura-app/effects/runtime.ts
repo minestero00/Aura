@@ -1,7 +1,13 @@
 import { useEffect } from "react";
+import { AppState } from "react-native";
 import { mergeAgendaDays } from "@features/calendar/merge";
 import { hydrateChatHistory } from "@features/app/hooks/use-aura-app/chat";
 import { toTimeDraft } from "@features/app/hooks/use-aura-app/helpers";
+import {
+  registerForPushNotifications,
+  subscribeToPushTokenRefresh
+} from "@features/push/register";
+import { reportCurrentLocationOnce } from "@features/departure/report";
 import type { AuraEffectsDeps } from "../effects";
 
 export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
@@ -145,6 +151,46 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
 
     void deps.refreshDailyBriefNotificationState();
   }, [deps.authState?.session.accessToken, deps.language]);
+
+  // 사용자가 OS Settings에서 알림 권한을 켜고 앱으로 복귀하면 status row가
+  // "허용됨"으로 자동 갱신. 위치 권한의 backgroundActive auto-retry와 같은 패턴.
+  useEffect(() => {
+    if (!deps.authState) {
+      return;
+    }
+    const sub = AppState.addEventListener("change", state => {
+      if (state !== "active") return;
+      void deps.refreshDailyBriefNotificationState();
+    });
+    return () => sub.remove();
+  }, [deps.authState?.session.accessToken]);
+
+  // sign-in 직후 FCM push token 등록 + rotate 구독. backend가 daily brief / transit /
+  // system 알림을 동일 token으로 발송 (back/src/modules/push/service.ts firebase-admin).
+  useEffect(() => {
+    if (!deps.authState) {
+      return;
+    }
+    void registerForPushNotifications();
+    const unsubscribe = subscribeToPushTokenRefresh();
+    return () => {
+      unsubscribe();
+    };
+  }, [deps.authState?.session.accessToken]);
+
+  // 출발 알림(Phase 3) 위치 보고 — sign-in 직후 + foreground 복귀 시.
+  // backend가 30분 stale일 경우 evaluate skip하므로 자주 갱신할수록 정확.
+  useEffect(() => {
+    if (!deps.authState) {
+      return;
+    }
+    void reportCurrentLocationOnce();
+    const sub = AppState.addEventListener("change", state => {
+      if (state !== "active") return;
+      void reportCurrentLocationOnce();
+    });
+    return () => sub.remove();
+  }, [deps.authState?.session.accessToken]);
 
   useEffect(() => {
     if (!deps.authState || !deps.pendingDailyBriefOpen) {

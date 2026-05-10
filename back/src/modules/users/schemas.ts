@@ -6,5 +6,7 @@ export const updatePreferencesSchema = z.object({
   pushEnabled: z.boolean().optional(),
   morningBriefTime: z.string().regex(/^\d{2}:\d{2}:\d{2}$/).optional(),
   eveningBriefTime: z.string().regex(/^\d{2}:\d{2}:\d{2}$/).optional(),
-  timezone: z.string().min(1).optional()
+  timezone: z.string().min(1).optional(),
+  departureAlertsEnabled: z.boolean().optional(),
+  departureBufferMinutes: z.number().int().min(0).max(60).optional()
 });

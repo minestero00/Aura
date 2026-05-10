@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  ensureDailyBriefNotificationPermission,
   getDailyBriefNotificationStatus,
-  scheduleDailyBriefingNotification,
 } from '@features/app/notifications';
 import type { AppLanguage } from '@features/app/i18n';
 import { useAuraTheme } from '@features/app/styles';
@@ -53,7 +53,7 @@ export function PushOnboardingModal({ language }: PushOnboardingModalProps) {
     }
     if (reason === 'accepted') {
       try {
-        await scheduleDailyBriefingNotification(language);
+        await ensureDailyBriefNotificationPermission();
       } catch {
         // ignore
       }

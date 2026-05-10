@@ -13,6 +13,7 @@ import type { DailyBriefResponse, DailyBriefSnapshot } from "./types.js";
 const snapshotsByKey = new Map<string, DailyBriefSnapshot>();
 const generationLocksByKey = new Map<string, Promise<DailyBriefSnapshot>>();
 const timersByUserId = new Map<string, NodeJS.Timeout>();
+const eveningTimersByUserId = new Map<string, NodeJS.Timeout>();
 let schedulerRescanTimer: NodeJS.Timeout | null = null;
 const REFRESH_WINDOW_MS = 30 * 60 * 1000;
 const SCHEDULER_RESCAN_MS = 5 * 60 * 1000;
@@ -135,49 +136,96 @@ async function precomputeForUser(userId: string) {
   ]);
 }
 
-function scheduleUser(userId: string) {
-  if (!config.enableBriefingScheduler) {
-    return;
+function clearMorningTimer(userId: string) {
+  const existing = timersByUserId.get(userId);
+  if (existing) {
+    clearTimeout(existing);
+    timersByUserId.delete(userId);
   }
+}
 
+function clearEveningTimer(userId: string) {
+  const existing = eveningTimersByUserId.get(userId);
+  if (existing) {
+    clearTimeout(existing);
+    eveningTimersByUserId.delete(userId);
+  }
+}
+
+function scheduleUserMorning(userId: string) {
   const user = authStore.findUserById(userId);
   const preferences = authStore.getPreferences(userId);
 
   if (!user || !preferences || !preferences.pushEnabled) {
-    const existing = timersByUserId.get(userId);
-    if (existing) {
-      clearTimeout(existing);
-      timersByUserId.delete(userId);
-    }
+    clearMorningTimer(userId);
     return;
   }
 
-  const existing = timersByUserId.get(userId);
-  if (existing) {
-    clearTimeout(existing);
-  }
+  clearMorningTimer(userId);
 
   const delayMs = getNextRunDelayMs(user.timezone, preferences.morningBriefTime);
   const timer = setTimeout(async () => {
     try {
       const { jobsService } = await import("../jobs/service.js");
-      await jobsService.enqueueDailyBriefPrecompute(userId, "schedule");
+      await jobsService.enqueueDailyBriefPushSend(userId, "schedule");
     } catch (error) {
       console.log(
         JSON.stringify({
           level: "warn",
           service: "aura-back",
-          message: "daily brief precompute failed",
+          message: "daily brief push enqueue failed",
           userId,
           error: error instanceof Error ? error.message : String(error)
         })
       );
     } finally {
-      scheduleUser(userId);
+      scheduleUserMorning(userId);
     }
   }, delayMs);
 
   timersByUserId.set(userId, timer);
+}
+
+function scheduleUserEvening(userId: string) {
+  const user = authStore.findUserById(userId);
+  const preferences = authStore.getPreferences(userId);
+
+  if (!user || !preferences || !preferences.pushEnabled || !preferences.eveningBriefTime) {
+    clearEveningTimer(userId);
+    return;
+  }
+
+  clearEveningTimer(userId);
+
+  const delayMs = getNextRunDelayMs(user.timezone, preferences.eveningBriefTime);
+  const timer = setTimeout(async () => {
+    try {
+      const { jobsService } = await import("../jobs/service.js");
+      await jobsService.enqueueEveningBriefPushSend(userId, "schedule");
+    } catch (error) {
+      console.log(
+        JSON.stringify({
+          level: "warn",
+          service: "aura-back",
+          message: "evening brief push enqueue failed",
+          userId,
+          error: error instanceof Error ? error.message : String(error)
+        })
+      );
+    } finally {
+      scheduleUserEvening(userId);
+    }
+  }, delayMs);
+
+  eveningTimersByUserId.set(userId, timer);
+}
+
+function scheduleUser(userId: string) {
+  if (!config.enableBriefingScheduler) {
+    return;
+  }
+  scheduleUserMorning(userId);
+  scheduleUserEvening(userId);
 }
 
 export const briefingsService = {

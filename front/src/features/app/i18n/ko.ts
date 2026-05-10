@@ -6,6 +6,7 @@ export const KO_COPY: AppCopy = {
     close: '닫기',
     loadingSession: 'AURA를 시작하는 중...',
     ok: '확인',
+    exitConfirm: '한 번 더 누르면 종료됩니다',
   },
   actionable: {
     gmailReconnectTitle: 'Gmail 연결을 갱신해 주세요',

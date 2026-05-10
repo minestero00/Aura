@@ -6,6 +6,7 @@ export const EN_COPY: AppCopy = {
     close: 'Close',
     loadingSession: 'Starting AURA...',
     ok: 'OK',
+    exitConfirm: 'Press back again to exit',
   },
   actionable: {
     gmailReconnectTitle: 'Refresh Gmail connection',

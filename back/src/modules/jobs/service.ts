@@ -3,8 +3,10 @@ import { config } from "../../config/env.js";
 import { createPgPool } from "../../lib/db/pool.js";
 import { createId } from "../../lib/ids.js";
 import { briefingsService } from "../briefings/service.js";
+import { sendDailyBriefPush } from "../briefings/push.js";
+import { sendEveningBriefPush } from "../briefings/evening.js";
 
-type JobType = "daily_brief_precompute";
+type JobType = "daily_brief_precompute" | "daily_brief_push_send" | "evening_brief_push_send";
 type JobStatus = "queued" | "processing" | "completed" | "failed" | "dead_letter";
 
 interface BackgroundJobRow {
@@ -132,6 +134,44 @@ async function enqueueDailyBriefPrecompute(userId: string, source: "schedule" | 
   );
 }
 
+async function enqueueDailyBriefPushSend(userId: string, source: "schedule" | "manual") {
+  const db = getPool();
+  if (!db) {
+    return;
+  }
+
+  const jobType: JobType = "daily_brief_push_send";
+  const dayKey = new Date().toISOString().slice(0, 10);
+  const jobKey = `${userId}:${dayKey}:${source}`;
+  const payload: DailyBriefPrecomputePayload = {
+    userId
+  };
+
+  await db.query(
+    "INSERT INTO aura.background_jobs (id, job_type, user_id, job_key, status, attempt_count, max_attempts, available_at, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, 'queued', 0, 5, now(), $5, now(), now()) ON CONFLICT (job_type, job_key) WHERE job_key IS NOT NULL DO NOTHING",
+    [createId(), jobType, userId, jobKey, JSON.stringify(payload)]
+  );
+}
+
+async function enqueueEveningBriefPushSend(userId: string, source: "schedule" | "manual") {
+  const db = getPool();
+  if (!db) {
+    return;
+  }
+
+  const jobType: JobType = "evening_brief_push_send";
+  const dayKey = new Date().toISOString().slice(0, 10);
+  const jobKey = `${userId}:${dayKey}:${source}`;
+  const payload: DailyBriefPrecomputePayload = {
+    userId
+  };
+
+  await db.query(
+    "INSERT INTO aura.background_jobs (id, job_type, user_id, job_key, status, attempt_count, max_attempts, available_at, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, 'queued', 0, 5, now(), $5, now(), now()) ON CONFLICT (job_type, job_key) WHERE job_key IS NOT NULL DO NOTHING",
+    [createId(), jobType, userId, jobKey, JSON.stringify(payload)]
+  );
+}
+
 async function claimNextJob() {
   const db = getPool();
   if (!db) {
@@ -210,6 +250,30 @@ async function processJob(job: BackgroundJobRow) {
     }
 
     await briefingsService.precomputeDailyBrief(payload.userId);
+    return;
+  }
+
+  if (job.job_type === "daily_brief_push_send") {
+    const payloadRaw = job.payload ? JSON.parse(job.payload) : null;
+    const payload = payloadRaw as DailyBriefPrecomputePayload | null;
+
+    if (!payload?.userId) {
+      throw new Error("Missing daily brief push payload userId");
+    }
+
+    await sendDailyBriefPush(payload.userId);
+    return;
+  }
+
+  if (job.job_type === "evening_brief_push_send") {
+    const payloadRaw = job.payload ? JSON.parse(job.payload) : null;
+    const payload = payloadRaw as DailyBriefPrecomputePayload | null;
+
+    if (!payload?.userId) {
+      throw new Error("Missing evening brief push payload userId");
+    }
+
+    await sendEveningBriefPush(payload.userId);
     return;
   }
 
@@ -293,6 +357,12 @@ async function cleanupOldJobs() {
 export const jobsService = {
   async enqueueDailyBriefPrecompute(userId: string, source: "schedule" | "manual" = "manual") {
     await enqueueDailyBriefPrecompute(userId, source);
+  },
+  async enqueueDailyBriefPushSend(userId: string, source: "schedule" | "manual" = "schedule") {
+    await enqueueDailyBriefPushSend(userId, source);
+  },
+  async enqueueEveningBriefPushSend(userId: string, source: "schedule" | "manual" = "schedule") {
+    await enqueueEveningBriefPushSend(userId, source);
   },
   startWorker() {
     if (active) {

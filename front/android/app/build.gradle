@@ -1,6 +1,9 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+// Firebase Cloud Messaging — google-services.json (android/app/google-services.json) 필요.
+// 누락 시 빌드 실패 — Phase 2.1.D 가이드 참고.
+apply plugin: "com.google.gms.google-services"
 
 /**
  * This is the configuration block to customize your React Native Android app.

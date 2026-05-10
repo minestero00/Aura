@@ -1,4 +1,13 @@
 import { Pool } from "pg";
+import { readFileSync } from "node:fs";
+import {
+  cert,
+  getApps,
+  initializeApp,
+  type App,
+  type ServiceAccount
+} from "firebase-admin/app";
+import { getMessaging, type Message } from "firebase-admin/messaging";
 import { config } from "../../config/env.js";
 import { createPgPool } from "../../lib/db/pool.js";
 import { createId } from "../../lib/ids.js";
@@ -15,6 +24,8 @@ interface PushDeviceRow {
 }
 
 let pool: Pool | null = null;
+let firebaseApp: App | null = null;
+let firebaseInitErrorLogged = false;
 
 function getPool() {
   if (!config.databaseUrl) {
@@ -62,50 +73,151 @@ function logWarn(message: string, details?: Record<string, unknown>) {
   );
 }
 
-async function sendViaProvider(device: PushDevice, payload: PushPayload) {
-  const fcmKey = process.env.FCM_SERVER_KEY;
-  if (device.platform === "android" && fcmKey) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8_000);
+function loadServiceAccount(): ServiceAccount | null {
+  if (config.firebaseServiceAccountJson) {
     try {
-      const response = await fetch("https://fcm.googleapis.com/fcm/send", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          authorization: `key=${fcmKey}`,
-          "content-type": "application/json"
-        },
-        body: JSON.stringify({
-          to: device.pushToken,
-          priority: payload.critical ? "high" : "normal",
-          notification: {
-            title: payload.title,
-            body: payload.body,
-            sound: payload.critical ? "default" : undefined
-          },
-          data: payload.data ?? {}
-        })
-      });
-      return response.ok;
+      return JSON.parse(config.firebaseServiceAccountJson) as ServiceAccount;
     } catch (error) {
-      logWarn("fcm send failed", {
-        deviceId: device.id,
+      logWarn("FIREBASE_SERVICE_ACCOUNT_JSON parse failed", {
         error: error instanceof Error ? error.message : String(error)
       });
-      return false;
-    } finally {
-      clearTimeout(timeout);
+      return null;
     }
   }
+  if (config.firebaseServiceAccountPath) {
+    try {
+      const raw = readFileSync(config.firebaseServiceAccountPath, "utf8");
+      return JSON.parse(raw) as ServiceAccount;
+    } catch (error) {
+      logWarn("FIREBASE_SERVICE_ACCOUNT_PATH read failed", {
+        path: config.firebaseServiceAccountPath,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return null;
+    }
+  }
+  return null;
+}
 
-  logInfo("push dispatched (stub: no provider configured)", {
-    deviceId: device.id,
-    platform: device.platform,
-    title: payload.title,
-    category: payload.category ?? null,
-    critical: payload.critical ?? false
-  });
-  return true;
+function getFirebaseApp(): App | null {
+  if (firebaseApp) return firebaseApp;
+  if (getApps().length > 0) {
+    firebaseApp = getApps()[0]!;
+    return firebaseApp;
+  }
+  const serviceAccount = loadServiceAccount();
+  if (!serviceAccount) {
+    if (!firebaseInitErrorLogged) {
+      logWarn(
+        "firebase-admin not initialized: FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH not set — push send will be a no-op stub"
+      );
+      firebaseInitErrorLogged = true;
+    }
+    return null;
+  }
+  try {
+    firebaseApp = initializeApp({
+      credential: cert(serviceAccount),
+      projectId: config.firebaseProjectId || (serviceAccount as { project_id?: string }).project_id
+    });
+    return firebaseApp;
+  } catch (error) {
+    logWarn("firebase-admin initializeApp failed", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return null;
+  }
+}
+
+async function deleteDevice(deviceId: string) {
+  const db = getPool();
+  if (!db) return;
+  try {
+    await db.query("DELETE FROM aura.push_devices WHERE id = $1", [deviceId]);
+  } catch (error) {
+    logWarn("failed to delete invalid push device row", {
+      deviceId,
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+}
+
+const INVALID_TOKEN_ERROR_CODES = new Set([
+  "messaging/registration-token-not-registered",
+  "messaging/invalid-registration-token",
+  "messaging/invalid-argument"
+]);
+
+async function sendViaProvider(device: PushDevice, payload: PushPayload): Promise<boolean> {
+  const app = getFirebaseApp();
+  if (!app) {
+    logInfo("push dispatched (stub: firebase-admin not initialized)", {
+      deviceId: device.id,
+      platform: device.platform,
+      title: payload.title
+    });
+    return true;
+  }
+
+  // FCM HTTP v1 메시지 — iOS/Android 단일 schema. 토큰 자체가 platform별로 다를 뿐.
+  const dataPayload: Record<string, string> = {};
+  if (payload.data) {
+    for (const [key, value] of Object.entries(payload.data)) {
+      dataPayload[key] = String(value);
+    }
+  }
+  if (payload.category) {
+    dataPayload.category = payload.category;
+  }
+
+  const message: Message = {
+    token: device.pushToken,
+    notification: {
+      title: payload.title,
+      body: payload.body
+    },
+    data: dataPayload,
+    android: {
+      priority: payload.critical ? "high" : "normal",
+      notification: {
+        sound: "default",
+        channelId: payload.category === "daily_briefing" ? "aura.briefing.daily" : undefined
+      }
+    },
+    apns: {
+      headers: payload.critical ? { "apns-priority": "10" } : undefined,
+      payload: {
+        aps: {
+          sound: payload.critical
+            ? { critical: true, name: "default", volume: 1.0 }
+            : "default",
+          badge: 1
+        }
+      }
+    }
+  };
+
+  try {
+    await getMessaging(app).send(message);
+    return true;
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code && INVALID_TOKEN_ERROR_CODES.has(code)) {
+      // 토큰이 무효 — DB에서 device 삭제 (다음 사용자 sign-in 시 재등록).
+      await deleteDevice(device.id);
+      logWarn("push token invalid, device removed", {
+        deviceId: device.id,
+        code
+      });
+      return false;
+    }
+    logWarn("fcm send failed", {
+      deviceId: device.id,
+      code: code ?? null,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return false;
+  }
 }
 
 export const pushService = {

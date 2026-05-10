@@ -31,7 +31,9 @@ export const usersService = {
         summaryLength: preferences.summaryLength,
         pushEnabled: preferences.pushEnabled,
         morningBriefTime: preferences.morningBriefTime,
-        eveningBriefTime: preferences.eveningBriefTime
+        eveningBriefTime: preferences.eveningBriefTime,
+        departureAlertsEnabled: preferences.departureAlertsEnabled,
+        departureBufferMinutes: preferences.departureBufferMinutes
       },
       integrations: {
         gmailConnected: user.gmailConnected,
@@ -57,7 +59,9 @@ export const usersService = {
       pushEnabled: input.pushEnabled,
       morningBriefTime: input.morningBriefTime,
       eveningBriefTime: input.eveningBriefTime,
-      timezone: input.timezone
+      timezone: input.timezone,
+      departureAlertsEnabled: input.departureAlertsEnabled,
+      departureBufferMinutes: input.departureBufferMinutes
     });
 
     if (!updated) {
@@ -74,7 +78,9 @@ export const usersService = {
         pushEnabled: updated.pushEnabled,
         morningBriefTime: updated.morningBriefTime,
         eveningBriefTime: updated.eveningBriefTime,
-        timezone: updated.timezone
+        timezone: updated.timezone,
+        departureAlertsEnabled: updated.departureAlertsEnabled,
+        departureBufferMinutes: updated.departureBufferMinutes
       }
     };
   }

@@ -56,5 +56,11 @@ export const config = {
     .map(value => value.trim())
     .filter(value => value.length > 0),
   ipRateLimitPerMinute: Number(process.env.IP_RATE_LIMIT_PER_MINUTE || 120),
-  ipRateLimitPer5Minute: Number(process.env.IP_RATE_LIMIT_PER_5MIN || 400)
+  ipRateLimitPer5Minute: Number(process.env.IP_RATE_LIMIT_PER_5MIN || 400),
+  // Firebase service account JSON. 두 가지 입력 방식 — JSON 문자열 자체 또는 파일 경로.
+  // production은 secret manager에서 JSON 문자열 주입 권장 (FIREBASE_SERVICE_ACCOUNT_JSON).
+  // dev는 파일 경로(FIREBASE_SERVICE_ACCOUNT_PATH)도 허용 — gitignore 권장.
+  firebaseServiceAccountJson: process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
+  firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "",
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || ""
 };

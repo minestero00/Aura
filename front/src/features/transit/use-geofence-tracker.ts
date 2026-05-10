@@ -17,9 +17,12 @@ import {
 } from "./native-geofence";
 
 const POLL_INTERVAL_MS = 15_000;
-const ARRIVAL_RADIUS_METERS = 150;
+const ARRIVAL_RADIUS_METERS = 300;
 const FINAL_ARRIVAL_RADIUS_METERS = 30;
-const BACKGROUND_REGION_RADIUS_METERS = 200;
+// transit 정류장은 한 정거장 전부터 알림이 떠야 사용자가 하차 준비 가능 — iOS region monitoring은 도시 환경에서 ~100m 오차가 있어 350m 정도 줘야 안정적.
+const BACKGROUND_REGION_RADIUS_METERS = 350;
+// 최종 목적지(집/사무실)는 너무 일찍 알림 오면 부정확 — 100m로 분리.
+const BACKGROUND_DEST_RADIUS_METERS = 100;
 
 type TransitLeg = Extract<DirectionsLeg, { mode: "transit" }>;
 
@@ -135,7 +138,7 @@ function buildRegions(trip: ActiveTripState): RegionInput[] {
       id: "dest",
       lat: trip.endLocation.lat,
       lng: trip.endLocation.lng,
-      radius: BACKGROUND_REGION_RADIUS_METERS,
+      radius: BACKGROUND_DEST_RADIUS_METERS,
       name: trip.destinationLabel || "목적지",
       type: "destination"
     });
@@ -290,24 +293,31 @@ export function useGeofenceTracker({
 
       const radius = target!.isFinal ? FINAL_ARRIVAL_RADIUS_METERS : ARRIVAL_RADIUS_METERS;
       if (distance <= radius) {
+        // native geofence가 활성이면 native가 알림 발사 + JS는 leg advance만 — 중복 방지.
+        // native가 비활성(simulator/권한 거부)일 때만 JS가 fallback으로 알림 발사.
+        const shouldFireNotification = !backgroundActiveRef.current;
         if (target!.isFinal) {
-          await presentTransitArrivalNotification({
-            tripId: trip!.id,
-            legIndex: -1,
-            stopName: target!.name,
-            language,
-            type: "destination"
-          });
+          if (shouldFireNotification) {
+            await presentTransitArrivalNotification({
+              tripId: trip!.id,
+              legIndex: -1,
+              stopName: target!.name,
+              language,
+              type: "destination"
+            });
+          }
           await clearActiveTrip();
           onChangeRef.current(null);
         } else {
-          await presentTransitArrivalNotification({
-            tripId: trip!.id,
-            legIndex: trip!.currentLegIndex,
-            stopName: target!.name,
-            language,
-            type: "transit-arrival"
-          });
+          if (shouldFireNotification) {
+            await presentTransitArrivalNotification({
+              tripId: trip!.id,
+              legIndex: trip!.currentLegIndex,
+              stopName: target!.name,
+              language,
+              type: "transit-arrival"
+            });
+          }
           const next = await advanceActiveTripLeg();
           onChangeRef.current(next);
         }

@@ -15,6 +15,9 @@ buildscript {
         classpath("com.android.tools.build:gradle")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        // Firebase Cloud Messaging — daily brief push send (back/src/modules/briefings/push.ts).
+        // google-services.json은 android/app/에 위치해야 함 (Phase 2.1.D setup 가이드 참고).
+        classpath("com.google.gms:google-services:4.4.2")
     }
 }
 

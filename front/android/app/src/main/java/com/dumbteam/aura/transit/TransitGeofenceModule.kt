@@ -54,7 +54,7 @@ class TransitGeofenceModule(private val reactContext: ReactApplicationContext) :
                 if (!dict.hasKey("lat") || !dict.hasKey("lng")) continue
                 val lat = dict.getDouble("lat")
                 val lng = dict.getDouble("lng")
-                val radius = if (dict.hasKey("radius")) dict.getDouble("radius").toFloat() else 200f
+                val radius = if (dict.hasKey("radius")) dict.getDouble("radius").toFloat() else 350f
                 val name = if (dict.hasKey("name")) dict.getString("name") ?: "" else ""
                 val type = if (dict.hasKey("type")) dict.getString("type") ?: "transit-arrival" else "transit-arrival"
 
