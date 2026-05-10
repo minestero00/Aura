@@ -118,6 +118,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("androidx.core:core-ktx:1.13.1")
 
+    // Health Connect — 어제 sleep/steps/heart rate 읽어 daily brief 톤 조절에 사용.
+    // Permission UI는 Health Connect 시스템 화면이 처리. minSdk 26 필요.
+    implementation("androidx.health.connect:connect-client:1.1.0-rc03")
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

@@ -1,6 +1,7 @@
 package com.dumbteam.aura
 
 import android.app.Application
+import com.dumbteam.aura.health.AuraHealthPackage
 import com.dumbteam.aura.notifications.NotificationChannelInitializer
 import com.dumbteam.aura.transit.TransitGeofenceModule
 import com.dumbteam.aura.transit.TransitGeofencePackage
@@ -20,6 +21,7 @@ class MainApplication : Application(), ReactApplication {
         PackageList(this).packages.apply {
           add(TransitGeofencePackage())
           add(AuraWidgetPackage())
+          add(AuraHealthPackage())
         },
     )
   }
