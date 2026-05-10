@@ -36,6 +36,8 @@ interface BuildResultParams {
   setIsDailyBriefModalVisible: (value: boolean) => void;
   isAskOpen: UseAuraAppResult["isAskOpen"];
   isAskFabHidden: UseAuraAppResult["isAskFabHidden"];
+  isHealthConnected: UseAuraAppResult["isHealthConnected"];
+  wellnessTip: UseAuraAppResult["wellnessTip"];
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
   isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
@@ -94,6 +96,7 @@ interface BuildResultParams {
     handleOpenAsk: UseAuraAppResult["handleOpenAsk"];
     handleCloseAsk: UseAuraAppResult["handleCloseAsk"];
     handleToggleAskFabHidden: UseAuraAppResult["handleToggleAskFabHidden"];
+    handleConnectHealth: UseAuraAppResult["handleConnectHealth"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
     handleCloseNavExpand: UseAuraAppResult["handleCloseNavExpand"];
     handleOpenTransit: UseAuraAppResult["handleOpenTransit"];
@@ -145,6 +148,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isDailyBriefModalVisible: params.isDailyBriefModalVisible,
     isAskOpen: params.isAskOpen,
     isAskFabHidden: params.isAskFabHidden,
+    isHealthConnected: params.isHealthConnected,
+    wellnessTip: params.wellnessTip,
     isNavExpanded: params.isNavExpanded,
     isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
@@ -222,6 +227,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleOpenAsk: params.handlers.handleOpenAsk,
     handleCloseAsk: params.handlers.handleCloseAsk,
     handleToggleAskFabHidden: params.handlers.handleToggleAskFabHidden,
+    handleConnectHealth: params.handlers.handleConnectHealth,
     handleOpenNavExpand: params.handlers.handleOpenNavExpand,
     handleCloseNavExpand: params.handlers.handleCloseNavExpand,
     handleOpenTransit: params.handlers.handleOpenTransit,

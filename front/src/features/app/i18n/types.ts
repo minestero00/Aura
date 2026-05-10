@@ -78,6 +78,7 @@ export interface AppCopy {
     dailyBriefOpenNews: string;
     dailyBriefEmailLabel: string;
     dailyBriefNewsLabel: string;
+    dailyBriefWellnessLabel: string;
     gmailNotConnectedTitle: string;
     gmailNotConnectedBody: string;
     todayBriefTitle: string;
@@ -214,6 +215,8 @@ export interface AppCopy {
     permissionsDeviceCalendar: string;
     permissionsNotifications: string;
     permissionsGoogleCalendar: string;
+    permissionsHealth: string;
+    permissionsHealthConnect: string;
     permissionsOpenSettings: string;
     permissionsReconnectGoogle: string;
     menuGmail: string;

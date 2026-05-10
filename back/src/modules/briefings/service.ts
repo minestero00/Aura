@@ -6,9 +6,11 @@ import { summarizeGmailMessages } from "../integrations/gmail/summarizer.js";
 import { fetchTopNewsArticles } from "../news/provider.js";
 import { summarizeNewsArticles } from "../news/summarizer.js";
 import type { NewsArticle } from "../news/types.js";
+import { healthService } from "../health/service.js";
 import { usageService } from "../usage/service.js";
 import { briefingsRepository } from "./repository.js";
 import type { DailyBriefResponse, DailyBriefSnapshot } from "./types.js";
+import { buildWellnessTip } from "./wellness.js";
 
 const snapshotsByKey = new Map<string, DailyBriefSnapshot>();
 const generationLocksByKey = new Map<string, Promise<DailyBriefSnapshot>>();
@@ -94,6 +96,24 @@ async function generateSnapshot(
       }
     }
 
+    let yesterdayHealth: {
+      sleepMinutes: number | null;
+      steps: number | null;
+      avgHrBpm: number | null;
+    } | null = null;
+    try {
+      const record = await healthService.getYesterday(userId, user.timezone);
+      if (record) {
+        yesterdayHealth = {
+          sleepMinutes: record.sleepMinutes,
+          steps: record.steps,
+          avgHrBpm: record.avgHrBpm
+        };
+      }
+    } catch {
+      yesterdayHealth = null;
+    }
+
     const snapshot: DailyBriefSnapshot = {
       userId,
       language,
@@ -105,6 +125,10 @@ async function generateSnapshot(
       news: {
         briefing: newsBriefing,
         articles: newsArticles
+      },
+      health: {
+        yesterday: yesterdayHealth,
+        wellnessTip: buildWellnessTip(language, yesterdayHealth)
       }
     };
 

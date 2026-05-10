@@ -87,6 +87,16 @@ export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
               </View>
             ) : null}
 
+            {!app.isDailyBriefPreparing && app.wellnessTip ? (
+              <View style={styles.dailyBriefDigestCard}>
+                <View style={styles.dailyBriefDigestHeader}>
+                  <Text style={styles.dailyBriefDigestIcon}>♡</Text>
+                  <Text style={styles.dailyBriefDigestLabel}>{app.copy.mail.dailyBriefWellnessLabel}</Text>
+                </View>
+                <Text style={styles.dailyBriefBulletText}>{app.wellnessTip}</Text>
+              </View>
+            ) : null}
+
             {hasNoContent ? <Text style={styles.dailyBriefEmptyText}>{app.copy.mail.dailyBriefEmpty}</Text> : null}
           </ScrollView>
 

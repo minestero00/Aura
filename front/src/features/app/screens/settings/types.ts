@@ -55,6 +55,8 @@ export interface SettingsScreenProps {
   onLogout: () => Promise<void>;
   isAskFabHidden: boolean;
   onToggleAskFabHidden: () => Promise<void>;
+  isHealthConnected: boolean;
+  onConnectHealth: () => Promise<void>;
 }
 
 export const NEWS_CATEGORIES: NewsCategory[] = [

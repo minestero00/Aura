@@ -21,6 +21,7 @@ export function buildDepsInput(params: any) {
     setAreDailyBriefNotificationsEnabled,
     setIsNotificationPermissionGranted,
     setMorningBriefTimeDraft,
+    setWellnessTip,
     setCalendarAgendaDays,
     setIsCalendarLoading,
     setHasLoadedCalendarAgenda,
@@ -67,7 +68,8 @@ export function buildDepsInput(params: any) {
       setIsDailyBriefModalVisible,
       setAreDailyBriefNotificationsEnabled,
       setIsNotificationPermissionGranted,
-      setMorningBriefTimeDraft
+      setMorningBriefTimeDraft,
+      setWellnessTip
     },
     calendar: {
       authState,

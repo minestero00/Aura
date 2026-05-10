@@ -82,6 +82,10 @@ export interface UseAuraAppResult {
   isAskOpen: boolean;
   /** 우측 상단 채팅 FAB을 숨길지 — 사용자가 설정에서 토글. */
   isAskFabHidden: boolean;
+  /** Health Connect(Android) 권한 + 데이터 sync 가능 상태. */
+  isHealthConnected: boolean;
+  /** 어제 health 데이터 기반 한 줄 톤 조절 — backend wellness 모듈이 결정론적으로 생성. */
+  wellnessTip: string | null;
   /** Bottom nav를 위로 끌어올린 expanded drawer 표시 여부. */
   isNavExpanded: boolean;
   /** 버스 도착 알림 modal — drawer에서 진입. */
@@ -149,6 +153,8 @@ export interface UseAuraAppResult {
   handleCloseAsk: () => void;
   /** 채팅 FAB 표시/숨김 토글 (설정 화면). */
   handleToggleAskFabHidden: () => Promise<void>;
+  /** Health Connect(Android) 시스템 화면 deeplink + 권한 부여 후 sync 시도. */
+  handleConnectHealth: () => Promise<void>;
   /** Bottom nav 끌어올림 → expanded drawer 열기. */
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */

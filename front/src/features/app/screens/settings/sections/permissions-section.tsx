@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SettingsStatusRow, SettingsSubpageHeader } from "@features/app/screens/settings/shared";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
@@ -11,7 +11,9 @@ export function PermissionsSection(props: SettingsSectionProps) {
     isDeviceCalendarPermissionGranted,
     isNotificationPermissionGranted,
     isGoogleCalendarConnected,
+    isHealthConnected,
     onConnectDeviceCalendar,
+    onConnectHealth,
     onOpenSystemSettings,
     onConnectGmail,
     onSelectSettingsSection,
@@ -28,6 +30,9 @@ export function PermissionsSection(props: SettingsSectionProps) {
   };
   const handleGoogleIssue = async () => {
     await onConnectGmail();
+  };
+  const handleHealthIssue = async () => {
+    await onConnectHealth();
   };
 
   return (
@@ -63,6 +68,15 @@ export function PermissionsSection(props: SettingsSectionProps) {
               issueText={copy.settings.refreshRequired}
               onIssuePress={handleGoogleIssue}
             />
+            {Platform.OS === "android" ? (
+              <SettingsStatusRow
+                styles={styles}
+                label={copy.settings.permissionsHealth}
+                isOk={isHealthConnected}
+                issueText={copy.settings.permissionsHealthConnect}
+                onIssuePress={handleHealthIssue}
+              />
+            ) : null}
 
             <View style={styles.buttonRow}>
               {!isDeviceCalendarPermissionGranted ? (

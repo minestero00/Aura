@@ -34,10 +34,20 @@ export function useAuraRuntimeEffects(deps: AuraEffectsDeps) {
     }
 
     deps.hasStartedInitialDailyBriefRef.current = true;
-    void deps.prepareDailyBriefForSession(
-      deps.authState.session,
-      deps.authState.me.integrations.gmailConnected
-    );
+    // brief 생성에 어제 health 데이터를 반영하기 위해 먼저 native에서 sync 시도.
+    // 권한 없거나 native 모듈 미구현이면 silent skip이라 brief에 영향 없음.
+    void (async () => {
+      try {
+        const { syncYesterdayHealth } = await import("@features/health/sync");
+        await syncYesterdayHealth();
+      } catch {
+        // silent — health는 best-effort.
+      }
+      void deps.prepareDailyBriefForSession(
+        deps.authState!.session,
+        deps.authState!.me.integrations.gmailConnected
+      );
+    })();
   }, [deps.authState]);
 
   useEffect(() => {

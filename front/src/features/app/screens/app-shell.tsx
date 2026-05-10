@@ -247,6 +247,8 @@ export function AppShell({ app }: AppShellProps) {
             onToggleNewsCategory={app.handleToggleNewsCategory}
             isAskFabHidden={app.isAskFabHidden}
             onToggleAskFabHidden={app.handleToggleAskFabHidden}
+            isHealthConnected={app.isHealthConnected}
+            onConnectHealth={app.handleConnectHealth}
           />
         </View>
       </ScrollView>

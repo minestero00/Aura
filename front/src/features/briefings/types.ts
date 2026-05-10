@@ -13,6 +13,14 @@ export interface DailyBriefSnapshot {
     briefing: NewsBriefing;
     articles: NewsArticle[];
   };
+  health: {
+    yesterday: {
+      sleepMinutes: number | null;
+      steps: number | null;
+      avgHrBpm: number | null;
+    } | null;
+    wellnessTip: string | null;
+  };
 }
 
 export interface DailyBriefResponse {

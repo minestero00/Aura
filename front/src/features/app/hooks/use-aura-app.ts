@@ -12,6 +12,7 @@ import { useAuraAppEffects } from "@features/app/hooks/use-aura-app/effects";
 import { useAuraAppState } from "@features/app/hooks/use-aura-app/state";
 import { getCopy } from "@features/app/i18n";
 import { saveAskFabHidden } from "@features/app/storage";
+import { requestHealthPermission, syncYesterdayHealth } from "@features/health/sync";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
 import type {
@@ -132,6 +133,13 @@ export function useAuraApp(): UseAuraAppResult {
     state.setIsAskFabHidden(next);
     await saveAskFabHidden(next).catch(() => undefined);
   }
+  async function handleConnectHealth() {
+    // Health Connect 시스템 화면을 열고, 사용자가 권한을 부여한 뒤 돌아오면
+    // 다음 sync 시 데이터가 들어오기 시작. UI 상태는 sync 성공 시에만 connected.
+    await requestHealthPermission().catch(() => undefined);
+    const ok = await syncYesterdayHealth();
+    state.setIsHealthConnected(ok);
+  }
   function handleOpenNavExpand() {
     state.setIsNavExpanded(true);
   }
@@ -188,6 +196,7 @@ export function useAuraApp(): UseAuraAppResult {
       handleOpenAsk,
       handleCloseAsk,
       handleToggleAskFabHidden,
+      handleConnectHealth,
       handleOpenNavExpand,
       handleCloseNavExpand,
       handleOpenTransit,

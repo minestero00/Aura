@@ -83,6 +83,7 @@ export const KO_COPY: AppCopy = {
     dailyBriefOpenNews: '뉴스 보기',
     dailyBriefEmailLabel: '메일',
     dailyBriefNewsLabel: '뉴스',
+    dailyBriefWellnessLabel: '오늘의 컨디션',
     gmailNotConnectedTitle: 'Gmail이 연결되지 않음..',
     gmailNotConnectedBody:
       'Google 로그인 직후 Gmail 연결을 자동으로 시도합니다. 아직 연결되지 않았다면 설정에서 다시 연결해주세요.',
@@ -237,6 +238,8 @@ export const KO_COPY: AppCopy = {
     permissionsDeviceCalendar: '기기 캘린더',
     permissionsNotifications: '알림',
     permissionsGoogleCalendar: 'Google 캘린더',
+    permissionsHealth: 'Health Connect (수면/걸음/심박)',
+    permissionsHealthConnect: 'Health Connect 연결',
     permissionsOpenSettings: '앱 설정 열기',
     permissionsReconnectGoogle: 'Google 다시 연결',
     menuGmail: 'Google 계정',

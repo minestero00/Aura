@@ -78,6 +78,8 @@ export function useAuraAppState() {
   const [todayWeatherAdvice, setTodayWeatherAdvice] = useState<TodayWeatherAdvice | null>(null);
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
   const [hasLoadedTodayWeather, setHasLoadedTodayWeather] = useState(false);
+  const [isHealthConnected, setIsHealthConnected] = useState(false);
+  const [wellnessTip, setWellnessTip] = useState<string | null>(null);
 
   const hasStartedInitialDailyBriefRef = useRef(false);
   const hasAttemptedDeviceCalendarPromptRef = useRef(false);
@@ -187,6 +189,10 @@ export function useAuraAppState() {
     setIsWeatherLoading,
     hasLoadedTodayWeather,
     setHasLoadedTodayWeather,
+    isHealthConnected,
+    setIsHealthConnected,
+    wellnessTip,
+    setWellnessTip,
     hasStartedInitialDailyBriefRef,
     hasAttemptedDeviceCalendarPromptRef,
     lastTravelPlanSignatureRef,

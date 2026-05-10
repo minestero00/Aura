@@ -42,4 +42,5 @@ export interface DailyBriefModuleDeps {
   setAreDailyBriefNotificationsEnabled: Dispatch<SetStateAction<boolean>>;
   setIsNotificationPermissionGranted: Dispatch<SetStateAction<boolean>>;
   setMorningBriefTimeDraft: Dispatch<SetStateAction<string>>;
+  setWellnessTip: Dispatch<SetStateAction<string | null>>;
 }

@@ -87,6 +87,7 @@ export const EN_COPY: AppCopy = {
     dailyBriefOpenNews: 'Open News',
     dailyBriefEmailLabel: 'Mail',
     dailyBriefNewsLabel: 'News',
+    dailyBriefWellnessLabel: 'Today\'s vibe',
     gmailNotConnectedTitle: 'Gmail not connected',
     gmailNotConnectedBody:
       'Gmail access is connected automatically right after Google sign-in. If it is still not connected, open Settings and reconnect Gmail there.',
@@ -243,6 +244,8 @@ export const EN_COPY: AppCopy = {
     permissionsDeviceCalendar: 'Device calendar',
     permissionsNotifications: 'Notifications',
     permissionsGoogleCalendar: 'Google Calendar',
+    permissionsHealth: 'Health Connect (sleep/steps/HR)',
+    permissionsHealthConnect: 'Connect Health Connect',
     permissionsOpenSettings: 'Open app settings',
     permissionsReconnectGoogle: 'Reconnect Google',
     menuGmail: 'Google Account',

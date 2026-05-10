@@ -37,7 +37,13 @@ export const briefingsRepository = {
       [userId, language]
     );
 
-    return result.rows[0]?.snapshot_json ?? null;
+    const raw = result.rows[0]?.snapshot_json ?? null;
+    if (!raw) return null;
+    // 구버전 snapshot에는 health 필드가 없을 수 있어 default로 채운다.
+    return {
+      ...raw,
+      health: raw.health ?? { yesterday: null, wellnessTip: null }
+    };
   },
   async saveSnapshot(userId: string, language: "en" | "ko", snapshot: DailyBriefSnapshot) {
     const poolInstance = getPool();
