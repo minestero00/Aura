@@ -27,7 +27,7 @@ export interface GmailSummaryResponse {
 
 export interface GmailReplyDraftResponse {
   ok: true;
-  draftId: string;
+  to: string;
   subject: string;
   body: string;
 }

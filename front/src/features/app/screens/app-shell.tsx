@@ -26,6 +26,8 @@ import { DailyBriefModal } from "@features/app/screens/app-shell/daily-brief-mod
 import { ActionAlertModal } from "@features/app/components/action-alert-modal";
 import { ChatFab } from "@features/app/components/chat-fab";
 import { NavExpandDrawer } from "@features/app/components/nav-expand-drawer";
+import { ReplyDraftModal } from "@features/app/components/reply-draft-modal";
+import { openComposeInExternalApp } from "@features/gmail/compose";
 import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
 import { TransitModal } from "@features/app/components/transit-modal";
 import { mergeAgendaDays } from "@features/calendar/merge";
@@ -268,6 +270,19 @@ export function AppShell({ app }: AppShellProps) {
         onDismiss={app.handleCloseNavExpand}
         onOpenAsk={app.handleOpenAsk}
         onOpenTransit={app.handleOpenTransit}
+      />
+
+      <ReplyDraftModal
+        draft={app.replyDraft}
+        copy={app.copy}
+        onSend={async (subject, body) => {
+          // 사용자가 modal에서 수정한 subject/body를 native 메일 앱(또는 mailto)에 prefill.
+          // AURA backend는 send에 관여하지 않음 — 권한 가드 단순화 + 잘못 발송 위험 0.
+          if (!app.replyDraft) return;
+          await openComposeInExternalApp({ to: app.replyDraft.to, subject, body });
+          app.handleDismissReplyDraft();
+        }}
+        onDismiss={app.handleDismissReplyDraft}
       />
 
       <TransitModal

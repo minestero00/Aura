@@ -46,6 +46,7 @@ export interface UseAuraAppResult {
   language: AppLanguage;
   gmailDebugState: string;
   replyingMessageId: string | null;
+  replyDraft: { to: string; subject: string; body: string } | null;
   ignoredSenderRules: IgnoredSenderRule[];
   ignoredSenderDraft: string;
   morningBriefTimeDraft: string;
@@ -122,6 +123,8 @@ export interface UseAuraAppResult {
   handlePhoneVerifyOtp: (phone: string, token: string) => Promise<void>;
   handleEmailSignIn: (email: string, password: string) => Promise<void>;
   handleReplyToMessage: (message: GmailMessage) => Promise<void>;
+  handleSendReplyExternal: () => Promise<void>;
+  handleDismissReplyDraft: () => void;
   handleReset: () => Promise<void>;
   handleSaveIgnoredSenderDraft: () => Promise<void>;
   handleSaveMorningBriefTime: () => Promise<void>;

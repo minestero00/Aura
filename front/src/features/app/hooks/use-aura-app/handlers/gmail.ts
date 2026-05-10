@@ -1,4 +1,5 @@
 import { disconnectGmail, ignoreSender, removeIgnoredSender, replyToMessage } from "@features/app/hooks/use-aura-app/gmail";
+import { openComposeInExternalApp } from "@features/gmail/compose";
 import { getSenderKey } from "@features/gmail/filtering";
 import { saveIgnoredSenderRules } from "@features/gmail/storage";
 import type { GmailMessage } from "@features/gmail/types";
@@ -50,11 +51,24 @@ export function createGmailHandlers(context: AuraHandlersContext) {
     await replyToMessage(context.deps.getGmailDeps(), message);
   }
 
+  async function handleSendReplyExternal() {
+    const draft = context.replyDraft;
+    if (!draft) return;
+    await openComposeInExternalApp(draft);
+    context.setReplyDraft(null);
+  }
+
+  function handleDismissReplyDraft() {
+    context.setReplyDraft(null);
+  }
+
   return {
     handleDisconnectGmail,
     handleIgnoreSender,
     handleRemoveIgnoredSender,
     handleSaveIgnoredSenderDraft,
-    handleReplyToMessage
+    handleReplyToMessage,
+    handleSendReplyExternal,
+    handleDismissReplyDraft
   };
 }

@@ -32,6 +32,7 @@ export function useAuraAppState() {
   const [settingsNoticeMessage, setSettingsNoticeMessage] = useState<string | null>(null);
   const [gmailDebugState, setGmailDebugState] = useState("idle");
   const [replyingMessageId, setReplyingMessageId] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState<{ to: string; subject: string; body: string } | null>(null);
   const [dailyEmailDigest, setDailyEmailDigest] = useState<GmailDigest | null>(null);
   const [dailyEmailMessages, setDailyEmailMessages] = useState<GmailMessage[]>([]);
   const [ignoredSenderRules, setIgnoredSenderRules] = useState<IgnoredSenderRule[]>([]);
@@ -114,6 +115,8 @@ export function useAuraAppState() {
     setGmailDebugState,
     replyingMessageId,
     setReplyingMessageId,
+    replyDraft,
+    setReplyDraft,
     dailyEmailDigest,
     setDailyEmailDigest,
     dailyEmailMessages,

@@ -6,7 +6,6 @@ import { usageService } from "../../usage/service.js";
 import { getRedisClient } from "../../../lib/cache/redis.js";
 import { filterIgnoredMessages } from "./filtering.js";
 import {
-  createGmailReplyDraft,
   fetchDailyGmailMessages,
   fetchGmailMessageForReply,
   fetchRecentGmailMessages,
@@ -236,13 +235,15 @@ export const gmailService = {
   async createReplyDraft(userId: string, messageId: string, language: "en" | "ko" = "en") {
     requireUser(userId);
 
+    // Gmail Drafts API는 더 이상 호출하지 않는다. AI 답장 초안만 생성하고 frontend가
+    // native Gmail 앱(또는 mailto)에서 prefill — 사용자가 직접 send. 이렇게 하면
+    // 권한(send/drafts scope), 잘못 발송 위험, draft 누적 모두 회피.
     const context = await fetchGmailMessageForReply(userId, messageId);
     const generated = await generateReplyDraft(context, language, userId);
-    const draft = await createGmailReplyDraft(userId, context, generated.body);
 
     return {
       ok: true,
-      draftId: draft.draftId,
+      to: context.from,
       subject: generated.subject,
       body: generated.body
     };

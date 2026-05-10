@@ -21,6 +21,7 @@ interface BuildResultParams {
   language: AppLanguage;
   gmailDebugState: UseAuraAppResult["gmailDebugState"];
   replyingMessageId: UseAuraAppResult["replyingMessageId"];
+  replyDraft: UseAuraAppResult["replyDraft"];
   ignoredSenderRules: UseAuraAppResult["ignoredSenderRules"];
   ignoredSenderDraft: UseAuraAppResult["ignoredSenderDraft"];
   setIgnoredSenderDraft: (value: string) => void;
@@ -78,6 +79,8 @@ interface BuildResultParams {
     handlePhoneVerifyOtp: UseAuraAppResult["handlePhoneVerifyOtp"];
     handleEmailSignIn: UseAuraAppResult["handleEmailSignIn"];
     handleReplyToMessage: UseAuraAppResult["handleReplyToMessage"];
+    handleSendReplyExternal: UseAuraAppResult["handleSendReplyExternal"];
+    handleDismissReplyDraft: UseAuraAppResult["handleDismissReplyDraft"];
     handleSaveIgnoredSenderDraft: UseAuraAppResult["handleSaveIgnoredSenderDraft"];
     handleSaveMorningBriefTime: UseAuraAppResult["handleSaveMorningBriefTime"];
     handleSaveEveningBriefTime: UseAuraAppResult["handleSaveEveningBriefTime"];
@@ -130,6 +133,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     language: params.language,
     gmailDebugState: params.gmailDebugState,
     replyingMessageId: params.replyingMessageId,
+    replyDraft: params.replyDraft,
     ignoredSenderRules: params.ignoredSenderRules,
     ignoredSenderDraft: params.ignoredSenderDraft,
     morningBriefTimeDraft: params.morningBriefTimeDraft,
@@ -202,6 +206,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handlePhoneVerifyOtp: params.handlers.handlePhoneVerifyOtp,
     handleEmailSignIn: params.handlers.handleEmailSignIn,
     handleReplyToMessage: params.handlers.handleReplyToMessage,
+    handleSendReplyExternal: params.handlers.handleSendReplyExternal,
+    handleDismissReplyDraft: params.handlers.handleDismissReplyDraft,
     handleReset: params.handlers.handleReset,
     handleSaveIgnoredSenderDraft: params.handlers.handleSaveIgnoredSenderDraft,
     handleSaveMorningBriefTime: params.handlers.handleSaveMorningBriefTime,

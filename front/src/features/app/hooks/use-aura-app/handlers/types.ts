@@ -29,6 +29,8 @@ export interface AuraHandlersContext {
   setAuthState: (state: AuthSessionState | null) => void;
   setSettingsNoticeMessage: (value: string | null) => void;
   setGmailDebugState: (value: string) => void;
+  replyDraft: { to: string; subject: string; body: string } | null;
+  setReplyDraft: (value: { to: string; subject: string; body: string } | null) => void;
   setDailyEmailDigest: (value: any) => void;
   setDailyEmailMessages: (value: GmailMessage[]) => void;
   setNewsBriefing: (value: any) => void;

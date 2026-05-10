@@ -32,6 +32,7 @@ export function buildDepsInput(params: any) {
     setIsCalendarTravelLoading,
     setIsGmailSubmitting,
     setReplyingMessageId,
+    setReplyDraft,
     setIgnoredSenderRules,
     chatSessionId,
     chatInputDraft,
@@ -97,6 +98,7 @@ export function buildDepsInput(params: any) {
       setDailyEmailDigest,
       setDailyEmailMessages,
       setReplyingMessageId,
+      setReplyDraft,
       setIgnoredSenderRules
     },
     chat: {

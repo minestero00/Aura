@@ -23,6 +23,7 @@ export interface GmailModuleDeps {
   setDailyEmailDigest: Dispatch<SetStateAction<GmailDigest | null>>;
   setDailyEmailMessages: Dispatch<SetStateAction<GmailMessage[]>>;
   setReplyingMessageId: Dispatch<SetStateAction<string | null>>;
+  setReplyDraft: Dispatch<SetStateAction<{ to: string; subject: string; body: string } | null>>;
   setIgnoredSenderRules: Dispatch<SetStateAction<IgnoredSenderRule[]>>;
 }
 

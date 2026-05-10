@@ -1,4 +1,3 @@
-import { Linking } from "react-native";
 import { createGmailReplyDraft } from "@features/gmail/api";
 import type { GmailMessage } from "@features/gmail/types";
 import { getErrorMessage } from "@features/app/hooks/use-aura-app/helpers";
@@ -13,8 +12,14 @@ export async function replyToMessage(deps: GmailModuleDeps, message: GmailMessag
   deps.setErrorMessage(null);
 
   try {
-    await deps.withSessionAutoRefresh(accessToken => createGmailReplyDraft(accessToken, message.id, deps.language));
-    await Linking.openURL("https://mail.google.com/mail/u/0/#drafts");
+    const { result } = await deps.withSessionAutoRefresh(accessToken =>
+      createGmailReplyDraft(accessToken, message.id, deps.language)
+    );
+    deps.setReplyDraft({
+      to: result.to,
+      subject: result.subject,
+      body: result.body
+    });
   } catch (error: unknown) {
     deps.setErrorMessage(
       getErrorMessage(

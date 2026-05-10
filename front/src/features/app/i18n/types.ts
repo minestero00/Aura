@@ -88,6 +88,10 @@ export interface AppCopy {
     labelPromo: string;
     labelSocial: string;
     filterAll: string;
+    replyTo: string;
+    replySubject: string;
+    replyBody: string;
+    openInGmail: string;
     replyDraft: string;
     draftingReply: string;
     noPreview: string;
