@@ -1,68 +1,35 @@
-import { PermissionsAndroid, Platform } from "react-native";
-import AudioRecorderPlayer from "react-native-audio-recorder-player";
-import { transcribeAudioFile } from "./api";
+// 음성 녹음(Whisper STT) — 일시 비활성.
+//
+// 시도한 라이브러리:
+// - react-native-audio-recorder-player v4 — react-native-nitro-modules 의존 (Android build 실패)
+// - react-native-audio-recorder-player v3 — RN 0.84의 ReactContextBaseJavaModule API 변경으로
+//   `currentActivity` / `applicationContext` reference 못 찾음 (kotlin compile fail).
+//
+// 추후 옵션:
+// - patch-package로 v3 라이브러리 fix (currentActivity → reactApplicationContext.currentActivity)
+// - 다른 라이브러리 (react-native-audio-record 등) 검토
+// - 자체 native module 구현 (가장 robust, 시간 소모 큼)
+//
+// 현재는 stub — start() 호출 시 throw → ask-screen에서 voicePermissionDenied / voiceFailed toast.
 
 export type VoiceState = "idle" | "recording" | "transcribing";
 
-// react-native-audio-recorder-player v3 — default export가 class. instance 생성.
-// v4는 nitro-modules 의존을 추가해서 v3로 고정.
-class VoiceRecorder {
-  private player = new AudioRecorderPlayer();
-  private currentPath: string | null = null;
-  private isActive = false;
-
+class VoiceRecorderStub {
   async ensurePermission(): Promise<boolean> {
-    if (Platform.OS !== "android") {
-      // iOS — 첫 record 시 OS가 마이크 권한 요청. 별도 prompt 불필요.
-      return true;
-    }
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
-    );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
+    return false;
   }
 
   async start(): Promise<void> {
-    if (this.isActive) return;
-    const ok = await this.ensurePermission();
-    if (!ok) {
-      throw new Error("Microphone permission denied");
-    }
-    this.isActive = true;
-    // path를 undefined로 두면 라이브러리가 OS 캐시 디렉토리에 m4a 파일 생성.
-    const path = await this.player.startRecorder();
-    this.currentPath = path;
+    throw new Error("Voice recording is temporarily unavailable.");
   }
 
-  async stopAndTranscribe(language: "ko" | "en"): Promise<string> {
-    if (!this.isActive) return "";
-    let path: string | null = this.currentPath;
-    try {
-      const result = await this.player.stopRecorder();
-      path = path ?? result;
-    } finally {
-      this.player.removeRecordBackListener();
-      this.isActive = false;
-    }
-    if (!path) {
-      throw new Error("Recording produced no file");
-    }
-    const response = await transcribeAudioFile({ filePath: path, language });
-    return response.text;
+  async stopAndTranscribe(_language: "ko" | "en"): Promise<string> {
+    throw new Error("Voice recording is temporarily unavailable.");
   }
 
   async cancel(): Promise<void> {
-    if (!this.isActive) return;
-    try {
-      await this.player.stopRecorder();
-    } catch {
-      // ignore
-    } finally {
-      this.player.removeRecordBackListener();
-      this.isActive = false;
-      this.currentPath = null;
-    }
+    // no-op
   }
 }
 
-export const voiceRecorder = new VoiceRecorder();
+export const voiceRecorder = new VoiceRecorderStub();
