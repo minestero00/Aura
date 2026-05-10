@@ -52,3 +52,4 @@ _Ai assistant application for all users_
 | 26/04/10 | Alpha version                                                                                                            | [docs/versions/Alpha.md](docs/versions/Alpha.md)       |
 | 26/05/08 | Railway 배포 + 화면 진입 모션 + 2차 디자인 패스 + Sign-in lock fix                                                       | [docs/versions/26.05.08.md](docs/versions/26.05.08.md) |
 | 26/05/09 | 버스 도착 알림 client-driven 전환 (iOS Region Monitoring + Android GeofencingClient) + Android 첫 빌드 + v0.1.0 test APK | [docs/versions/26.05.09.md](docs/versions/26.05.09.md) |
+| 26/05/10 | Health Connect 연동 + brief wellnessTip · 열람 시간 학습 · 하루 1회 표시 · unsubscribe 1-tap · mail → 일정 자동 추출            | [docs/versions/26.05.10.md](docs/versions/26.05.10.md) |
