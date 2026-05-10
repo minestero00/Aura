@@ -73,6 +73,13 @@ export function NewsScreen({
             </View>
           ) : null}
 
+          {/* 기존 데이터가 있어도 새로고침 중이면 작은 inline indicator로 보여줌. */}
+          {newsBriefing && isNewsLoading ? (
+            <View style={styles.inlineLoading}>
+              <AuraLoader size="sm" message={copy.news.loading} />
+            </View>
+          ) : null}
+
           {newsBriefing ? (
             <View style={styles.buttonRow}>
               <Pressable

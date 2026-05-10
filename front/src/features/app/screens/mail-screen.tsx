@@ -113,6 +113,12 @@ export function MailScreen({
             </View>
           ) : null}
 
+          {dailyEmailDigest && isInboxLoading ? (
+            <View style={styles.inlineLoading}>
+              <AuraLoader size="sm" message={copy.mail.updatingBrief} />
+            </View>
+          ) : null}
+
           {dailyEmailMessages.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={filterStyles.row}>
               {FILTER_ORDER.map(key => {
