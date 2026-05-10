@@ -9,10 +9,24 @@ import {
   createGmailReplyDraft,
   fetchDailyGmailMessages,
   fetchGmailMessageForReply,
-  fetchRecentGmailMessages
+  fetchRecentGmailMessages,
+  type GmailMessageLabel,
+  type GmailMessageSummary
 } from "./gmail-api.js";
 import { exchangeServerAuthCode } from "./google-oauth.js";
 import { generateReplyDraft, summarizeGmailMessages } from "./summarizer.js";
+
+/** Smart Triage: digest.labels [{id, label}] 를 messages 배열에 부착. 매핑 누락은 "info" fallback. */
+function attachLabelsToMessages(
+  messages: GmailMessageSummary[],
+  labels: Array<{ id: string; label: GmailMessageLabel }> | undefined
+): GmailMessageSummary[] {
+  if (!labels || labels.length === 0) {
+    return messages.map(m => ({ ...m, label: m.label ?? "info" }));
+  }
+  const byId = new Map(labels.map(entry => [entry.id, entry.label]));
+  return messages.map(m => ({ ...m, label: byId.get(m.id) ?? m.label ?? "info" }));
+}
 
 // Daily summary는 하루치 결과라 같은 날에 한 번만 만들면 됨 — Anthropic 호출
 // 비용 폭발 방지. 사용자 timezone 기준 자정에 자연스럽게 새 캐시.
@@ -163,7 +177,7 @@ export const gmailService = {
 
     return {
       digest,
-      messages
+      messages: attachLabelsToMessages(messages, digest.labels)
     };
   },
   async summarizeDailyMessages(
@@ -203,7 +217,10 @@ export const gmailService = {
       ignoredSenderKeys
     );
     const digest = await summarizeGmailMessages(messages, language, userId);
-    const result = { digest, messages };
+    const result = {
+      digest,
+      messages: attachLabelsToMessages(messages, digest.labels)
+    };
 
     if (redis) {
       // digest가 빈 케이스도 캐시 — 그래야 같은 날 또 호출해도 Anthropic 안 부름.

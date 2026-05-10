@@ -1,16 +1,29 @@
 import { createAnthropicJsonSummary } from "../../../lib/ai/anthropic.js";
 import { config } from "../../../config/env.js";
 import { usageService } from "../../usage/service.js";
-import type { GmailMessageSummary, GmailReplyContext } from "./gmail-api.js";
+import type { GmailMessageLabel, GmailMessageSummary, GmailReplyContext } from "./gmail-api.js";
 
 function containsHangul(value: string) {
   return /[가-힣]/.test(value);
 }
 
+interface MessageLabelEntry {
+  id: string;
+  label: GmailMessageLabel;
+}
+
 interface GmailDigest {
   headline: string;
   bullets: string[];
+  labels?: MessageLabelEntry[];
 }
+
+const VALID_LABELS: ReadonlySet<GmailMessageLabel> = new Set([
+  "needs_reply",
+  "info",
+  "promo",
+  "social"
+]);
 
 function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "ko"): GmailDigest {
   const senders = Array.from(new Set(messages.map(message => message.from))).slice(0, 3);
@@ -52,13 +65,14 @@ export async function summarizeGmailMessages(
   const fallback = buildFallbackDigest(messages, language);
   const result = await createAnthropicJsonSummary<GmailDigest>({
     model: config.anthropicModelLight || undefined,
-    maxTokens: 250,
+    maxTokens: 400,
     system:
       language === "ko"
-        ? "당신은 사용자의 메일을 모바일용으로 한국어 요약한다. headline 과 bullets 키를 가진 strict JSON만 반환하라. 가장 중요한 내용만 2~3개의 짧은 bullet로 정리하고, 일정, 요청, 회신 필요 여부를 우선하라. 모든 문장은 반드시 자연스러운 한국어 한글로 작성하고 영어 문장으로 답하지 마라."
-        : "You summarize a user's emails for a mobile assistant. Return strict JSON with keys headline and bullets. Focus on urgency, commitments, and important senders. Keep only 2 to 3 short bullets.",
+        ? "당신은 사용자의 메일을 모바일용으로 한국어 요약하고 자동 분류한다. headline, bullets, labels 세 키를 가진 strict JSON만 반환하라.\n- bullets: 가장 중요한 내용만 2~3개의 짧은 bullet (일정, 요청, 회신 필요 여부 우선). 모든 문장 자연스러운 한국어 한글.\n- labels: 입력된 모든 메일에 대해 [{id, label}] 배열. label은 정확히 다음 4가지 중 하나: \"needs_reply\"(즉답이 필요한 개인 요청/질문), \"info\"(정보성 알림/뉴스레터/일정), \"promo\"(광고/프로모션), \"social\"(SNS 알림/커뮤니티)."
+        : "You summarize a user's emails for a mobile assistant and auto-classify each. Return strict JSON with keys headline, bullets, and labels.\n- bullets: 2~3 short bullets focusing on urgency and commitments.\n- labels: array of {id, label} for every input message. label must be exactly one of \"needs_reply\" (personal questions/requests needing a reply), \"info\" (informational/newsletter/agenda), \"promo\" (marketing/ads), \"social\" (social network notifications).",
     payload: messages.map(message => ({
       responseLanguage: language,
+      id: message.id,
       from: message.from,
       subject: message.subject,
       receivedAt: message.receivedAt,
@@ -88,9 +102,21 @@ export async function summarizeGmailMessages(
     }
   }
 
+  // labels — Anthropic이 보낸 [{id, label}] 검증 후 그대로 둠. 잘못된 label은 "info"로 fallback.
+  const safeLabels: MessageLabelEntry[] | undefined = Array.isArray(parsed.labels)
+    ? parsed.labels.flatMap(entry => {
+        if (!entry || typeof entry.id !== "string") return [];
+        const label = VALID_LABELS.has(entry.label as GmailMessageLabel)
+          ? (entry.label as GmailMessageLabel)
+          : "info";
+        return [{ id: entry.id, label }];
+      })
+    : undefined;
+
   return {
     headline: parsed.headline,
-    bullets: parsed.bullets.slice(0, 3)
+    bullets: parsed.bullets.slice(0, 3),
+    labels: safeLabels
   };
 }
 

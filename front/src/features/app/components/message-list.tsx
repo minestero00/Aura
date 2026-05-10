@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
-import type { GmailMessage } from "@features/gmail/types";
+import type { GmailMessage, GmailMessageLabel } from "@features/gmail/types";
 
 interface MessageListProps {
   copy: AppCopy;
@@ -11,6 +11,34 @@ interface MessageListProps {
   onReplyToMessage: (message: GmailMessage) => Promise<void>;
   replyingMessageId: string | null;
   showReceivedAt?: boolean;
+}
+
+function labelText(copy: AppCopy, label: GmailMessageLabel): string {
+  switch (label) {
+    case "needs_reply":
+      return copy.mail.labelNeedsReply;
+    case "promo":
+      return copy.mail.labelPromo;
+    case "social":
+      return copy.mail.labelSocial;
+    case "info":
+    default:
+      return copy.mail.labelInfo;
+  }
+}
+
+function labelTone(label: GmailMessageLabel) {
+  switch (label) {
+    case "needs_reply":
+      return { background: "#FEE2E2", text: "#B91C1C" };
+    case "promo":
+      return { background: "#F3F4F6", text: "#6B7280" };
+    case "social":
+      return { background: "#E0E7FF", text: "#4338CA" };
+    case "info":
+    default:
+      return { background: "#E0F2FE", text: "#0369A1" };
+  }
 }
 
 export function MessageList({
@@ -26,10 +54,18 @@ export function MessageList({
 
   return (
     <>
-      {messages.map(message => (
+      {messages.map(message => {
+        const label: GmailMessageLabel = message.label ?? "info";
+        const tone = labelTone(label);
+        return (
         <View key={message.id} style={styles.messageCard}>
           <View style={styles.messageHeaderRow}>
             <View style={styles.messageHeaderMain}>
+              <View style={chipStyles.row}>
+                <View style={[chipStyles.chip, { backgroundColor: tone.background }]}>
+                  <Text style={[chipStyles.chipText, { color: tone.text }]}>{labelText(copy, label)}</Text>
+                </View>
+              </View>
               <Text style={styles.messageSubject}>{message.subject}</Text>
               <Text style={styles.messageMeta}>{message.from}</Text>
             </View>
@@ -58,7 +94,8 @@ export function MessageList({
           ) : null}
           <Text style={styles.messageSnippet}>{message.snippet || copy.mail.noPreview}</Text>
         </View>
-      ))}
+        );
+      })}
 
       <Modal
         animationType="fade"
@@ -98,3 +135,21 @@ export function MessageList({
     </>
   );
 }
+
+const chipStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 6
+  },
+  chip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.3
+  }
+});

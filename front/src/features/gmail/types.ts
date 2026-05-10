@@ -1,3 +1,5 @@
+export type GmailMessageLabel = "needs_reply" | "info" | "promo" | "social";
+
 export interface GmailMessage {
   id: string;
   threadId: string;
@@ -5,6 +7,8 @@ export interface GmailMessage {
   subject: string;
   receivedAt: string | null;
   snippet: string;
+  /** Smart Triage — backend가 자동 분류. 미부착이면 "info"로 처리. */
+  label?: GmailMessageLabel;
 }
 
 export interface GmailDigest {

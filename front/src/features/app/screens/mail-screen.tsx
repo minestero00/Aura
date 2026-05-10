@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
 import { AuraLoader } from "@features/app/components/aura-loader";
@@ -7,7 +7,7 @@ import { EmptyStateHero } from "@features/app/components/empty-state-hero";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
-import type { GmailDigest, GmailMessage } from "@features/gmail/types";
+import type { GmailDigest, GmailMessage, GmailMessageLabel } from "@features/gmail/types";
 
 interface MailScreenProps {
   copy: AppCopy;
@@ -20,6 +20,25 @@ interface MailScreenProps {
   onLoadDailyEmailBrief: () => Promise<void>;
   onReplyToMessage: (message: GmailMessage) => Promise<void>;
   replyingMessageId: string | null;
+}
+
+type FilterKey = "all" | GmailMessageLabel;
+
+const FILTER_ORDER: FilterKey[] = ["all", "needs_reply", "info", "promo", "social"];
+
+function filterLabel(copy: AppCopy, key: FilterKey) {
+  switch (key) {
+    case "all":
+      return copy.mail.filterAll;
+    case "needs_reply":
+      return copy.mail.labelNeedsReply;
+    case "info":
+      return copy.mail.labelInfo;
+    case "promo":
+      return copy.mail.labelPromo;
+    case "social":
+      return copy.mail.labelSocial;
+  }
 }
 
 export function MailScreen({
@@ -36,6 +55,12 @@ export function MailScreen({
 }: MailScreenProps) {
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
+  const [filter, setFilter] = useState<FilterKey>("all");
+
+  const filteredMessages = useMemo(() => {
+    if (filter === "all") return dailyEmailMessages.slice(0, 5);
+    return dailyEmailMessages.filter(m => (m.label ?? "info") === filter).slice(0, 5);
+  }, [dailyEmailMessages, filter]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -88,9 +113,38 @@ export function MailScreen({
             </View>
           ) : null}
 
+          {dailyEmailMessages.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={filterStyles.row}>
+              {FILTER_ORDER.map(key => {
+                const isActive = filter === key;
+                return (
+                  <Pressable
+                    key={`filter-${key}`}
+                    onPress={() => setFilter(key)}
+                    style={[
+                      filterStyles.chip,
+                      {
+                        backgroundColor: isActive ? theme.colors.accent : theme.colors.surfaceMuted
+                      }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        filterStyles.chipText,
+                        { color: isActive ? theme.colors.accentText : theme.colors.textSecondary }
+                      ]}
+                    >
+                      {filterLabel(copy, key)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : null}
+
           <MessageList
             copy={copy}
-            messages={dailyEmailMessages.slice(0, 5)}
+            messages={filteredMessages}
             onOpenIgnoredSenderSettings={onOpenIgnoredSenderSettings}
             onReplyToMessage={onReplyToMessage}
             replyingMessageId={replyingMessageId}
@@ -101,3 +155,22 @@ export function MailScreen({
     </SafeAreaView>
   );
 }
+
+const filterStyles = StyleSheet.create({
+  row: {
+    marginTop: 14,
+    marginBottom: 4,
+    flexDirection: "row"
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginRight: 8
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.3
+  }
+});

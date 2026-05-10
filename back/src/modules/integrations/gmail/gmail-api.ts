@@ -3,6 +3,8 @@ import { authStore } from "../../auth/store.js";
 import { refreshGoogleAccessToken } from "./google-oauth.js";
 import { gmailRefreshFailureTracker } from "./refresh-failure-tracker.js";
 
+export type GmailMessageLabel = "needs_reply" | "info" | "promo" | "social";
+
 export interface GmailMessageSummary {
   id: string;
   threadId: string;
@@ -10,6 +12,8 @@ export interface GmailMessageSummary {
   subject: string;
   receivedAt: string | null;
   snippet: string;
+  /** Smart Triage: Anthropic이 부착하는 자동 분류. fallback은 "info". */
+  label?: GmailMessageLabel;
 }
 
 export interface GmailReplyContext extends GmailMessageSummary {

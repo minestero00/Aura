@@ -83,6 +83,11 @@ export interface AppCopy {
     todayBriefTitle: string;
     summarizeToday: string;
     updatingBrief: string;
+    labelNeedsReply: string;
+    labelInfo: string;
+    labelPromo: string;
+    labelSocial: string;
+    filterAll: string;
     replyDraft: string;
     draftingReply: string;
     noPreview: string;
