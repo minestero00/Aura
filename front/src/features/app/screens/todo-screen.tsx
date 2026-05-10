@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
@@ -94,12 +94,26 @@ export function TodoScreen({
         ) : null}
 
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{copy.todo.weatherTitle}</Text>
-          <Text style={styles.sectionSubtitle}>{copy.todo.weatherSubtitle}</Text>
-
-          <View style={styles.buttonRow}>
-            <Pressable disabled={isWeatherLoading} onPress={() => void onLoadTodayWeatherAdvice()} style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>{copy.todo.weatherRefresh}</Text>
+          <View style={weatherStyles.headerRow}>
+            <View style={weatherStyles.headerMain}>
+              <Text style={styles.sectionTitle}>{copy.todo.weatherTitle}</Text>
+              <Text style={styles.sectionSubtitle}>{copy.todo.weatherSubtitle}</Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={copy.todo.weatherRefresh}
+              disabled={isWeatherLoading}
+              onPress={() => void onLoadTodayWeatherAdvice()}
+              hitSlop={10}
+              style={[
+                weatherStyles.reloadButton,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  opacity: isWeatherLoading ? 0.55 : 1
+                }
+              ]}
+            >
+              <Text style={[weatherStyles.reloadIcon, { color: theme.colors.textSecondary }]}>↻</Text>
             </Pressable>
           </View>
 
@@ -171,3 +185,27 @@ export function TodoScreen({
     </SafeAreaView>
   );
 }
+
+const weatherStyles = StyleSheet.create({
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 12
+  },
+  headerMain: {
+    flex: 1
+  },
+  reloadButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  reloadIcon: {
+    fontSize: 18,
+    fontWeight: "700"
+  }
+});
