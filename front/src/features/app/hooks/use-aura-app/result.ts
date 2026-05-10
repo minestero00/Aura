@@ -39,6 +39,8 @@ interface BuildResultParams {
   isHealthConnected: UseAuraAppResult["isHealthConnected"];
   wellnessTip: UseAuraAppResult["wellnessTip"];
   suggestedMorningTime: UseAuraAppResult["suggestedMorningTime"];
+  unsubscribeCandidates: UseAuraAppResult["unsubscribeCandidates"];
+  isUnsubscribeLoading: UseAuraAppResult["isUnsubscribeLoading"];
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
   isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
@@ -100,6 +102,8 @@ interface BuildResultParams {
     handleConnectHealth: UseAuraAppResult["handleConnectHealth"];
     handleApplySuggestedMorningTime: UseAuraAppResult["handleApplySuggestedMorningTime"];
     handleLoadSuggestedMorningTime: UseAuraAppResult["handleLoadSuggestedMorningTime"];
+    handleLoadUnsubscribeCandidates: UseAuraAppResult["handleLoadUnsubscribeCandidates"];
+    handleOneClickUnsubscribe: UseAuraAppResult["handleOneClickUnsubscribe"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
     handleCloseNavExpand: UseAuraAppResult["handleCloseNavExpand"];
     handleOpenTransit: UseAuraAppResult["handleOpenTransit"];
@@ -114,6 +118,7 @@ interface BuildResultParams {
     handleOpenUsageSettings: UseAuraAppResult["handleOpenUsageSettings"];
     handleOpenDataPrivacySettings: UseAuraAppResult["handleOpenDataPrivacySettings"];
     handleOpenNewsSettings: UseAuraAppResult["handleOpenNewsSettings"];
+    handleOpenUnsubscribeSettings: UseAuraAppResult["handleOpenUnsubscribeSettings"];
   };
 }
 
@@ -154,6 +159,8 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isHealthConnected: params.isHealthConnected,
     wellnessTip: params.wellnessTip,
     suggestedMorningTime: params.suggestedMorningTime,
+    unsubscribeCandidates: params.unsubscribeCandidates,
+    isUnsubscribeLoading: params.isUnsubscribeLoading,
     isNavExpanded: params.isNavExpanded,
     isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
@@ -234,6 +241,9 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleConnectHealth: params.handlers.handleConnectHealth,
     handleApplySuggestedMorningTime: params.handlers.handleApplySuggestedMorningTime,
     handleLoadSuggestedMorningTime: params.handlers.handleLoadSuggestedMorningTime,
+    handleLoadUnsubscribeCandidates: params.handlers.handleLoadUnsubscribeCandidates,
+    handleOneClickUnsubscribe: params.handlers.handleOneClickUnsubscribe,
+    handleOpenUnsubscribeSettings: params.openHandlers.handleOpenUnsubscribeSettings,
     handleOpenNavExpand: params.handlers.handleOpenNavExpand,
     handleCloseNavExpand: params.handlers.handleCloseNavExpand,
     handleOpenTransit: params.handlers.handleOpenTransit,

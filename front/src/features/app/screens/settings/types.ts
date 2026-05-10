@@ -1,4 +1,5 @@
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
+import type { UnsubscribeCandidate } from "@features/gmail/api";
 import type { IgnoredSenderRule } from "@features/gmail/storage";
 import type { NewsCategory } from "@features/news/types";
 import type { SettingsSectionKey } from "@features/app/types";
@@ -60,6 +61,11 @@ export interface SettingsScreenProps {
   suggestedMorningTime: string | null;
   onApplySuggestedMorningTime: () => Promise<void>;
   onLoadSuggestedMorningTime: () => Promise<void>;
+  unsubscribeCandidates: UnsubscribeCandidate[];
+  isUnsubscribeLoading: boolean;
+  onLoadUnsubscribeCandidates: () => Promise<void>;
+  onOneClickUnsubscribe: (url: string) => Promise<void>;
+  onOpenUnsubscribeSettings: () => void;
 }
 
 export const NEWS_CATEGORIES: NewsCategory[] = [

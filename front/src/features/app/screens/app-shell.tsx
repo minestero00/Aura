@@ -252,6 +252,11 @@ export function AppShell({ app }: AppShellProps) {
             suggestedMorningTime={app.suggestedMorningTime}
             onApplySuggestedMorningTime={app.handleApplySuggestedMorningTime}
             onLoadSuggestedMorningTime={app.handleLoadSuggestedMorningTime}
+            unsubscribeCandidates={app.unsubscribeCandidates}
+            isUnsubscribeLoading={app.isUnsubscribeLoading}
+            onLoadUnsubscribeCandidates={app.handleLoadUnsubscribeCandidates}
+            onOneClickUnsubscribe={app.handleOneClickUnsubscribe}
+            onOpenUnsubscribeSettings={app.handleOpenUnsubscribeSettings}
           />
         </View>
       </ScrollView>

@@ -9,6 +9,8 @@ import {
   fetchDailyGmailMessages,
   fetchGmailMessageForReply,
   fetchRecentGmailMessages,
+  fetchUnsubscribeCandidates,
+  postOneClickUnsubscribe,
   type GmailMessageLabel,
   type GmailMessageSummary
 } from "./gmail-api.js";
@@ -247,5 +249,12 @@ export const gmailService = {
       subject: generated.subject,
       body: generated.body
     };
+  },
+  async listUnsubscribeCandidates(userId: string) {
+    requireUser(userId);
+    return fetchUnsubscribeCandidates(userId, 20);
+  },
+  async oneClickUnsubscribe(url: string) {
+    return postOneClickUnsubscribe(url);
   }
 };

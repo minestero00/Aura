@@ -221,6 +221,112 @@ export async function fetchDailyGmailMessages(userId: string, limit = 20) {
   });
 }
 
+export interface UnsubscribeCandidate {
+  senderEmail: string;
+  senderName: string;
+  messageCount: number;
+  latestSubject: string;
+  latestReceivedAt: string | null;
+  /** RFC 2369 List-Unsubscribe header (https URL 또는 mailto:). 없으면 null. */
+  unsubscribeUrl: string | null;
+  /** RFC 8058 List-Unsubscribe-Post가 명시되면 1-click POST 가능 (Yes 라벨). */
+  oneClick: boolean;
+}
+
+/**
+ * 최근 30일 inbox에서 List-Unsubscribe header를 가진 메시지를 발신자별로 group하여
+ * 후보 목록을 반환한다. 사용자가 별로 안 여는 newsletter 정리를 돕는다.
+ */
+export async function fetchUnsubscribeCandidates(
+  userId: string,
+  maxSenders = 20
+): Promise<UnsubscribeCandidate[]> {
+  const query = encodeURIComponent("in:inbox newer_than:30d");
+  // 충분한 소스 풀(최대 50)에서 발신자별 group.
+  const list = await gmailRequest<GmailListResponse>(userId, `messages?maxResults=50&q=${query}`);
+  const ids = list.messages ?? [];
+
+  const messages = await Promise.all(
+    ids.map(message =>
+      gmailRequest<GmailMessageResponse>(
+        userId,
+        `messages/${message.id}?format=metadata` +
+          `&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date` +
+          `&metadataHeaders=List-Unsubscribe&metadataHeaders=List-Unsubscribe-Post`
+      ).catch(() => null)
+    )
+  );
+
+  const groups = new Map<string, UnsubscribeCandidate>();
+  for (const message of messages) {
+    if (!message) continue;
+    const listUnsub = getHeaderValue(message, "List-Unsubscribe");
+    if (!listUnsub) continue;
+
+    const from = getHeaderValue(message, "From") || "";
+    const senderEmail = extractEmailAddress(from).toLowerCase();
+    if (!senderEmail) continue;
+
+    const subject = getHeaderValue(message, "Subject") || "(no subject)";
+    const receivedAt = message.internalDate ? new Date(Number(message.internalDate)).toISOString() : null;
+
+    // List-Unsubscribe는 "<https://...>, <mailto:unsubscribe@...>" 형식. https 우선.
+    const urlMatch = listUnsub.match(/<(https?:\/\/[^>]+)>/i);
+    const mailtoMatch = listUnsub.match(/<(mailto:[^>]+)>/i);
+    const unsubscribeUrl = urlMatch?.[1] ?? mailtoMatch?.[1] ?? null;
+
+    const oneClickPost = (getHeaderValue(message, "List-Unsubscribe-Post") || "").toLowerCase().includes("one-click");
+
+    const existing = groups.get(senderEmail);
+    if (existing) {
+      existing.messageCount += 1;
+      // 더 최근 메시지 정보로 갱신.
+      if (!existing.latestReceivedAt || (receivedAt && receivedAt > existing.latestReceivedAt)) {
+        existing.latestSubject = subject;
+        existing.latestReceivedAt = receivedAt;
+      }
+    } else {
+      const senderName = from.replace(/<[^>]+>/, "").trim().replace(/^"|"$/g, "") || senderEmail;
+      groups.set(senderEmail, {
+        senderEmail,
+        senderName,
+        messageCount: 1,
+        latestSubject: subject,
+        latestReceivedAt: receivedAt,
+        unsubscribeUrl,
+        oneClick: oneClickPost
+      });
+    }
+  }
+
+  return [...groups.values()]
+    .sort((a, b) => b.messageCount - a.messageCount)
+    .slice(0, maxSenders);
+}
+
+/**
+ * RFC 8058 1-click unsubscribe — 헤더에 List-Unsubscribe-Post: List-Unsubscribe=One-Click이
+ * 명시된 경우 https URL에 빈 POST를 보내 즉시 구독 해제. 그렇지 않은 발신자는
+ * frontend에서 URL을 외부 브라우저로 열어 사용자가 처리.
+ */
+export async function postOneClickUnsubscribe(unsubscribeUrl: string): Promise<boolean> {
+  if (!/^https?:\/\//i.test(unsubscribeUrl)) return false;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8_000);
+    const response = await fetch(unsubscribeUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "List-Unsubscribe=One-Click",
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchGmailMessageForReply(userId: string, messageId: string) {
   const message = await gmailRequest<GmailMessageResponse>(
     userId,

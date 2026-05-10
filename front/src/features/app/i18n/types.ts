@@ -219,6 +219,16 @@ export interface AppCopy {
     permissionsHealthConnect: string;
     notificationsSuggestedTime: string;
     notificationsApplySuggestion: string;
+    unsubscribeTitle: string;
+    unsubscribeSubtitle: string;
+    unsubscribeCount: (count: number) => string;
+    unsubscribeMessageCount: (count: number) => string;
+    unsubscribeLoading: string;
+    unsubscribeEmpty: string;
+    unsubscribeOneClick: string;
+    unsubscribeOpen: string;
+    unsubscribePending: string;
+    menuUnsubscribe: string;
     permissionsOpenSettings: string;
     permissionsReconnectGoogle: string;
     menuGmail: string;

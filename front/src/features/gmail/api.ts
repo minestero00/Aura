@@ -73,6 +73,31 @@ export async function fetchDailyGmailSummary(
   );
 }
 
+export interface UnsubscribeCandidate {
+  senderEmail: string;
+  senderName: string;
+  messageCount: number;
+  latestSubject: string;
+  latestReceivedAt: string | null;
+  unsubscribeUrl: string | null;
+  oneClick: boolean;
+}
+
+export async function fetchUnsubscribeCandidates(accessToken: string) {
+  return apiRequest<{ candidates: UnsubscribeCandidate[] }>(
+    `/api/v1/integrations/gmail/unsubscribe-candidates`,
+    { method: "GET", accessToken }
+  );
+}
+
+export async function postOneClickUnsubscribe(accessToken: string, url: string) {
+  return apiRequest<{ ok: boolean }>(`/api/v1/integrations/gmail/unsubscribe-one-click`, {
+    method: "POST",
+    accessToken,
+    body: JSON.stringify({ url })
+  });
+}
+
 export async function createGmailReplyDraft(
   accessToken: string,
   messageId: string,

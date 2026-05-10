@@ -30,6 +30,7 @@ export function MenuSection(props: SettingsSectionProps) {
     onOpenIgnoredSenderSettings,
     onOpenNewsSettings,
     onOpenLanguageSettings,
+    onOpenUnsubscribeSettings,
     onToggleAskFabHidden,
     onLogout
   } = props;
@@ -125,6 +126,16 @@ export function MenuSection(props: SettingsSectionProps) {
             <View style={styles.settingsMenuMain}>
               <Text style={styles.messageSubject}>{copy.settings.ignoredTitle}</Text>
               <Text style={styles.messageMeta}>{copy.settings.menuIgnored(ignoredSenderRules.length)}</Text>
+            </View>
+            <Text style={styles.settingsChevron}>›</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Pressable onPress={onOpenUnsubscribeSettings} style={styles.settingsMenuItem}>
+            <View style={styles.settingsMenuMain}>
+              <Text style={styles.messageSubject}>{copy.settings.menuUnsubscribe}</Text>
+              <Text style={styles.messageMeta}>{copy.settings.unsubscribeSubtitle}</Text>
             </View>
             <Text style={styles.settingsChevron}>›</Text>
           </Pressable>

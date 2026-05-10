@@ -102,3 +102,29 @@ gmailRouter.delete(
     res.json(gmailService.disconnect(req.authUser!.id));
   })
 );
+
+/** 최근 30일 List-Unsubscribe 가능한 발신자 목록. LLM 미사용 — Gmail metadata만. */
+gmailRouter.get(
+  "/gmail/unsubscribe-candidates",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    res.json({ candidates: await gmailService.listUnsubscribeCandidates(req.authUser!.id) });
+  })
+);
+
+/**
+ * RFC 8058 1-click POST. 그 외 발신자는 frontend가 unsubscribeUrl을 외부 브라우저로 열어 처리.
+ * body: { url: string }
+ */
+gmailRouter.post(
+  "/gmail/unsubscribe-one-click",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const url = typeof req.body?.url === "string" ? req.body.url : "";
+    if (!url) {
+      res.status(400).json({ ok: false, error: "URL_REQUIRED" });
+      return;
+    }
+    res.json({ ok: await gmailService.oneClickUnsubscribe(url) });
+  })
+);

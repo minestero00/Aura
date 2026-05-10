@@ -18,7 +18,8 @@ export type SettingsSectionKey =
   | "notifications"
   | "permissions"
   | "usage"
-  | "data-privacy";
+  | "data-privacy"
+  | "unsubscribe";
 
 export interface AuthSessionState {
   session: AuthResponse["session"];
@@ -161,6 +162,16 @@ export interface UseAuraAppResult {
   handleApplySuggestedMorningTime: () => Promise<void>;
   /** Settings 진입 시 7일 평균 시간을 fetch — 추천 row 표시용. */
   handleLoadSuggestedMorningTime: () => Promise<void>;
+  /** 구독 정리 후보를 backend에서 fetch. */
+  handleLoadUnsubscribeCandidates: () => Promise<void>;
+  /** RFC 8058 1-click unsubscribe 발송 (oneClick=true 발신자 전용). */
+  handleOneClickUnsubscribe: (url: string) => Promise<void>;
+  /** Settings → 구독 정리 화면 진입. */
+  handleOpenUnsubscribeSettings: () => void;
+  /** 최근 fetch한 구독 해제 후보. */
+  unsubscribeCandidates: import("@features/gmail/api").UnsubscribeCandidate[];
+  /** 후보 fetch 진행 중. */
+  isUnsubscribeLoading: boolean;
   /** Bottom nav 끌어올림 → expanded drawer 열기. */
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */

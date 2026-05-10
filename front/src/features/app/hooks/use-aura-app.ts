@@ -14,6 +14,7 @@ import { getCopy } from "@features/app/i18n";
 import { saveAskFabHidden } from "@features/app/storage";
 import { requestHealthPermission, syncYesterdayHealth } from "@features/health/sync";
 import { fetchSuggestedMorningTime } from "@features/briefings/api";
+import { fetchUnsubscribeCandidates, postOneClickUnsubscribe } from "@features/gmail/api";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
 import type {
@@ -159,6 +160,39 @@ export function useAuraApp(): UseAuraAppResult {
     state.setMorningBriefTimeDraft(state.suggestedMorningTime.slice(0, 5));
     await handlers.handleSaveMorningBriefTime();
   }
+  async function handleLoadUnsubscribeCandidates() {
+    const session = state.authState?.session;
+    if (!session) return;
+    state.setIsUnsubscribeLoading(true);
+    try {
+      const { result } = await withSessionAutoRefresh(
+        accessToken => fetchUnsubscribeCandidates(accessToken),
+        session
+      );
+      state.setUnsubscribeCandidates(result.candidates ?? []);
+    } catch {
+      // Gmail 미연결/장애 — 빈 목록 유지.
+      state.setUnsubscribeCandidates([]);
+    } finally {
+      state.setIsUnsubscribeLoading(false);
+    }
+  }
+  async function handleOneClickUnsubscribe(url: string) {
+    const session = state.authState?.session;
+    if (!session) return;
+    try {
+      await withSessionAutoRefresh(
+        accessToken => postOneClickUnsubscribe(accessToken, url),
+        session
+      );
+    } catch {
+      // best-effort.
+    }
+  }
+  function handleOpenUnsubscribeSettings() {
+    state.setSelectedTab("settings");
+    state.setSelectedSettingsSection("unsubscribe");
+  }
   function handleOpenNavExpand() {
     state.setIsNavExpanded(true);
   }
@@ -218,6 +252,8 @@ export function useAuraApp(): UseAuraAppResult {
       handleConnectHealth,
       handleApplySuggestedMorningTime,
       handleLoadSuggestedMorningTime,
+      handleLoadUnsubscribeCandidates,
+      handleOneClickUnsubscribe,
       handleOpenNavExpand,
       handleCloseNavExpand,
       handleOpenTransit,
@@ -231,7 +267,8 @@ export function useAuraApp(): UseAuraAppResult {
       handleOpenPermissionsSettings,
       handleOpenUsageSettings,
       handleOpenDataPrivacySettings,
-      handleOpenNewsSettings
+      handleOpenNewsSettings,
+      handleOpenUnsubscribeSettings
     }
   });
 }
