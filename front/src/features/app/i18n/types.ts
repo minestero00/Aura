@@ -129,6 +129,7 @@ export interface AppCopy {
     tomorrow: string;
     noEvents: string;
     allDay: string;
+    eventNow: string;
     travelBasisTitle: string;
     travelModeTransit: string;
     travelModeDriving: string;
@@ -229,6 +230,8 @@ export interface AppCopy {
     usageSubtitle: string;
     usageUpdatedAt: string;
     usageResetAt: string;
+    usageHelpBody: string;
+    usageLoading: string;
     usageOverview: string;
     usageChat: string;
     usageRefresh: string;

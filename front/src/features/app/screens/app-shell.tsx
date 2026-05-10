@@ -136,13 +136,9 @@ export function AppShell({ app }: AppShellProps) {
             dailyEmailMessages={app.dailyEmailMessages}
             errorMessage={app.errorMessage}
             gmailConnected={gmail.gmailConnected}
-            gmailDigest={app.gmailDigest}
-            gmailMessages={app.gmailMessages}
             isInboxLoading={app.isInboxLoading}
             onOpenIgnoredSenderSettings={app.handleOpenIgnoredSenderSettings}
             onLoadDailyEmailBrief={app.handleLoadDailyEmailBrief}
-            onLoadEmailSummary={app.handleLoadEmailSummary}
-            onLoadRecentEmails={app.handleLoadRecentEmails}
             onReplyToMessage={app.handleReplyToMessage}
             replyingMessageId={app.replyingMessageId}
           />

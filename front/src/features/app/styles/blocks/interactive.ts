@@ -289,13 +289,16 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       justifyContent: "space-between"
     },
     bottomNavHandleHit: {
+      // 작은 막대를 인지하기 어려워서 탭/스와이프가 잘 안 잡힘 — 누름 영역 충분히 확장.
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 6
+      paddingVertical: 12,
+      paddingHorizontal: 80,
+      marginBottom: 2
     },
     bottomNavHandle: {
-      width: 44,
-      height: 4,
+      width: 64,
+      height: 5,
       borderRadius: 999,
       backgroundColor: colors.lineStrong
     },

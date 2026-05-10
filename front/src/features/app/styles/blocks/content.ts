@@ -203,6 +203,39 @@ export function buildContentStyles(theme: AuraTheme) {
     messageSnippet: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 },
     eventTime: { color: colors.textPrimary, fontSize: 13, fontWeight: "700", marginTop: 8 },
     messageMenuButton: { minWidth: 40, minHeight: 32, alignItems: "center", justifyContent: "center" },
-    messageMenuButtonText: { color: colors.textMuted, fontSize: 18, fontWeight: "700" }
+    messageMenuButtonText: { color: colors.textMuted, fontSize: 18, fontWeight: "700" },
+    // 오늘 일정의 시각 status — 지난/현재 표시.
+    eventCardPast: {
+      backgroundColor: colors.accentSoft,
+      borderColor: colors.line,
+      opacity: 0.78
+    },
+    eventCardNow: {
+      borderColor: "#22C55E",
+      borderWidth: 2,
+      backgroundColor: colors.elevated
+    },
+    eventTextDimmed: {
+      color: colors.textMuted
+    },
+    eventNowRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 6
+    },
+    eventNowDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: "#22C55E"
+    },
+    eventNowLabel: {
+      color: "#22C55E",
+      fontSize: 12,
+      fontWeight: "700",
+      letterSpacing: 0.4,
+      textTransform: "uppercase"
+    }
   } as const;
 }

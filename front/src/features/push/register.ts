@@ -42,8 +42,16 @@ async function ensureNotificationPermission(): Promise<boolean> {
  * 권한 거부면 silent하게 null 반환 (사용자에겐 settings 화면 status row로 안내).
  */
 export async function registerForPushNotifications(): Promise<string | null> {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[FCM] registerForPushNotifications: start');
+  }
   try {
     const granted = await ensureNotificationPermission();
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log('[FCM] permission granted=', granted);
+    }
     if (!granted) return null;
 
     const messaging = getMessaging();
@@ -54,8 +62,14 @@ export async function registerForPushNotifications(): Promise<string | null> {
     }
 
     const token = await getToken(messaging);
-    if (!token) return null;
-    if (token === lastRegisteredToken) return token;
+    console.log(`[FCM] token = ${token}`);
+    if (!token) {
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn('[FCM] getToken returned empty');
+      }
+      return null;
+    }
 
     if (__DEV__) {
       // eslint-disable-next-line no-console
@@ -64,22 +78,38 @@ export async function registerForPushNotifications(): Promise<string | null> {
           Platform.OS
         }`,
       );
-      //for test
-      console.log(`[FCM] token: ${token}`);
+      // 디버깅 중에는 캐시 hit으로 backend 호출이 skip되지 않게 강제 진행.
+      // 이전 세션 캐시 = ${lastRegisteredToken === token}
+      console.log(
+        `[FCM] cache match? ${
+          token === lastRegisteredToken ? 'YES (forced re-register)' : 'NO'
+        }`,
+      );
     }
 
-    await registerPushDevice({
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log('[FCM] calling registerPushDevice...');
+    }
+    const result = await registerPushDevice({
       platform: Platform.OS as 'ios' | 'android',
       pushToken: token,
     });
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log('[FCM] backend register OK:', JSON.stringify(result));
+    }
     lastRegisteredToken = token;
     return token;
   } catch (error) {
     if (__DEV__) {
       // eslint-disable-next-line no-console
       console.warn(
-        '[FCM] register failed:',
-        error instanceof Error ? error.message : String(error),
+        '[FCM] register FAILED:',
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : String(error),
+        error instanceof Error ? error.stack : '',
       );
     }
     return null;

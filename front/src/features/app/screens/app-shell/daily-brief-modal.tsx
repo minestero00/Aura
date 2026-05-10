@@ -1,5 +1,6 @@
 import React from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { AuraLoader } from "@features/app/components/aura-loader";
 import { createAppStyles, type AuraTheme } from "@features/app/styles";
 import type { UseAuraAppResult } from "@features/app/types";
 
@@ -50,8 +51,7 @@ export function DailyBriefModal({ app, theme }: DailyBriefModalProps) {
 
             {app.isDailyBriefPreparing ? (
               <View style={styles.dailyBriefLoadingWrap}>
-                <ActivityIndicator color={theme.colors.textPrimary} />
-                <Text style={styles.inlineLoadingText}>{app.copy.mail.dailyBriefPreparing}</Text>
+                <AuraLoader size="md" message={app.copy.mail.dailyBriefPreparing} />
               </View>
             ) : null}
 

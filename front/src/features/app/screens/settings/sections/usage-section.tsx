@@ -1,11 +1,13 @@
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AuraLoader } from "@features/app/components/aura-loader";
+import { HelpHint } from "@features/app/components/help-hint";
 import { SettingsSubpageHeader } from "@features/app/screens/settings/shared";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
 
 export function UsageSection(props: SettingsSectionProps) {
-  const { styles, copy, usage, language, onSelectSettingsSection } = props;
+  const { styles, copy, usage, onSelectSettingsSection } = props;
 
   const usageRows = usage
     ? [
@@ -42,12 +44,7 @@ export function UsageSection(props: SettingsSectionProps) {
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           {usage ? (
             <View style={styles.sectionCard}>
-              <Text style={styles.detailLine}>
-                {copy.settings.usageUpdatedAt}: {usage.periodStart.slice(0, 10)}
-              </Text>
-              <Text style={styles.detailLine}>
-                {copy.settings.usageResetAt}: {usage.periodEnd.slice(0, 19).replace("T", " ")} UTC
-              </Text>
+              <HelpHint body={copy.settings.usageHelpBody} />
               {usageRows.map(row => {
                 const safeLimit = Math.max(1, row.limit);
                 const ratio = Math.min(1, row.used / safeLimit);
@@ -70,10 +67,8 @@ export function UsageSection(props: SettingsSectionProps) {
               })}
             </View>
           ) : (
-            <View style={styles.sectionCard}>
-              <Text style={styles.helperText}>
-                {language === "ko" ? "사용량 정보를 불러오는 중입니다." : "Loading usage details..."}
-              </Text>
+            <View style={[styles.sectionCard, { paddingVertical: 32, alignItems: "center" }]}>
+              <AuraLoader size="md" message={copy.settings.usageLoading} />
             </View>
           )}
         </ScrollView>

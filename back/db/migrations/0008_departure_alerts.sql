@@ -6,9 +6,10 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS departure_alerts (
   id varchar(36) PRIMARY KEY,
-  -- Supabase: auth.users.id가 uuid 타입이라 우리 user_id도 uuid로 정합 (varchar(36) → uuid).
-  -- 0001 baseline 시드된 user_preferences.user_id도 실제 DB는 uuid (FK 적용 안 된 baseline).
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  -- user_id 무결성은 application level에서 보장. FK를 schema-prefix로 명시하면
+  -- supabase(auth.users)와 generic Postgres CI(auth schema 없음) 양쪽 호환이 어렵다.
+  -- 사용자 삭제 시 cascade 정리는 별도 cleanup 잡 또는 service layer에서 처리.
+  user_id uuid NOT NULL,
   -- 캘린더 source(google) + event id 조합. 한 사용자가 같은 일정에 대해 두 번 알림받지 않게.
   event_id text NOT NULL,
   event_starts_at timestamptz NOT NULL,
@@ -42,7 +43,7 @@ ALTER TABLE user_preferences
 -- 마지막으로 기록된 사용자 위치 (foreground 시 push). 출발 ETA 계산의 출발지.
 -- 1 user 1 row — 가장 최신 위치만 보관.
 CREATE TABLE IF NOT EXISTS user_locations (
-  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid PRIMARY KEY,
   lat double precision NOT NULL,
   lng double precision NOT NULL,
   accuracy_meters double precision,

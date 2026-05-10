@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { AppCopy, AppLanguage } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { formatNewsTime } from "@features/news/format";
+import { AuraLoader } from "@features/app/components/aura-loader";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 
@@ -57,13 +58,6 @@ export function NewsScreen({
             </Pressable>
           </View>
 
-          {isNewsLoading ? (
-            <View style={styles.inlineLoading}>
-              <ActivityIndicator color={theme.colors.textPrimary} />
-              <Text style={styles.inlineLoadingText}>{copy.news.loading}</Text>
-            </View>
-          ) : null}
-
           {newsBriefing ? (
             <View style={styles.digestCard}>
               <Text style={styles.digestHeadline}>{newsBriefing.headline}</Text>
@@ -72,6 +66,10 @@ export function NewsScreen({
                   • {bullet}
                 </Text>
               ))}
+            </View>
+          ) : isNewsLoading ? (
+            <View style={[styles.digestCard, { paddingVertical: 28, alignItems: "center" }]}>
+              <AuraLoader size="md" message={copy.news.loading} />
             </View>
           ) : null}
 

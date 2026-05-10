@@ -1,11 +1,12 @@
 import React from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { mergeAgendaDays } from "@features/calendar/merge";
 import type { CalendarAgendaDay, CalendarTravelHint } from "@features/calendar/types";
 import { AgendaDayCard } from "@features/app/screens/todo/agenda-day-card";
+import { AuraLoader } from "@features/app/components/aura-loader";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import { TravelModeSelector } from "@features/app/screens/todo/travel-mode-selector";
 import type { TodayWeatherAdvice } from "@features/weather/types";
@@ -102,14 +103,7 @@ export function TodoScreen({
             </Pressable>
           </View>
 
-          {isWeatherLoading ? (
-            <View style={styles.inlineLoading}>
-              <ActivityIndicator color={theme.colors.textPrimary} />
-              <Text style={styles.inlineLoadingText}>{copy.todo.weatherLoading}</Text>
-            </View>
-          ) : null}
-
-          {!isWeatherLoading && todayWeatherAdvice ? (
+          {todayWeatherAdvice ? (
             <View style={styles.compactDigestCard}>
               <Text style={styles.compactDigestHeadline}>
                 {todayWeatherAdvice.locationName} · {Math.round(todayWeatherAdvice.temperature.currentC)}°C
@@ -118,11 +112,13 @@ export function TodoScreen({
               <Text style={styles.detailLine}>{todayWeatherAdvice.advice.umbrellaAdvice}</Text>
               <Text style={styles.detailLine}>{todayWeatherAdvice.advice.outfitAdvice}</Text>
             </View>
-          ) : null}
-
-          {!isWeatherLoading && !todayWeatherAdvice ? (
+          ) : isWeatherLoading ? (
+            <View style={[styles.compactDigestCard, { paddingVertical: 24, alignItems: "center" }]}>
+              <AuraLoader size="md" message={copy.todo.weatherLoading} />
+            </View>
+          ) : (
             <Text style={styles.helperText}>{copy.todo.weatherUnavailable}</Text>
-          ) : null}
+          )}
         </View>
 
         <View style={styles.sectionCard}>
@@ -147,12 +143,12 @@ export function TodoScreen({
             </Pressable>
           </View>
 
-          {isAnyLoading ? (
-            <View style={styles.inlineLoading}>
-              <ActivityIndicator color={theme.colors.textPrimary} />
-              <Text style={styles.inlineLoadingText}>{copy.todo.loading}</Text>
+          {isAnyLoading && mergedAgendaDays.length === 0 ? (
+            <View style={[styles.compactDigestCard, { paddingVertical: 28, alignItems: "center" }]}>
+              <AuraLoader size="md" message={copy.todo.loading} />
             </View>
           ) : null}
+          {/* travel hints는 background refresh — placeholder 카드 만들지 않고 보조 안내 한 줄. */}
           {isCalendarTravelLoading ? (
             <Text style={styles.helperText}>{copy.todo.travelLoading}</Text>
           ) : null}

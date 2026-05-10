@@ -57,7 +57,7 @@ export function NavExpandDrawer({
   }
 
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onDismiss}>
+    <Modal transparent visible={visible} animationType="slide" onRequestClose={onDismiss}>
       <Pressable style={styles.backdrop} onPress={onDismiss}>
         {/* sheet 자체 클릭은 dismiss로 propagate되지 않게 */}
         <Pressable onPress={() => undefined} style={styles.sheet}>

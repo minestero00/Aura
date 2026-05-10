@@ -1,7 +1,8 @@
 import React from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageList } from "@components/message-list";
+import { AuraLoader } from "@features/app/components/aura-loader";
 import { EmptyStateHero } from "@features/app/components/empty-state-hero";
 import { ScreenEyebrow } from "@features/app/components/screen-eyebrow";
 import type { AppCopy } from "@features/app/i18n";
@@ -14,13 +15,9 @@ interface MailScreenProps {
   dailyEmailMessages: GmailMessage[];
   errorMessage: string | null;
   gmailConnected: boolean;
-  gmailDigest: GmailDigest | null;
-  gmailMessages: GmailMessage[];
   isInboxLoading: boolean;
   onOpenIgnoredSenderSettings: (message: GmailMessage) => void;
   onLoadDailyEmailBrief: () => Promise<void>;
-  onLoadEmailSummary: () => Promise<void>;
-  onLoadRecentEmails: () => Promise<void>;
   onReplyToMessage: (message: GmailMessage) => Promise<void>;
   replyingMessageId: string | null;
 }
@@ -31,13 +28,9 @@ export function MailScreen({
   dailyEmailMessages,
   errorMessage,
   gmailConnected,
-  gmailDigest,
-  gmailMessages,
   isInboxLoading,
   onOpenIgnoredSenderSettings,
   onLoadDailyEmailBrief,
-  onLoadEmailSummary,
-  onLoadRecentEmails,
   onReplyToMessage,
   replyingMessageId
 }: MailScreenProps) {
@@ -80,13 +73,6 @@ export function MailScreen({
             </Pressable>
           </View>
 
-          {isInboxLoading ? (
-            <View style={styles.inlineLoading}>
-              <ActivityIndicator color={theme.colors.textPrimary} />
-              <Text style={styles.inlineLoadingText}>{copy.mail.updatingBrief}</Text>
-            </View>
-          ) : null}
-
           {dailyEmailDigest ? (
             <View style={styles.digestCard}>
               <Text style={styles.digestHeadline}>{dailyEmailDigest.headline}</Text>
@@ -95,6 +81,10 @@ export function MailScreen({
                   • {bullet}
                 </Text>
               ))}
+            </View>
+          ) : isInboxLoading ? (
+            <View style={[styles.digestCard, { paddingVertical: 28, alignItems: "center" }]}>
+              <AuraLoader size="md" message={copy.mail.updatingBrief} />
             </View>
           ) : null}
 
@@ -105,46 +95,6 @@ export function MailScreen({
             onReplyToMessage={onReplyToMessage}
             replyingMessageId={replyingMessageId}
             showReceivedAt={false}
-          />
-        </View>
-
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>{copy.mail.inboxPreviewTitle}</Text>
-          <View style={styles.buttonRow}>
-            <Pressable
-              disabled={isInboxLoading || !gmailConnected}
-              onPress={() => void onLoadRecentEmails()}
-              style={styles.secondaryButton}
-            >
-              <Text style={styles.secondaryButtonText}>{copy.mail.loadRecent}</Text>
-            </Pressable>
-
-            <Pressable
-              disabled={isInboxLoading || !gmailConnected}
-              onPress={() => void onLoadEmailSummary()}
-              style={styles.outlineButton}
-            >
-              <Text style={styles.outlineButtonText}>{copy.mail.summarizeInbox}</Text>
-            </Pressable>
-          </View>
-
-          {gmailDigest ? (
-            <View style={styles.digestCard}>
-              <Text style={styles.digestHeadline}>{gmailDigest.headline}</Text>
-              {gmailDigest.bullets.map((bullet, index) => (
-                <Text key={`gmail-bullet-${index}`} style={styles.digestBullet}>
-                  • {bullet}
-                </Text>
-              ))}
-            </View>
-          ) : null}
-
-          <MessageList
-            copy={copy}
-            messages={gmailMessages}
-            onOpenIgnoredSenderSettings={onOpenIgnoredSenderSettings}
-            onReplyToMessage={onReplyToMessage}
-            replyingMessageId={replyingMessageId}
           />
         </View>
       </ScrollView>

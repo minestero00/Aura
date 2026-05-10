@@ -1,10 +1,16 @@
-import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  DateTimePickerAndroid
+} from "@react-native-community/datetimepicker";
 import { SettingsStatusRow, SettingsSubpageHeader } from "@features/app/screens/settings/shared";
 import { toPickerDate } from "@features/app/screens/settings/types";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
+
+// iOS spinner는 사용자가 휠 돌리는 동안 onChange가 연속 발생 — 매번 저장하면 API 폭주.
+// Android dialog는 OK 누른 시점 1회만 발생하므로 debounce 불필요.
+const IOS_SAVE_DEBOUNCE_MS = 600;
 
 export function NotificationsSection(props: SettingsSectionProps) {
   const {
@@ -20,6 +26,46 @@ export function NotificationsSection(props: SettingsSectionProps) {
     onSaveMorningBriefTime,
     onSelectSettingsSection
   } = props;
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  function applySelectedDate(selectedDate: Date | undefined) {
+    if (!selectedDate) return;
+    const hours = String(selectedDate.getHours()).padStart(2, "0");
+    const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
+    onMorningBriefTimeDraftChange(`${hours}:${minutes}`);
+
+    if (Platform.OS === "android") {
+      // Android dialog OK → 즉시 저장.
+      void onSaveMorningBriefTime();
+      return;
+    }
+
+    // iOS: 사용자가 spinner 멈춘 후 약간의 디바운스를 두고 저장.
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      void onSaveMorningBriefTime();
+    }, IOS_SAVE_DEBOUNCE_MS);
+  }
+
+  function openAndroidTimePicker() {
+    DateTimePickerAndroid.open({
+      value: toPickerDate(morningBriefTimeDraft),
+      mode: "time",
+      is24Hour: true,
+      onChange: (_, selectedDate) => applySelectedDate(selectedDate)
+    });
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -52,16 +98,18 @@ export function NotificationsSection(props: SettingsSectionProps) {
             </Text>
 
             <View style={styles.sectionCard}>
-              <DateTimePicker
-                display="spinner"
-                mode="time"
-                onValueChange={(_, selectedDate) => {
-                  const hours = String(selectedDate.getHours()).padStart(2, "0");
-                  const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
-                  onMorningBriefTimeDraftChange(`${hours}:${minutes}`);
-                }}
-                value={toPickerDate(morningBriefTimeDraft)}
-              />
+              {Platform.OS === "android" ? (
+                <Pressable onPress={openAndroidTimePicker} style={styles.outlineButton}>
+                  <Text style={styles.outlineButtonText}>{morningBriefTimeDraft || "09:00"}</Text>
+                </Pressable>
+              ) : (
+                <DateTimePicker
+                  display="spinner"
+                  mode="time"
+                  onChange={(_, selectedDate) => applySelectedDate(selectedDate)}
+                  value={toPickerDate(morningBriefTimeDraft)}
+                />
+              )}
             </View>
 
             <View style={styles.buttonRow}>
@@ -78,10 +126,6 @@ export function NotificationsSection(props: SettingsSectionProps) {
                     ? copy.settings.notificationsDisable
                     : copy.settings.notificationsEnable}
                 </Text>
-              </Pressable>
-
-              <Pressable onPress={() => void onSaveMorningBriefTime()} style={styles.outlineButton}>
-                <Text style={styles.outlineButtonText}>{copy.settings.notificationsRefresh}</Text>
               </Pressable>
             </View>
           </View>

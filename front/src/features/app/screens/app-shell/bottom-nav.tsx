@@ -14,7 +14,7 @@ interface BottomNavProps {
   onPullUp: () => void;
 }
 
-const PULL_UP_THRESHOLD = 30; // px — swipe-up이 이만큼 넘으면 trigger
+const PULL_UP_THRESHOLD = 16; // px — 손가락 살짝만 위로 밀어도 trigger되게 낮춤
 
 export function BottomNav({ theme, selectedTab, navItems, onSelectTab, onPullUp }: BottomNavProps) {
   const styles = createAppStyles(theme);
