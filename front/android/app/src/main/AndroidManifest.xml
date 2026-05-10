@@ -20,6 +20,13 @@
       android:theme="@style/AppTheme"
       android:usesCleartextTraffic="${usesCleartextTraffic}"
       android:supportsRtl="true">
+
+      <!-- FCM이 channel ID 미지정 메시지를 fallback할 default channel.
+           Firebase Console "Send test message"가 channel을 명시 안 하면 이걸 사용.
+           실제 채널 생성은 NotificationChannelInitializer.kt에서 onCreate 시 수행. -->
+      <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="aura.default" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

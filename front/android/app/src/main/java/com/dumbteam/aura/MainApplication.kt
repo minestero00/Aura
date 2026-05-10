@@ -1,6 +1,7 @@
 package com.dumbteam.aura
 
 import android.app.Application
+import com.dumbteam.aura.notifications.NotificationChannelInitializer
 import com.dumbteam.aura.transit.TransitGeofenceModule
 import com.dumbteam.aura.transit.TransitGeofencePackage
 import com.facebook.react.PackageList
@@ -26,5 +27,7 @@ class MainApplication : Application(), ReactApplication {
     loadReactNative(this)
     // 알림 channel을 앱 시작 시 미리 생성 — BR가 cold start 시에도 안전.
     TransitGeofenceModule.ensureNotificationChannel(this)
+    // FCM이 사용하는 default + briefing/departure channel 등록.
+    NotificationChannelInitializer.ensureAllChannels(this)
   }
 }

@@ -148,6 +148,23 @@ const INVALID_TOKEN_ERROR_CODES = new Set([
   "messaging/invalid-argument"
 ]);
 
+// PushPayload.category → Android NotificationChannel ID.
+// frontend NotificationChannelInitializer.kt에서 동일 ID로 채널 사전 등록되어야 함.
+function resolveAndroidChannelId(category: string | undefined) {
+  switch (category) {
+    case "daily_briefing":
+      return "aura.briefing.daily";
+    case "evening_briefing":
+      return "aura.briefing.evening";
+    case "departure_alert":
+      return "aura.departure_alert";
+    case "transit_arrival":
+      return "aura.transit.arrival";
+    default:
+      return "aura.default";
+  }
+}
+
 async function sendViaProvider(device: PushDevice, payload: PushPayload): Promise<boolean> {
   const app = getFirebaseApp();
   if (!app) {
@@ -181,7 +198,9 @@ async function sendViaProvider(device: PushDevice, payload: PushPayload): Promis
       priority: payload.critical ? "high" : "normal",
       notification: {
         sound: "default",
-        channelId: payload.category === "daily_briefing" ? "aura.briefing.daily" : undefined
+        // category와 channelId 매핑. native(MainApplication)에서 모두 등록됨.
+        // 미지정/미매핑 category는 aura.default fallback (AndroidManifest meta-data).
+        channelId: resolveAndroidChannelId(payload.category)
       }
     },
     apns: {
