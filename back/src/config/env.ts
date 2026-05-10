@@ -62,5 +62,8 @@ export const config = {
   // dev는 파일 경로(FIREBASE_SERVICE_ACCOUNT_PATH)도 허용 — gitignore 권장.
   firebaseServiceAccountJson: process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "",
   firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || "",
-  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || ""
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "",
+  // OpenAI Whisper — 음성 STT (back/src/modules/voice). Anthropic이 STT 미제공이라 분리 provider.
+  // 비용 $0.006/분. 일별 cap은 usage_events에 voice_transcribe feature로 기록.
+  openaiApiKey: process.env.OPENAI_API_KEY || ""
 };
