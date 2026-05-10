@@ -16,7 +16,11 @@ import {
   subscribeBackgroundEnter
 } from "./native-geofence";
 
-const POLL_INTERVAL_MS = 15_000;
+// foreground polling — 사용자가 앱 보고 있는 동안 GPS 자주 체크해서 거의 즉시 알림.
+// 30km/h 이동 시 3초 = 25m, 1분 = 500m. 3초면 정류장 ARRIVAL_RADIUS_METERS(300m) 내에서
+// 보통 1~2회 polling 안에 감지 → 사용자가 시각적으로 "바로 알림"으로 체감.
+// background로 전환되면 stopPolling + native geofence가 인계 (radius 350m로 한 정거장 전 트리거).
+const POLL_INTERVAL_MS = 3_000;
 const ARRIVAL_RADIUS_METERS = 300;
 const FINAL_ARRIVAL_RADIUS_METERS = 30;
 // transit 정류장은 한 정거장 전부터 알림이 떠야 사용자가 하차 준비 가능 — iOS region monitoring은 도시 환경에서 ~100m 오차가 있어 350m 정도 줘야 안정적.
