@@ -4,7 +4,6 @@ import {
   getMessaging,
   getToken,
   onTokenRefresh,
-  registerDeviceForRemoteMessages,
   requestPermission
 } from "@react-native-firebase/messaging";
 import { registerPushDevice } from "@features/transit/api";
@@ -44,11 +43,8 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
     const messaging = getMessaging();
 
-    // iOS: APNs token이 도착해야 FCM token 발급. AppDelegate가 forward하므로 잠시 대기 후 try.
-    if (Platform.OS === "ios") {
-      await registerDeviceForRemoteMessages(messaging);
-    }
-
+    // iOS는 Firebase Messaging이 자동으로 APNs 등록 (default).
+    // AppDelegate가 didRegisterForRemoteNotificationsWithDeviceToken에서 token forward.
     const token = await getToken(messaging);
     if (!token || token === lastRegisteredToken) return token ?? null;
 

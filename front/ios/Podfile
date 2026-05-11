@@ -15,6 +15,10 @@ if linkage != nil
 end
 
 target 'AuraApp' do
+  # @react-native-firebase가 static linking + Swift import를 위해 요구.
+  # GoogleUtilities/FirebaseCoreInternal이 modular_headers 없으면 install 단계에서 실패.
+  use_modular_headers!
+
   config = use_native_modules!
 
   use_react_native!(
