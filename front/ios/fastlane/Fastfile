@@ -30,13 +30,29 @@ platform :ios do
     )
     UI.message("📦 next build number: #{next_build}")
 
+    # 사전 조건: build/generated/ios/ReactCodegen/ 안에 RN codegen 산출물이 있어야 함.
+    # fastlane의 cocoapods action은 RN 0.84 prebuilt artifact 흐름과 잘 안 맞아서
+    # ShellError로 자주 깨짐. 따라서 별도 단계로 분리 — 빌드 전에 manually 실행:
+    #   cd front/ios && pod install
+    # 이후 fastlane beta. clean: false이므로 codegen 산출물은 보존됨.
+
     # 2) Archive — App Store distribution.
+    # xcargs -allowProvisioningUpdates: archive/export 시 distribution profile을
+    #   필요하면 Xcode가 자동 생성/갱신 (Apple Developer Portal에 요청).
+    # export_options.signingStyle=automatic: Xcode Managed profile로 export.
+    # clean: false — RN codegen 산출물 보존 (Pods.xcodeproj가 generated/ 경로 참조).
     build_app(
       workspace: "AuraApp.xcworkspace",
       scheme: "AuraApp",
       export_method: "app-store",
-      clean: true,
-      output_directory: "build"
+      clean: false,
+      output_directory: "build",
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        method: "app-store",
+        signingStyle: "automatic",
+        teamID: "WJ33W524N5"
+      }
     )
 
     # 3) TestFlight 업로드. internal testing은 Apple 처리 후 자동 활성.

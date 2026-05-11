@@ -19,6 +19,10 @@ target 'AuraApp' do
   # GoogleUtilities/FirebaseCoreInternal이 modular_headers 없으면 install 단계에서 실패.
   use_modular_headers!
 
+  # RNCPushNotificationIOS는 Swift bridging header에서 직접 import되므로 module map이
+  # 명확히 생성되어야 함. use_modular_headers!만으로는 가끔 정의 누락 — 명시적으로 강제.
+  pod 'RNCPushNotificationIOS', :path => '../../node_modules/@react-native-community/push-notification-ios', :modular_headers => true
+
   config = use_native_modules!
 
   use_react_native!(
