@@ -19,6 +19,8 @@
 		F11A9F582FB0AAC60031AE70 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F11A9F572FB0AAC60031AE70 /* WidgetKit.framework */; };
 		F11A9F5A2FB0AAC60031AE70 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F11A9F592FB0AAC60031AE70 /* SwiftUI.framework */; };
 		F11A9F652FB0AAC80031AE70 /* AuraWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F11A9F562FB0AAC60031AE70 /* AuraWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F1B1CFA72FB1D99900A30114 /* AuraWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B1CFA62FB1D99900A30114 /* AuraWidgetBridge.swift */; };
+		F1B1CFA82FB1D99900A30114 /* AuraWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = F1B1CFA52FB1D99900A30114 /* AuraWidgetBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +69,8 @@
 		F11A9F592FB0AAC60031AE70 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		F11A9F6D2FB0AC680031AE70 /* AuraApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = AuraApp.entitlements; path = AuraApp/AuraApp.entitlements; sourceTree = "<group>"; };
 		F1B1CFA42FB1CCD400A30114 /* AuraWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AuraWidgetExtension.entitlements; sourceTree = "<group>"; };
+		F1B1CFA52FB1D99900A30114 /* AuraWidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AuraWidgetBridge.m; sourceTree = "<group>"; };
+		F1B1CFA62FB1D99900A30114 /* AuraWidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuraWidgetBridge.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -141,6 +145,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				F1B1CFA52FB1D99900A30114 /* AuraWidgetBridge.m */,
+				F1B1CFA62FB1D99900A30114 /* AuraWidgetBridge.swift */,
 				F1B1CFA42FB1CCD400A30114 /* AuraWidgetExtension.entitlements */,
 				F11A9F4C2FAF4BC40031AE70 /* TransitGeofence.m */,
 				F11A9F4D2FAF4BC40031AE70 /* TransitGeofence.swift */,
@@ -385,6 +391,8 @@
 			files = (
 				F11A9F4E2FAF4BC40031AE70 /* TransitGeofence.m in Sources */,
 				F11A9F4F2FAF4BC40031AE70 /* TransitGeofence.swift in Sources */,
+				F1B1CFA72FB1D99900A30114 /* AuraWidgetBridge.swift in Sources */,
+				F1B1CFA82FB1D99900A30114 /* AuraWidgetBridge.m in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
