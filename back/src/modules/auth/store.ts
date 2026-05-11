@@ -313,6 +313,29 @@ export const authStore = {
   listUsers() {
     return Array.from(usersById.values());
   },
+  /**
+   * Worker용 — DB의 status='active' 사용자 전원을 in-memory 캐시에 로드.
+   * Worker process는 HTTP request를 받지 않아 lazy ensureAuthenticatedUser가
+   * 절대 호출되지 않는다. 이 함수가 없으면 listUsers()/findUserById()는 항상 빈 결과 →
+   * 모든 cron job (departure, briefing)이 0명을 평가.
+   * 5분 간격 cron 직전에 호출해 새 signup도 자연스럽게 흡수.
+   */
+  async refreshActiveUsersFromDb(): Promise<number> {
+    const db = getPool();
+    if (!db) return 0;
+    const result = await db.query<{ id: string }>(
+      `SELECT u.id
+       FROM auth.users u
+       JOIN aura.user_profiles p ON p.user_id = u.id
+       WHERE p.status = 'active'`
+    );
+    let loaded = 0;
+    for (const row of result.rows) {
+      const user = await loadUserFromDb(row.id).catch(() => null);
+      if (user) loaded += 1;
+    }
+    return loaded;
+  },
   getPreferences(userId: string) {
     const preferences = preferencesByUserId.get(userId);
     if (preferences) return preferences;

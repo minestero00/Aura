@@ -148,6 +148,19 @@ const INVALID_TOKEN_ERROR_CODES = new Set([
   "messaging/invalid-argument"
 ]);
 
+// 시간 민감 카테고리 — FCM high priority로 Doze/배터리 최적화 우회.
+// iOS는 apns-priority 10. critical alert sound(entitlement 필요)는 별개로 payload.critical만 트리거.
+const URGENT_CATEGORIES = new Set([
+  "departure_alert",
+  "transit_arrival",
+  "daily_briefing",
+  "evening_briefing"
+]);
+
+function isUrgentPayload(payload: PushPayload) {
+  return payload.critical === true || (payload.category != null && URGENT_CATEGORIES.has(payload.category));
+}
+
 // PushPayload.category → Android NotificationChannel ID.
 // frontend NotificationChannelInitializer.kt에서 동일 ID로 채널 사전 등록되어야 함.
 function resolveAndroidChannelId(category: string | undefined) {
@@ -187,6 +200,8 @@ async function sendViaProvider(device: PushDevice, payload: PushPayload): Promis
     dataPayload.category = payload.category;
   }
 
+  const urgent = isUrgentPayload(payload);
+
   const message: Message = {
     token: device.pushToken,
     notification: {
@@ -195,7 +210,7 @@ async function sendViaProvider(device: PushDevice, payload: PushPayload): Promis
     },
     data: dataPayload,
     android: {
-      priority: payload.critical ? "high" : "normal",
+      priority: urgent ? "high" : "normal",
       notification: {
         sound: "default",
         // category와 channelId 매핑. native(MainApplication)에서 모두 등록됨.
@@ -204,7 +219,7 @@ async function sendViaProvider(device: PushDevice, payload: PushPayload): Promis
       }
     },
     apns: {
-      headers: payload.critical ? { "apns-priority": "10" } : undefined,
+      headers: urgent ? { "apns-priority": "10" } : undefined,
       payload: {
         aps: {
           sound: payload.critical

@@ -346,7 +346,18 @@ export const briefingsService = {
       return;
     }
 
-    const rescan = () => {
+    const rescan = async () => {
+      // Worker는 HTTP 인증을 안 받아 in-memory 캐시가 비어 있음. 매 rescan마다 DB 동기화.
+      await authStore.refreshActiveUsersFromDb().catch(error => {
+        console.log(
+          JSON.stringify({
+            level: "warn",
+            service: "aura-back",
+            message: "briefings scheduler refresh failed",
+            error: error instanceof Error ? error.message : String(error)
+          })
+        );
+      });
       const users = authStore.listUsers();
       users.forEach(user => {
         scheduleUser(user.id);
@@ -362,11 +373,11 @@ export const briefingsService = {
       );
     };
 
-    rescan();
+    void rescan();
 
     if (!schedulerRescanTimer) {
       schedulerRescanTimer = setInterval(() => {
-        rescan();
+        void rescan();
       }, SCHEDULER_RESCAN_MS);
     }
 

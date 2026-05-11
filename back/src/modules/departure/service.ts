@@ -235,6 +235,12 @@ export async function evaluateUserDepartures(userId: string): Promise<{
 }
 
 export async function evaluateAllUsersDepartures(): Promise<void> {
+  // Worker는 HTTP 인증을 받지 않아 in-memory 캐시가 비어 있음. cron 진입마다 DB에서 active user 동기화.
+  await authStore.refreshActiveUsersFromDb().catch(error => {
+    logWarn("refreshActiveUsersFromDb failed", {
+      error: error instanceof Error ? error.message : String(error)
+    });
+  });
   const users = authStore.listUsers();
   for (const user of users) {
     try {
