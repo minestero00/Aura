@@ -52,6 +52,10 @@ yarn-error.log
 **/fastlane/Preview.html
 **/fastlane/screenshots
 **/fastlane/test_output
+# App Store Connect API Key — 절대 commit 금지.
+**/fastlane/keys/
+**/AuthKey_*.p8
+*.p8
 
 # Bundle artifact
 *.jsbundle

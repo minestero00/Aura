@@ -1,0 +1,4 @@
+app_identifier("com.dumbteam.aura")
+apple_id("dumbteam2025@gmail.com")
+team_id("WJ33W524N5")  # Apple Developer Team — Membership 페이지의 Team ID
+# itc_team_id는 App Store Connect API Key 사용 시 자동 — 명시 불필요.
