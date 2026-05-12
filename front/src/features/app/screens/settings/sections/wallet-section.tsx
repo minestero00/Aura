@@ -619,101 +619,114 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
     }
   }
 
-  return (
-    <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-      <View style={[localStyles.detailRoot, { backgroundColor: theme.colors.background }]}>
-        <View style={localStyles.detailHeader}>
-          <Pressable onPress={onClose} hitSlop={10} style={localStyles.detailCloseButton}>
-            <Text style={[localStyles.detailCloseText, { color: theme.colors.textPrimary }]}>×</Text>
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <Text style={[localStyles.detailBrand, { color: theme.colors.textMuted }]}>
-              {coupon.brand}
-            </Text>
-            <Text style={[localStyles.detailTitle, { color: theme.colors.textPrimary }]} numberOfLines={2}>
-              {coupon.title}
-            </Text>
-            {coupon.expiresAt ? (
-              <Text style={[localStyles.detailExpires, { color: theme.colors.textSecondary }]}>
-                {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
-              </Text>
-            ) : null}
-            {coupon.geofence?.placeName ? (
-              <Text style={[localStyles.detailExpires, { color: theme.colors.textSecondary }]}>
-                {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
-              </Text>
-            ) : null}
-          </View>
-        </View>
+  const [actionsOpen, setActionsOpen] = useState(false);
 
-        <View style={localStyles.detailBody}>
-          {code ? (
-            <>
-              {imageBase64 ? (
-                <ScrollView
-                  style={localStyles.zoomScroll}
-                  contentContainerStyle={localStyles.zoomContent}
-                  maximumZoomScale={6}
-                  minimumZoomScale={1}
-                  pinchGestureEnabled
-                  bouncesZoom
-                  showsHorizontalScrollIndicator={false}
-                  showsVerticalScrollIndicator={false}
-                  centerContent
-                >
-                  <Image
-                    source={{ uri: imageBase64 }}
-                    style={localStyles.couponImageFull}
-                    resizeMode="contain"
-                  />
-                </ScrollView>
-              ) : (
-                <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} size={280} />
-              )}
-              <Text style={[localStyles.detailScanHint, { color: theme.colors.textSecondary }]}>
-                {copy.wallet.detailScanInstruction}
-              </Text>
-            </>
+  return (
+    <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={onClose}>
+      <View style={localStyles.viewerRoot}>
+        {/* 이미지 풀스크린 — 점원에게 보여주는 화면. 검은 배경 + 가운데 이미지만. */}
+        {code ? (
+          imageBase64 ? (
+            <ScrollView
+              style={localStyles.viewerScroll}
+              contentContainerStyle={localStyles.viewerScrollContent}
+              maximumZoomScale={6}
+              minimumZoomScale={1}
+              pinchGestureEnabled
+              bouncesZoom
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              centerContent
+            >
+              <Image
+                source={{ uri: imageBase64 }}
+                style={localStyles.viewerImage}
+                resizeMode="contain"
+              />
+            </ScrollView>
           ) : (
-            <View style={localStyles.detailReveal}>
-              <Text style={[styles.helperText, { textAlign: "center" }]}>
-                {copy.wallet.detailCodeRevealHint}
-              </Text>
-              <Pressable
-                onPress={() => void reveal()}
-                style={[styles.primaryButton, { marginTop: 12, minWidth: 200 }]}
-                disabled={isRevealing}
-              >
-                {isRevealing ? (
-                  <ActivityIndicator color={theme.colors.accentText} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>{copy.wallet.detailCodeShow}</Text>
-                )}
-              </Pressable>
+            <View style={localStyles.viewerCentered}>
+              <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} size={320} />
             </View>
-          )}
-        </View>
+          )
+        ) : (
+          <View style={localStyles.viewerCentered}>
+            <Text style={[styles.helperText, { color: "#FFFFFF", textAlign: "center" }]}>
+              {copy.wallet.detailCodeRevealHint}
+            </Text>
+            <Pressable
+              onPress={() => void reveal()}
+              style={[styles.primaryButton, { marginTop: 16, minWidth: 200 }]}
+              disabled={isRevealing}
+            >
+              {isRevealing ? (
+                <ActivityIndicator color={theme.colors.accentText} />
+              ) : (
+                <Text style={styles.primaryButtonText}>{copy.wallet.detailCodeShow}</Text>
+              )}
+            </Pressable>
+          </View>
+        )}
+
+        {/* 좌상단 X 닫기 */}
+        <Pressable onPress={onClose} hitSlop={14} style={localStyles.viewerCloseButton}>
+          <Text style={localStyles.viewerOverlayIcon}>×</Text>
+        </Pressable>
+
+        {/* 우상단 ⋯ 메뉴 — 액션은 별도 sheet로 분리해 이미지 가독성 보존 */}
+        <Pressable onPress={() => setActionsOpen(true)} hitSlop={14} style={localStyles.viewerMenuButton}>
+          <Text style={localStyles.viewerOverlayIcon}>⋯</Text>
+        </Pressable>
 
         {error ? (
-          <Text style={[styles.errorText, { paddingHorizontal: 20 }]}>{error}</Text>
+          <View style={localStyles.viewerErrorBanner}>
+            <Text style={[styles.errorText, { color: "#FFFFFF" }]}>{error}</Text>
+          </View>
         ) : null}
 
-        <View style={[localStyles.detailActions, { borderTopColor: theme.colors.line }]}>
-          <Pressable
-            onPress={() => void markUsed()}
-            style={[styles.outlineButton, { flex: 1 }]}
-            disabled={isBusy || coupon.status === "used"}
-          >
-            <Text style={styles.outlineButtonText}>{copy.wallet.actionUsed}</Text>
-          </Pressable>
-          <Pressable
-            onPress={confirmDelete}
-            style={[styles.dangerButton, { flex: 1 }]}
-            disabled={isBusy}
-          >
-            <Text style={styles.dangerButtonText}>{copy.wallet.actionDelete}</Text>
-          </Pressable>
-        </View>
+        {/* 액션 sheet */}
+        <BottomSheetModal
+          visible={actionsOpen}
+          onClose={() => setActionsOpen(false)}
+          sheetStyle={styles.modalCard}
+        >
+          <View style={styles.modalHandle} />
+          <Text style={styles.messageMeta}>{coupon.brand}</Text>
+          <Text style={styles.sectionTitle}>{coupon.title}</Text>
+          {coupon.expiresAt ? (
+            <Text style={styles.detailLine}>
+              {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
+            </Text>
+          ) : null}
+          {coupon.geofence?.placeName ? (
+            <Text style={styles.helperText}>
+              {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
+            </Text>
+          ) : null}
+
+          <View style={[styles.buttonRow, { marginTop: 14 }]}>
+            <Pressable
+              onPress={() => {
+                setActionsOpen(false);
+                void markUsed();
+              }}
+              style={[styles.outlineButton, { flex: 1 }]}
+              disabled={isBusy || coupon.status === "used"}
+            >
+              <Text style={styles.outlineButtonText}>{copy.wallet.actionUsed}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setActionsOpen(false);
+                confirmDelete();
+              }}
+              style={[styles.dangerButton, { flex: 1 }]}
+              disabled={isBusy}
+            >
+              <Text style={styles.dangerButtonText}>{copy.wallet.actionDelete}</Text>
+            </Pressable>
+          </View>
+        </BottomSheetModal>
       </View>
     </Modal>
   );
@@ -831,5 +844,66 @@ const localStyles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 28,
     borderTopWidth: 1
+  },
+  // 이미지 풀스크린 viewer (점원에게 보여주기 위함).
+  viewerRoot: {
+    flex: 1,
+    backgroundColor: "#000000"
+  },
+  viewerScroll: { flex: 1 },
+  viewerScrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  viewerImage: {
+    width: "100%",
+    aspectRatio: 0.65,
+    maxHeight: "100%",
+    backgroundColor: "#FFFFFF"
+  },
+  viewerCentered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    gap: 8
+  },
+  viewerCloseButton: {
+    position: "absolute",
+    top: 60,
+    left: 16,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.55)"
+  },
+  viewerMenuButton: {
+    position: "absolute",
+    top: 60,
+    right: 16,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.55)"
+  },
+  viewerOverlayIcon: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "700",
+    lineHeight: 26
+  },
+  viewerErrorBanner: {
+    position: "absolute",
+    bottom: 80,
+    left: 20,
+    right: 20,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.7)"
   }
 });
