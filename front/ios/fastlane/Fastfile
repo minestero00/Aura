@@ -73,4 +73,76 @@ platform :ios do
     )
     UI.message("📦 next build number would be: #{latest + 1}")
   end
+
+  desc "TestFlight 베타 그룹 / 빌드 / 테스터 출력"
+  lane :list_beta_groups do
+    require "spaceship"
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      filepath: ENV["ASC_KEY_FILEPATH"] || File.expand_path("keys/AuthKey.p8", __dir__)
+    )
+
+    app = Spaceship::ConnectAPI::App.find("com.dumbteam.aura")
+    UI.user_error!("앱을 찾을 수 없습니다: com.dumbteam.aura") unless app
+
+    groups = app.get_beta_groups(includes: "betaTesters")
+
+    if groups.empty?
+      UI.important("BetaGroup 없음 — App Store Connect → TestFlight → 그룹 +로 생성 필요")
+    end
+
+    groups.each do |g|
+      kind = g.is_internal_group ? "internal" : "external"
+      UI.message("──────────────────────────")
+      UI.message("Group: #{g.name} (#{kind}) id=#{g.id}")
+      testers = g.beta_testers || []
+      UI.message("  testers (#{testers.size}):")
+      testers.each do |t|
+        state = t.beta_tester_state || "?"
+        installed = t.installed_cf_bundle_short_version_string
+        installed_label = installed ? " · installed #{installed}(#{t.installed_cf_bundle_version}) on #{t.installed_device || "?"} iOS #{t.installed_os_version || "?"}" : ""
+        UI.message("    - #{t.email}  state=#{state}#{installed_label}")
+      end
+      begin
+        builds = g.fetch_builds(includes: "preReleaseVersion")
+        build_labels = builds.map { |b| "#{b.app_version}(#{b.version})" }
+        UI.message("  builds  (#{build_labels.size}): #{build_labels.join(", ")}")
+      rescue => err
+        UI.important("  builds 조회 실패: #{err.message}")
+      end
+    end
+  end
+
+  desc "기존 빌드를 베타 그룹에 attach — 예: bundle exec fastlane attach_build group:\"Internal Testers\" version:1.0 build:1"
+  lane :attach_build do |options|
+    UI.user_error!("group: 옵션 필수") unless options[:group]
+    UI.user_error!("version: 옵션 필수 (예: 1.0)") unless options[:version]
+    UI.user_error!("build: 옵션 필수 (예: 1)") unless options[:build]
+
+    require "spaceship"
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      filepath: ENV["ASC_KEY_FILEPATH"] || File.expand_path("keys/AuthKey.p8", __dir__)
+    )
+
+    app = Spaceship::ConnectAPI::App.find("com.dumbteam.aura")
+    UI.user_error!("앱을 찾을 수 없습니다") unless app
+
+    group = app.get_beta_groups.find { |g| g.name == options[:group] }
+    UI.user_error!("그룹을 찾을 수 없습니다: #{options[:group]} — fastlane list_beta_groups 로 확인") unless group
+
+    builds = Spaceship::ConnectAPI::Build.all(
+      app_id: app.id,
+      version: options[:version],
+      build_number: options[:build].to_s
+    )
+    build = builds.first
+    UI.user_error!("빌드를 찾을 수 없습니다: #{options[:version]}(#{options[:build]})") unless build
+
+    UI.message("🔗 attaching build #{build.app_version}(#{build.version}) → group #{group.name}")
+    build.add_beta_groups(beta_groups: [group])
+    UI.success("✅ 빌드가 그룹에 추가되었습니다. 테스터에게 알림이 발송됩니다.")
+  end
 end
