@@ -13,6 +13,7 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9A0AA00100000000000A0001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 9A0AA00100000000000A0004 /* InfoPlist.strings */; };
 		D5DE9E5067EF78B529279BA5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		DD13143C22E5475CA33319A9 /* AuraOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28C12967BB2D0B330B4D2EE9 /* AuraOCR.swift */; };
 		F11A9F4E2FAF4BC40031AE70 /* TransitGeofence.m in Sources */ = {isa = PBXBuildFile; fileRef = F11A9F4C2FAF4BC40031AE70 /* TransitGeofence.m */; };
 		F11A9F4F2FAF4BC40031AE70 /* TransitGeofence.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11A9F4D2FAF4BC40031AE70 /* TransitGeofence.swift */; };
 		F11A9F512FB052640031AE70 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F11A9F502FB052640031AE70 /* GoogleService-Info.plist */; };
@@ -21,6 +22,7 @@
 		F11A9F652FB0AAC80031AE70 /* AuraWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F11A9F562FB0AAC60031AE70 /* AuraWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		F1B1CFA72FB1D99900A30114 /* AuraWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B1CFA62FB1D99900A30114 /* AuraWidgetBridge.swift */; };
 		F1B1CFA82FB1D99900A30114 /* AuraWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = F1B1CFA52FB1D99900A30114 /* AuraWidgetBridge.m */; };
+		FD7A5C243898E751C6B20079 /* AuraOCR.m in Sources */ = {isa = PBXBuildFile; fileRef = D72362CA42DAC45A02FBFB41 /* AuraOCR.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AuraApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = AuraApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = AuraApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		28C12967BB2D0B330B4D2EE9 /* AuraOCR.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuraOCR.swift; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-AuraApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AuraApp.debug.xcconfig"; path = "Target Support Files/Pods-AuraApp/Pods-AuraApp.debug.xcconfig"; sourceTree = "<group>"; };
 		53F017926DFE412990962A17 /* AuraApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AuraApp-Bridging-Header.h"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-AuraApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AuraApp.release.xcconfig"; path = "Target Support Files/Pods-AuraApp/Pods-AuraApp.release.xcconfig"; sourceTree = "<group>"; };
@@ -60,6 +63,7 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = AuraApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9A0AA00100000000000A0002 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = AuraApp/en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		9A0AA00100000000000A0003 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = AuraApp/ko.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D72362CA42DAC45A02FBFB41 /* AuraOCR.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = AuraOCR.m; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11A9F4C2FAF4BC40031AE70 /* TransitGeofence.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TransitGeofence.m; sourceTree = "<group>"; };
 		F11A9F4D2FAF4BC40031AE70 /* TransitGeofence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitGeofence.swift; sourceTree = "<group>"; };
@@ -167,6 +171,8 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				28C12967BB2D0B330B4D2EE9 /* AuraOCR.swift */,
+				D72362CA42DAC45A02FBFB41 /* AuraOCR.m */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -395,6 +401,8 @@
 				F1B1CFA72FB1D99900A30114 /* AuraWidgetBridge.swift in Sources */,
 				F1B1CFA82FB1D99900A30114 /* AuraWidgetBridge.m in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				DD13143C22E5475CA33319A9 /* AuraOCR.swift in Sources */,
+				FD7A5C243898E751C6B20079 /* AuraOCR.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,7 +443,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = AuraApp/AuraApp.entitlements;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = WJ33W524N5;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = AuraApp/Info.plist;
@@ -468,7 +476,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = AuraApp/AuraApp.entitlements;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = WJ33W524N5;
 				INFOPLIST_FILE = AuraApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -662,7 +670,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = AuraWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = WJ33W524N5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -710,7 +718,7 @@
 				CODE_SIGN_ENTITLEMENTS = AuraWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = WJ33W524N5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
