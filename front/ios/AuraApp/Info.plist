@@ -14,6 +14,13 @@
 	-->
 	<key>KAKAO_APP_KEY</key>
 	<string>placeholder-not-used</string>
+	<!--
+	  Export Compliance — AURA frontend는 HTTPS(TLS) 외에 별도 암호화 미사용.
+	  Backend의 AES-256-GCM은 server-side. false 명시로 TestFlight 업로드 시
+	  매번 다이얼로그 응답하는 절차 제거.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
