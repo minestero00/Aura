@@ -89,3 +89,24 @@ export async function extractCouponFromMessage(
   return result.candidate;
 }
 
+/**
+ * device OCR 결과(raw text)를 → brand/title/expires 정형화.
+ * 이미지 자체는 보내지 않음 — frontend에서 native OCR로 text만 추출 후 전달.
+ */
+export async function extractCouponFromImageText(
+  accessToken: string,
+  rawText: string,
+  language: "ko" | "en"
+): Promise<CouponExtractCandidate> {
+  const result = await apiRequest<{ candidate: CouponExtractCandidate }>(
+    `/api/v1/wallet/coupons/extract-from-image-text`,
+    {
+      method: "POST",
+      accessToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rawText, language })
+    }
+  );
+  return result.candidate;
+}
+

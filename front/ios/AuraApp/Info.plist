@@ -51,7 +51,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>6</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
@@ -71,6 +71,8 @@
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Aura uses your microphone to record voice questions and transcribe them with Whisper.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Aura는 카톡 기프티콘 등 쿠폰 이미지에서 텍스트를 인식해 지갑에 자동 등록하기 위해 사진 접근이 필요합니다. Aura needs photo library access to recognize coupon images (KakaoTalk gifts etc.) on-device and save them to your wallet.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Aura reads your device calendar to show today and tomorrow schedules.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

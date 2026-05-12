@@ -15,15 +15,18 @@ import { SettingsSubpageHeader } from "@features/app/screens/settings/shared";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
 import { getCurrentAccessToken } from "@lib/supabase/client";
 import { ApiError } from "@lib/api/client";
+import { launchImageLibrary } from "react-native-image-picker";
 import {
   createCoupon,
   deleteCoupon,
+  extractCouponFromImageText,
   fetchCoupons,
   revealCouponCode,
   updateCoupon
 } from "@features/wallet/api";
 import { CouponCodeRenderer } from "@features/wallet/components/coupon-code-renderer";
 import { CouponGeofencePicker } from "@features/wallet/components/coupon-geofence-picker";
+import { extractTextFromImage, isNativeOcrAvailable } from "@features/wallet/native-ocr";
 import type { CodeFormat, Coupon, CouponGeofence, CouponStatus } from "@features/wallet/types";
 import { useAuraTheme } from "@features/app/styles";
 
@@ -269,6 +272,66 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
   const [geofence, setGeofence] = useState<CouponGeofence | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [imageBusy, setImageBusy] = useState<null | "picking" | "ocr">(null);
+
+  async function handleExtractFromImage() {
+    if (!isNativeOcrAvailable()) {
+      setFormError(copy.wallet.ocrUnavailable);
+      return;
+    }
+    setFormError(null);
+    setImageBusy("picking");
+    let imageUri: string | null = null;
+    try {
+      const picked = await launchImageLibrary({
+        mediaType: "photo",
+        selectionLimit: 1,
+        includeBase64: false
+      });
+      if (picked.didCancel) {
+        setImageBusy(null);
+        return;
+      }
+      imageUri = picked.assets?.[0]?.uri ?? null;
+    } catch {
+      setFormError(copy.wallet.ocrFailed);
+      setImageBusy(null);
+      return;
+    }
+    if (!imageUri) {
+      setImageBusy(null);
+      return;
+    }
+
+    setImageBusy("ocr");
+    try {
+      const ocr = await extractTextFromImage(imageUri);
+      if (!ocr || ocr.fullText.trim().length === 0) {
+        setFormError(copy.wallet.ocrFailed);
+        return;
+      }
+      const accessToken = await getCurrentAccessToken();
+      if (!accessToken) return;
+      const candidate = await extractCouponFromImageText(accessToken, ocr.fullText, "ko");
+      if (candidate.brand) setBrand(candidate.brand);
+      if (candidate.title) setTitle(candidate.title);
+      if (candidate.code) setCode(candidate.code);
+      if (candidate.codeFormat) setCodeFormat(candidate.codeFormat);
+      if (candidate.expiresAt) {
+        const d = new Date(candidate.expiresAt);
+        if (!Number.isNaN(d.getTime())) {
+          const yyyy = d.getFullYear();
+          const mm = `${d.getMonth() + 1}`.padStart(2, "0");
+          const dd = `${d.getDate()}`.padStart(2, "0");
+          setExpires(`${yyyy}-${mm}-${dd}`);
+        }
+      }
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : copy.wallet.ocrFailed);
+    } finally {
+      setImageBusy(null);
+    }
+  }
 
   useEffect(() => {
     if (!visible) {
@@ -332,6 +395,23 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         contentContainerStyle={localStyles.formContent}
         keyboardShouldPersistTaps="handled"
       >
+        <Pressable
+          onPress={() => void handleExtractFromImage()}
+          disabled={imageBusy !== null}
+          style={[styles.secondaryButton, { marginBottom: 10 }]}
+        >
+          {imageBusy ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <ActivityIndicator color={theme.colors.textSecondary} size="small" />
+              <Text style={styles.secondaryButtonText}>
+                {imageBusy === "picking" ? copy.wallet.pickingImage : copy.wallet.ocrRunning}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.secondaryButtonText}>{copy.wallet.fromImageButton}</Text>
+          )}
+        </Pressable>
+
         <Text style={styles.inputLabel}>{copy.wallet.formBrand}</Text>
             <TextInput
               value={brand}

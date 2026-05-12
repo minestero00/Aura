@@ -334,6 +334,11 @@ export interface AppCopy {
     geofencePermissionDenied: string;
     geofenceClear: string;
     geofenceSavedAt: (place: string) => string;
+    fromImageButton: string;
+    pickingImage: string;
+    ocrRunning: string;
+    ocrUnavailable: string;
+    ocrFailed: string;
   };
   ask: {
     eyebrow: string;

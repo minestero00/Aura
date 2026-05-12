@@ -18,6 +18,12 @@
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
 
+    <!-- Aura Wallet 사진 OCR (Phase J.3) — 카톡 기프티콘 등 사용자 이미지에서 텍스트 추출.
+         Android 13+(API 33+): READ_MEDIA_IMAGES, 그 이전: READ_EXTERNAL_STORAGE. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
     <!-- Android 14+에서 Health Connect 앱 가시성 확인 (package query 제한 우회). -->
     <queries>
       <package android:name="com.google.android.apps.healthdata" />

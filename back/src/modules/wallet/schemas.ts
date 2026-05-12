@@ -53,3 +53,8 @@ export const extractFromMessageSchema = z.object({
   messageId: z.string().min(1).max(200),
   language: z.enum(["ko", "en"]).optional().default("ko")
 });
+
+export const extractFromImageTextSchema = z.object({
+  rawText: z.string().min(1).max(6000),
+  language: z.enum(["ko", "en"]).optional().default("ko")
+});

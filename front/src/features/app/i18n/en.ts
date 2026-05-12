@@ -369,6 +369,11 @@ export const EN_COPY: AppCopy = {
     geofencePermissionDenied: 'Location permission required. Enable it in Settings.',
     geofenceClear: 'Clear location',
     geofenceSavedAt: (place: string) => `📍 ${place}`,
+    fromImageButton: 'Extract from image',
+    pickingImage: 'Picking image...',
+    ocrRunning: 'Recognizing text from image...',
+    ocrUnavailable: 'OCR is not available on this device/OS. Manual input only.',
+    ocrFailed: 'Could not recognize text from the image. Try another photo.',
   },
   ask: {
     eyebrow: 'Ask',

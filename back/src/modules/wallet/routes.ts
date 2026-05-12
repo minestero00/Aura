@@ -5,6 +5,7 @@ import { requireAuth } from "../auth/middleware/require-auth.js";
 import {
   couponIdParamSchema,
   createCouponSchema,
+  extractFromImageTextSchema,
   extractFromMessageSchema,
   listCouponsQuerySchema,
   updateCouponSchema
@@ -106,6 +107,20 @@ walletRouter.post(
     const candidate = await walletService.extractFromMessage({
       userId: req.authUser!.id,
       messageId: input.messageId,
+      language: input.language
+    });
+    res.json({ candidate });
+  })
+);
+
+walletRouter.post(
+  "/coupons/extract-from-image-text",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const input = extractFromImageTextSchema.parse(req.body);
+    const candidate = await walletService.extractFromImageText({
+      userId: req.authUser!.id,
+      rawText: input.rawText,
       language: input.language
     });
     res.json({ candidate });

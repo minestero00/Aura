@@ -364,6 +364,11 @@ export const KO_COPY: AppCopy = {
     geofencePermissionDenied: '위치 권한이 필요해요. 설정에서 허용해 주세요.',
     geofenceClear: '매장 정보 지우기',
     geofenceSavedAt: (place: string) => `📍 ${place}`,
+    fromImageButton: '이미지에서 추출',
+    pickingImage: '사진 선택 중...',
+    ocrRunning: '이미지에서 텍스트 인식 중...',
+    ocrUnavailable: 'OCR을 사용할 수 없어요. 이 기기/OS에서는 수동 입력만 가능합니다.',
+    ocrFailed: '이미지에서 텍스트를 인식하지 못했어요. 다른 사진을 시도해 보세요.',
   },
   ask: {
     eyebrow: '질문',

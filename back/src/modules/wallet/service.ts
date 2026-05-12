@@ -3,7 +3,7 @@ import { decryptSecret, encryptSecret } from "../../lib/security/encryption.js";
 import { requireUser } from "../auth/guards.js";
 import { fetchGmailMessageBody } from "../integrations/gmail/gmail-api.js";
 import { usageService } from "../usage/service.js";
-import { extractCouponFromMessage } from "./extractor.js";
+import { extractCouponFromImageText, extractCouponFromMessage } from "./extractor.js";
 import type { CouponExtractCandidate } from "./extractor.js";
 import { walletRepository } from "./repository.js";
 import type {
@@ -143,6 +143,21 @@ export const walletService = {
       from: message.from,
       body: message.body,
       receivedAt: message.receivedAt,
+      language: input.language,
+      userId: input.userId
+    });
+  },
+
+  /** Device OCR로 추출한 raw text를 정형화 (이미지 자체는 외부 송신 X). */
+  async extractFromImageText(input: {
+    userId: string;
+    rawText: string;
+    language: "en" | "ko";
+  }): Promise<CouponExtractCandidate> {
+    requireUser(input.userId);
+    await usageService.consumeOrThrow({ userId: input.userId, feature: "wallet_extract" });
+    return extractCouponFromImageText({
+      rawText: input.rawText,
       language: input.language,
       userId: input.userId
     });
