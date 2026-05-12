@@ -22,6 +22,7 @@ import {
   revealCouponCode,
   updateCoupon
 } from "@features/wallet/api";
+import { CouponCodeRenderer } from "@features/wallet/components/coupon-code-renderer";
 import type { CodeFormat, Coupon, CouponStatus } from "@features/wallet/types";
 import { useAuraTheme } from "@features/app/styles";
 
@@ -516,10 +517,10 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
           <View style={localStyles.codeArea}>
             {code ? (
               <>
-                <Text style={localStyles.codeText} selectable>
-                  {code}
+                <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} />
+                <Text style={[styles.helperText, { marginTop: 14 }]}>
+                  {copy.wallet.detailScanInstruction}
                 </Text>
-                <Text style={styles.helperText}>{copy.wallet.detailScanInstruction}</Text>
               </>
             ) : (
               <>
