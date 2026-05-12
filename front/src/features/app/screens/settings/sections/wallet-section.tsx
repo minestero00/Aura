@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -273,9 +274,11 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [imageBusy, setImageBusy] = useState<null | "picking" | "ocr">(null);
+  // 원본 이미지 base64를 저장 시 createCoupon에 첨부. 풀스크린에서 그대로 표시.
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [imageMime, setImageMime] = useState<string | null>(null);
 
   async function handleExtractFromImage() {
-    console.log("[wallet] extract button pressed, ocrAvailable:", isNativeOcrAvailable());
     if (!isNativeOcrAvailable()) {
       setFormError(copy.wallet.ocrUnavailable);
       return;
@@ -283,50 +286,51 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
     setFormError(null);
     setImageBusy("picking");
     let imageUri: string | null = null;
+    let pickedBase64: string | null = null;
+    let pickedMime: string | null = null;
     try {
       const picked = await launchImageLibrary({
         mediaType: "photo",
         selectionLimit: 1,
-        includeBase64: false
+        includeBase64: true
       });
-      console.log("[wallet] picker result didCancel:", picked.didCancel, "assets:", picked.assets?.length, "errorCode:", picked.errorCode);
       if (picked.didCancel) {
         setImageBusy(null);
         return;
       }
-      imageUri = picked.assets?.[0]?.uri ?? null;
-    } catch (err) {
-      console.log("[wallet] picker threw:", err);
+      const asset = picked.assets?.[0];
+      imageUri = asset?.uri ?? null;
+      pickedBase64 = asset?.base64 ?? null;
+      pickedMime = asset?.type ?? "image/png";
+    } catch {
       setFormError(copy.wallet.ocrFailed);
       setImageBusy(null);
       return;
     }
     if (!imageUri) {
-      console.log("[wallet] picker no uri");
       setImageBusy(null);
       return;
     }
 
+    // 원본 이미지 보존 — 저장 시 createCoupon에 첨부됨.
+    setImageBase64(pickedBase64);
+    setImageMime(pickedMime);
+
     setImageBusy("ocr");
     try {
-      console.log("[wallet] running OCR on:", imageUri);
       const ocr = await extractTextFromImage(imageUri);
-      console.log("[wallet] OCR result lines:", ocr?.lines?.length, "fullText len:", ocr?.fullText?.length);
       if (!ocr || ocr.fullText.trim().length === 0) {
         setFormError(copy.wallet.ocrFailed);
         return;
       }
       const accessToken = await getCurrentAccessToken();
-      if (!accessToken) {
-        console.log("[wallet] no access token — user not signed in?");
-        return;
-      }
+      if (!accessToken) return;
       const candidate = await extractCouponFromImageText(accessToken, ocr.fullText, "ko");
-      console.log("[wallet] candidate:", candidate);
       if (candidate.brand) setBrand(candidate.brand);
       if (candidate.title) setTitle(candidate.title);
       if (candidate.code) setCode(candidate.code);
-      if (candidate.codeFormat) setCodeFormat(candidate.codeFormat);
+      // 이미지가 있으면 풀스크린에 이미지 자체를 보여줄 거라 codeFormat은 "text_only"
+      // 유지 (CouponCodeRenderer는 fallback). 이미지가 있으면 detail modal이 image 우선.
       if (candidate.expiresAt) {
         const d = new Date(candidate.expiresAt);
         if (!Number.isNaN(d.getTime())) {
@@ -337,7 +341,6 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         }
       }
     } catch (err) {
-      console.log("[wallet] extract error:", err);
       setFormError(err instanceof Error ? err.message : copy.wallet.ocrFailed);
     } finally {
       setImageBusy(null);
@@ -353,6 +356,8 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
       setExpires("");
       setNotes("");
       setGeofence(null);
+      setImageBase64(null);
+      setImageMime(null);
       setFormError(null);
       setIsSaving(false);
     }
@@ -374,9 +379,10 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         code: code.trim(),
         codeFormat,
         expiresAt: parseExpiryInput(expires),
-        source: "manual",
+        source: imageBase64 ? "scan" : "manual",
         notes: notes.trim() || null,
-        geofence: geofence ?? null
+        geofence: geofence ?? null,
+        codeImageBase64: imageBase64 ? `data:${imageMime};base64,${imageBase64}` : null
       });
       onCreated();
     } catch (err) {
@@ -538,14 +544,16 @@ interface CouponDetailModalProps {
 function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponDetailModalProps) {
   const theme = useAuraTheme();
   const [code, setCode] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [isRevealing, setIsRevealing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
-  // 화면 unmount/close 시 평문 code를 메모리에서 즉시 폐기.
+  // 화면 unmount/close 시 평문 code/이미지를 메모리에서 즉시 폐기.
   useEffect(() => {
     return () => {
       setCode(null);
+      setImageBase64(null);
     };
   }, []);
 
@@ -555,8 +563,9 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
     try {
       const token = await getCurrentAccessToken();
       if (!token) throw new Error("not signed in");
-      const plain = await revealCouponCode(token, coupon.id);
-      setCode(plain);
+      const result = await revealCouponCode(token, coupon.id);
+      setCode(result.code);
+      setImageBase64(result.imageBase64);
     } catch (err) {
       setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
     } finally {
@@ -622,7 +631,15 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
       <View style={localStyles.codeArea}>
         {code ? (
           <>
-            <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} />
+            {imageBase64 ? (
+              <Image
+                source={{ uri: imageBase64 }}
+                style={localStyles.couponImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} />
+            )}
             <Text style={[styles.helperText, { marginTop: 14 }]}>
               {copy.wallet.detailScanInstruction}
             </Text>
@@ -715,5 +732,11 @@ const localStyles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 2,
     marginBottom: 6
+  },
+  couponImage: {
+    width: "100%",
+    height: 300,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF"
   }
 });

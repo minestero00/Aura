@@ -40,6 +40,8 @@ export interface CreateCouponInput {
   code: string;
   codeFormat: CodeFormat;
   codeImagePath?: string | null;
+  /** 원본 이미지 base64 — 카톡 기프티콘 등 바코드 이미지 그대로 보존 (풀스크린에 그대로 표시). */
+  codeImageBase64?: string | null;
   expiresAt?: string | null;
   source: CouponSource;
   sourceRef?: string | null;

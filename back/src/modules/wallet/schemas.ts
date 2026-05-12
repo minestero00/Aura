@@ -23,6 +23,8 @@ export const createCouponSchema = z.object({
   code: z.string().min(1).max(2000),
   codeFormat: codeFormatEnum,
   codeImagePath: z.string().max(1000).nullable().optional(),
+  /** 원본 이미지 자체 (카톡 기프티콘 등). base64 string. ~1MB 이내. */
+  codeImageBase64: z.string().max(3_000_000).nullable().optional(),
   expiresAt: z.string().datetime().nullable().optional(),
   source: sourceEnum,
   sourceRef: z.string().max(255).nullable().optional(),

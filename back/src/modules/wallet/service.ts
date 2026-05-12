@@ -36,6 +36,7 @@ export const walletService = {
     code: string;
     codeFormat: CodeFormat;
     codeImagePath: string | null;
+    codeImageBase64: string | null;
     expiresAt: string | null;
     source: CouponSource;
     sourceRef: string | null;
@@ -58,6 +59,7 @@ export const walletService = {
       codeCiphertext,
       codeFormat: input.codeFormat,
       codeImagePath: input.codeImagePath,
+      codeImageBase64: input.codeImageBase64,
       expiresAt: input.expiresAt,
       source: input.source,
       sourceRef: input.sourceRef,
@@ -96,19 +98,20 @@ export const walletService = {
   },
 
   /**
-   * 평문 코드 노출 — 풀스크린 표시 직전에만 호출. 로그/캐시 X.
+   * 평문 코드 + 원본 이미지 같이 노출 — 풀스크린 표시 직전에만 호출. 로그/캐시 X.
    * Rate limit은 라우트 레벨에서 적용 (분당 10회/사용자).
+   * 이미지가 있으면 그것을 풀스크린에 보여줘 점원이 직접 스캔 가능.
    */
-  async revealCode(id: string, userId: string): Promise<string> {
-    const ciphertext = await walletRepository.getCiphertext(id, userId);
-    if (!ciphertext) {
+  async revealCode(id: string, userId: string): Promise<{ code: string; imageBase64: string | null }> {
+    const payload = await walletRepository.getRevealPayload(id, userId);
+    if (!payload) {
       throw new AppError(404, "WALLET_COUPON_NOT_FOUND", "Coupon not found.");
     }
-    const plain = decryptSecret(ciphertext);
+    const plain = decryptSecret(payload.ciphertext);
     if (!plain) {
       throw new AppError(500, "WALLET_DECRYPT_FAILED", "Failed to decrypt coupon code.");
     }
-    return plain;
+    return { code: plain, imageBase64: payload.imageBase64 };
   },
 
   async updateCoupon(id: string, userId: string, patch: CouponPatch): Promise<Coupon> {

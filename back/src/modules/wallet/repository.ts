@@ -79,6 +79,7 @@ export const walletRepository = {
     codeCiphertext: string;
     codeFormat: string;
     codeImagePath: string | null;
+    codeImageBase64: string | null;
     expiresAt: string | null;
     source: string;
     sourceRef: string | null;
@@ -90,9 +91,9 @@ export const walletRepository = {
     const result = await p.query<CouponRow>(
       `INSERT INTO aura.coupons (
          user_id, brand, title, code_ciphertext, code_format, code_image_path,
-         expires_at, source, source_ref, geofence_lat, geofence_lng, geofence_radius_m,
-         geofence_place_name, notes
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+         code_image_base64, expires_at, source, source_ref, geofence_lat, geofence_lng,
+         geofence_radius_m, geofence_place_name, notes
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        ON CONFLICT (user_id, code_ciphertext) DO NOTHING
        RETURNING *`,
       [
@@ -102,6 +103,7 @@ export const walletRepository = {
         input.codeCiphertext,
         input.codeFormat,
         input.codeImagePath,
+        input.codeImageBase64,
         input.expiresAt,
         input.source,
         input.sourceRef,
@@ -113,6 +115,19 @@ export const walletRepository = {
       ]
     );
     return result.rows[0] ? rowToCoupon(result.rows[0]) : null;
+  },
+
+  /** reveal endpoint에서 코드+이미지 같이 가져오기. base64는 큰 데이터라 평소 list에는 미노출. */
+  async getRevealPayload(id: string, userId: string): Promise<{ ciphertext: string; imageBase64: string | null } | null> {
+    const p = getPool();
+    if (!p) return null;
+    const result = await p.query<{ code_ciphertext: string; code_image_base64: string | null }>(
+      `SELECT code_ciphertext, code_image_base64 FROM aura.coupons WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return { ciphertext: row.code_ciphertext, imageBase64: row.code_image_base64 };
   },
 
   async listByUser(userId: string, filter: CouponListFilter): Promise<Coupon[]> {

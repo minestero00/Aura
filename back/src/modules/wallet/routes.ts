@@ -56,6 +56,7 @@ walletRouter.post(
       code: input.code,
       codeFormat: input.codeFormat,
       codeImagePath: input.codeImagePath ?? null,
+      codeImageBase64: input.codeImageBase64 ?? null,
       expiresAt: input.expiresAt ?? null,
       source: input.source,
       sourceRef: input.sourceRef ?? null,
@@ -72,9 +73,9 @@ walletRouter.get(
   asyncHandler(async (req, res) => {
     const { id } = couponIdParamSchema.parse(req.params);
     checkRevealLimit(req.authUser!.id);
-    const code = await walletService.revealCode(id, req.authUser!.id);
+    const reveal = await walletService.revealCode(id, req.authUser!.id);
     res.set("Cache-Control", "private, max-age=30");
-    res.json({ code });
+    res.json(reveal);
   })
 );
 

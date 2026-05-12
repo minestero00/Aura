@@ -57,15 +57,20 @@ export async function deleteCoupon(accessToken: string, id: string): Promise<voi
 }
 
 /**
- * 평문 code 노출 — 풀스크린 표시 직전에만 호출. 호출 후 메모리에서 30초 이내 폐기.
- * 백엔드는 Cache-Control private 30s + 분당 10회 rate limit.
+ * 평문 code + 원본 이미지(base64) 같이 노출 — 풀스크린 표시 직전에만 호출.
+ * 호출 후 메모리에서 30초 이내 폐기. 백엔드 Cache-Control private 30s + rate limit.
  */
-export async function revealCouponCode(accessToken: string, id: string): Promise<string> {
-  const result = await apiRequest<{ code: string }>(`/api/v1/wallet/coupons/${id}/code`, {
-    method: "GET",
-    accessToken
-  });
-  return result.code;
+export async function revealCouponCode(
+  accessToken: string,
+  id: string
+): Promise<{ code: string; imageBase64: string | null }> {
+  return apiRequest<{ code: string; imageBase64: string | null }>(
+    `/api/v1/wallet/coupons/${id}/code`,
+    {
+      method: "GET",
+      accessToken
+    }
+  );
 }
 
 /**
