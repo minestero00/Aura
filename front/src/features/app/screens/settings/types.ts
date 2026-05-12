@@ -39,6 +39,7 @@ export interface SettingsScreenProps {
   onOpenUsageSettings: () => void;
   onOpenDataPrivacySettings: () => void;
   onOpenNewsSettings: () => void;
+  onOpenWalletSettings: () => void;
   onOpenSystemSettings: () => Promise<void>;
   onIgnoredSenderDraftChange: (value: string) => void;
   onMorningBriefTimeDraftChange: (value: string) => void;

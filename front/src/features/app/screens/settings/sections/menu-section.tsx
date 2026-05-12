@@ -141,6 +141,7 @@ export function MenuSection(props: SettingsSectionProps) {
           </Pressable>
         </View>
 
+
         <View style={styles.sectionCard}>
           <Pressable onPress={onOpenNewsSettings} style={styles.settingsMenuItem}>
             <View style={styles.settingsMenuMain}>

@@ -10,6 +10,7 @@ import type { SettingsSectionProps } from "@features/app/screens/settings/sectio
 import { UsageSection } from "@features/app/screens/settings/sections/usage-section";
 import { DataPrivacySection } from "@features/app/screens/settings/sections/data-privacy-section";
 import { UnsubscribeSection } from "@features/app/screens/settings/sections/unsubscribe-section";
+import { WalletSection } from "@features/app/screens/settings/sections/wallet-section";
 
 export function SettingsSectionContent(props: SettingsSectionProps) {
   if (props.selectedSettingsSection === "gmail") {
@@ -46,6 +47,10 @@ export function SettingsSectionContent(props: SettingsSectionProps) {
 
   if (props.selectedSettingsSection === "unsubscribe") {
     return <UnsubscribeSection {...props} />;
+  }
+
+  if (props.selectedSettingsSection === "wallet") {
+    return <WalletSection {...props} />;
   }
 
   return <MenuSection {...props} />;

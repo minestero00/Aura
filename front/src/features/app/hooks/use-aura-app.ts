@@ -257,6 +257,11 @@ export function useAuraApp(): UseAuraAppResult {
     state.setSelectedTab("settings");
     state.setSelectedSettingsSection("language");
   }
+
+  function handleOpenWalletSettings() {
+    state.setSelectedTab("settings");
+    state.setSelectedSettingsSection("wallet");
+  }
   const isGmailRefreshRequired =
     Boolean(state.authState?.me.integrations.gmailConnected) &&
     !Boolean(state.authState?.me.integrations.gmailSyncReady) &&
@@ -296,7 +301,8 @@ export function useAuraApp(): UseAuraAppResult {
       handleOpenUsageSettings,
       handleOpenDataPrivacySettings,
       handleOpenNewsSettings,
-      handleOpenUnsubscribeSettings
+      handleOpenUnsubscribeSettings,
+      handleOpenWalletSettings
     }
   });
 }

@@ -19,7 +19,8 @@ export type SettingsSectionKey =
   | "permissions"
   | "usage"
   | "data-privacy"
-  | "unsubscribe";
+  | "unsubscribe"
+  | "wallet";
 
 export interface AuthSessionState {
   session: AuthResponse["session"];
@@ -115,6 +116,7 @@ export interface UseAuraAppResult {
   handleOpenUsageSettings: () => void;
   handleOpenDataPrivacySettings: () => void;
   handleOpenNewsSettings: () => void;
+  handleOpenWalletSettings: () => void;
   handleOpenSystemSettings: () => Promise<void>;
   handleRemoveIgnoredSender: (senderKey: string) => Promise<void>;
   handleLoadDailyEmailBrief: () => Promise<void>;

@@ -14,6 +14,7 @@ interface NavExpandDrawerProps {
   onDismiss: () => void;
   onOpenAsk: () => void;
   onOpenTransit: () => void;
+  onOpenWallet: () => void;
 }
 
 const SHEET_OFFSCREEN_OFFSET = 600;
@@ -34,6 +35,14 @@ const BUS_SVG = `
   <circle cx="16" cy="14.5" r="0.8" fill="currentColor"/>
 </svg>`;
 
+const WALLET_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="3" y="6" width="18" height="13" rx="2.5"/>
+  <path d="M3 9h18"/>
+  <path d="M16.5 13h2"/>
+  <path d="M7 6V4.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 19 4.5V6"/>
+</svg>`;
+
 /**
  * 손가락 따라 자연스럽게 올라오는 sheet. AppShell의 sheetProgress(0..1)를 받아
  * - sheet translateY: SHEET_OFFSCREEN_OFFSET → 0 (progress 따라)
@@ -48,7 +57,8 @@ export function NavExpandDrawer({
   copy,
   onDismiss,
   onOpenAsk,
-  onOpenTransit
+  onOpenTransit,
+  onOpenWallet
 }: NavExpandDrawerProps) {
   const theme = useAuraTheme();
   const styles = useMemo(() => buildNavExpandDrawerStyles(theme), [theme]);
@@ -71,6 +81,10 @@ export function NavExpandDrawer({
   function handleTransitPress() {
     onDismiss();
     onOpenTransit();
+  }
+  function handleWalletPress() {
+    onDismiss();
+    onOpenWallet();
   }
 
   return (
@@ -114,6 +128,20 @@ export function NavExpandDrawer({
             <View style={styles.actionMain}>
               <Text style={styles.actionLabel}>{copy.navExpand.transitAction}</Text>
               <Text style={styles.actionSubtitle}>{copy.navExpand.transitSubtitle}</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleWalletPress}
+            style={styles.actionRow}
+          >
+            <View style={styles.actionIcon}>
+              <SvgXml xml={WALLET_SVG} width={22} height={22} color={theme.colors.accentText} />
+            </View>
+            <View style={styles.actionMain}>
+              <Text style={styles.actionLabel}>{copy.navExpand.walletAction}</Text>
+              <Text style={styles.actionSubtitle}>{copy.navExpand.walletSubtitle}</Text>
             </View>
           </Pressable>
         </Pressable>

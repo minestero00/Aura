@@ -124,6 +124,7 @@ interface BuildResultParams {
     handleOpenDataPrivacySettings: UseAuraAppResult["handleOpenDataPrivacySettings"];
     handleOpenNewsSettings: UseAuraAppResult["handleOpenNewsSettings"];
     handleOpenUnsubscribeSettings: UseAuraAppResult["handleOpenUnsubscribeSettings"];
+    handleOpenWalletSettings: UseAuraAppResult["handleOpenWalletSettings"];
   };
 }
 
@@ -202,6 +203,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleOpenUsageSettings: params.openHandlers.handleOpenUsageSettings,
     handleOpenDataPrivacySettings: params.openHandlers.handleOpenDataPrivacySettings,
     handleOpenNewsSettings: params.openHandlers.handleOpenNewsSettings,
+    handleOpenWalletSettings: params.openHandlers.handleOpenWalletSettings,
     handleOpenSystemSettings: params.handlers.handleOpenSystemSettings,
     handleDisableDailyBriefNotifications: params.handlers.handleDisableDailyBriefNotifications,
     handleEnableDailyBriefNotifications: params.handlers.handleEnableDailyBriefNotifications,

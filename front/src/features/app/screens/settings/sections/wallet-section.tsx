@@ -1,0 +1,614 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { SettingsSubpageHeader } from "@features/app/screens/settings/shared";
+import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
+import { getCurrentAccessToken } from "@lib/supabase/client";
+import { ApiError } from "@lib/api/client";
+import {
+  createCoupon,
+  deleteCoupon,
+  fetchCoupons,
+  revealCouponCode,
+  updateCoupon
+} from "@features/wallet/api";
+import type { CodeFormat, Coupon, CouponStatus } from "@features/wallet/types";
+import { useAuraTheme } from "@features/app/styles";
+
+const FILTER_ORDER: Array<CouponStatus | "all"> = ["active", "expiring_soon", "all"];
+
+function daysUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  const ts = Date.parse(iso);
+  if (Number.isNaN(ts)) return null;
+  const diff = ts - Date.now();
+  return Math.ceil(diff / (24 * 60 * 60 * 1000));
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const yyyy = d.getFullYear();
+  const mm = `${d.getMonth() + 1}`.padStart(2, "0");
+  const dd = `${d.getDate()}`.padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function parseExpiryInput(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (!match) return null;
+  const d = new Date(`${trimmed}T23:59:59`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+export function WalletSection(props: SettingsSectionProps) {
+  const { styles, copy, onSelectSettingsSection } = props;
+  const theme = useAuraTheme();
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<CouponStatus | "all">("active");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [detailCoupon, setDetailCoupon] = useState<Coupon | null>(null);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = await getCurrentAccessToken();
+      if (!token) {
+        setCoupons([]);
+        return;
+      }
+      const list = await fetchCoupons(token, filter);
+      setCoupons(list);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filter, copy.wallet.errorLoad]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  function statusLabel(status: CouponStatus): string {
+    switch (status) {
+      case "expiring_soon":
+        return copy.wallet.statusExpiring;
+      case "expired":
+        return copy.wallet.statusExpired;
+      case "used":
+        return copy.wallet.statusUsed;
+      case "active":
+      default:
+        return copy.wallet.statusActive;
+    }
+  }
+
+  function filterLabel(key: CouponStatus | "all"): string {
+    if (key === "expiring_soon") return copy.wallet.filterExpiring;
+    if (key === "all") return copy.wallet.filterAll;
+    return copy.wallet.filterActive;
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.settingsScreen}>
+        <SettingsSubpageHeader
+          styles={styles}
+          title={copy.wallet.title}
+          subtitle={copy.wallet.subtitle}
+          onSelectSettingsSection={onSelectSettingsSection}
+        />
+        <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={localStyles.filterRow}
+          >
+            {FILTER_ORDER.map(key => {
+              const isActive = filter === key;
+              return (
+                <Pressable
+                  key={`wallet-filter-${key}`}
+                  onPress={() => setFilter(key)}
+                  style={[
+                    localStyles.filterChip,
+                    {
+                      backgroundColor: isActive ? theme.colors.accent : theme.colors.surfaceMuted
+                    }
+                  ]}
+                >
+                  <Text
+                    style={[
+                      localStyles.filterChipText,
+                      { color: isActive ? theme.colors.accentText : theme.colors.textSecondary }
+                    ]}
+                  >
+                    {filterLabel(key)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {error ? (
+            <View style={styles.warningCard}>
+              <Text style={styles.warningText}>{error}</Text>
+            </View>
+          ) : null}
+
+          {isLoading ? (
+            <View style={styles.sectionCard}>
+              <ActivityIndicator color={theme.colors.accent} />
+            </View>
+          ) : coupons.length === 0 ? (
+            <View style={styles.sectionCard}>
+              <Text style={styles.sectionTitle}>{copy.wallet.empty}</Text>
+              <Text style={styles.helperText}>{copy.wallet.emptyHint}</Text>
+            </View>
+          ) : (
+            coupons.map(coupon => {
+              const daysLeft = daysUntil(coupon.expiresAt);
+              return (
+                <Pressable
+                  key={coupon.id}
+                  onPress={() => setDetailCoupon(coupon)}
+                  style={styles.sectionCard}
+                >
+                  <View style={localStyles.cardHeaderRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.messageMeta}>{coupon.brand}</Text>
+                      <Text style={styles.messageSubject}>{coupon.title}</Text>
+                    </View>
+                    <View style={localStyles.cardBadgeCol}>
+                      <Text style={[localStyles.cardBadge, { color: theme.colors.textMuted }]}>
+                        {statusLabel(coupon.status)}
+                      </Text>
+                      {daysLeft !== null && coupon.status !== "used" ? (
+                        <Text
+                          style={[
+                            localStyles.cardBadge,
+                            {
+                              color:
+                                daysLeft <= 0
+                                  ? theme.colors.dangerText
+                                  : daysLeft <= 3
+                                  ? theme.colors.dangerText
+                                  : theme.colors.textPrimary
+                            }
+                          ]}
+                        >
+                          {copy.wallet.daysLeft(daysLeft)}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+                  {coupon.expiresAt ? (
+                    <Text style={styles.messageMeta}>
+                      {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              );
+            })
+          )}
+
+          <Pressable onPress={() => setIsAddOpen(true)} style={[styles.primaryButton, { marginTop: 18 }]}>
+            <Text style={styles.primaryButtonText}>{copy.wallet.addButton}</Text>
+          </Pressable>
+        </ScrollView>
+      </View>
+
+      <AddCouponModal
+        visible={isAddOpen}
+        styles={styles}
+        copy={copy}
+        onClose={() => setIsAddOpen(false)}
+        onCreated={() => {
+          setIsAddOpen(false);
+          void load();
+        }}
+      />
+
+      {detailCoupon ? (
+        <CouponDetailModal
+          coupon={detailCoupon}
+          styles={styles}
+          copy={copy}
+          onClose={() => setDetailCoupon(null)}
+          onChanged={() => {
+            setDetailCoupon(null);
+            void load();
+          }}
+        />
+      ) : null}
+    </SafeAreaView>
+  );
+}
+
+interface AddCouponModalProps {
+  visible: boolean;
+  styles: SettingsSectionProps["styles"];
+  copy: SettingsSectionProps["copy"];
+  onClose: () => void;
+  onCreated: () => void;
+}
+
+function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCouponModalProps) {
+  const theme = useAuraTheme();
+  const [brand, setBrand] = useState("");
+  const [title, setTitle] = useState("");
+  const [code, setCode] = useState("");
+  const [codeFormat, setCodeFormat] = useState<CodeFormat>("text_only");
+  const [expires, setExpires] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!visible) {
+      setBrand("");
+      setTitle("");
+      setCode("");
+      setCodeFormat("text_only");
+      setExpires("");
+      setNotes("");
+      setFormError(null);
+      setIsSaving(false);
+    }
+  }, [visible]);
+
+  async function handleSave() {
+    if (!brand.trim() || !title.trim() || !code.trim()) {
+      setFormError(copy.wallet.errorRequired);
+      return;
+    }
+    setIsSaving(true);
+    setFormError(null);
+    try {
+      const token = await getCurrentAccessToken();
+      if (!token) throw new Error("not signed in");
+      await createCoupon(token, {
+        brand: brand.trim(),
+        title: title.trim(),
+        code: code.trim(),
+        codeFormat,
+        expiresAt: parseExpiryInput(expires),
+        source: "manual",
+        notes: notes.trim() || null
+      });
+      onCreated();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "WALLET_DUPLICATE_CODE") {
+        setFormError(copy.wallet.errorDuplicate);
+      } else {
+        setFormError(err instanceof Error ? err.message : copy.wallet.errorLoad);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  const formatOptions: Array<{ key: CodeFormat; label: string }> = [
+    { key: "text_only", label: copy.wallet.codeFormatText },
+    { key: "barcode_qr", label: copy.wallet.codeFormatQr },
+    { key: "barcode_code128", label: copy.wallet.codeFormatBarcode }
+  ];
+
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent>
+      <Pressable style={styles.modalBackdrop} onPress={onClose}>
+        <Pressable onPress={() => undefined} style={styles.modalCard}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.sectionTitle}>{copy.wallet.addModalTitle}</Text>
+
+          <ScrollView style={styles.modalBodyScroll} contentContainerStyle={localStyles.formContent}>
+            <Text style={styles.inputLabel}>{copy.wallet.formBrand}</Text>
+            <TextInput
+              value={brand}
+              onChangeText={setBrand}
+              placeholder={copy.wallet.formBrandPlaceholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={localStyles.input}
+            />
+
+            <Text style={styles.inputLabel}>{copy.wallet.formTitle}</Text>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder={copy.wallet.formTitlePlaceholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={localStyles.input}
+            />
+
+            <Text style={styles.inputLabel}>{copy.wallet.formCode}</Text>
+            <TextInput
+              value={code}
+              onChangeText={setCode}
+              placeholder={copy.wallet.formCodePlaceholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={localStyles.input}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Text style={styles.inputLabel}>{copy.wallet.codeFormatLabel}</Text>
+            <View style={localStyles.formatRow}>
+              {formatOptions.map(option => {
+                const isActive = codeFormat === option.key;
+                return (
+                  <Pressable
+                    key={option.key}
+                    onPress={() => setCodeFormat(option.key)}
+                    style={[
+                      localStyles.formatChip,
+                      {
+                        backgroundColor: isActive
+                          ? theme.colors.accent
+                          : theme.colors.surfaceMuted
+                      }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        localStyles.formatChipText,
+                        { color: isActive ? theme.colors.accentText : theme.colors.textSecondary }
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.inputLabel}>{copy.wallet.formExpires}</Text>
+            <TextInput
+              value={expires}
+              onChangeText={setExpires}
+              placeholder={copy.wallet.formExpiresPlaceholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={localStyles.input}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Text style={styles.inputLabel}>{copy.wallet.formNotes}</Text>
+            <TextInput
+              value={notes}
+              onChangeText={setNotes}
+              placeholder={copy.wallet.formNotesPlaceholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={localStyles.input}
+            />
+
+            {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
+          </ScrollView>
+
+          <View style={styles.buttonRow}>
+            <Pressable onPress={onClose} style={styles.outlineButton} disabled={isSaving}>
+              <Text style={styles.outlineButtonText}>{copy.wallet.actionCancel}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => void handleSave()}
+              style={[styles.primaryButton, isSaving ? styles.primaryButtonDisabled : null]}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator color={theme.colors.accentText} />
+              ) : (
+                <Text style={styles.primaryButtonText}>{copy.wallet.actionSave}</Text>
+              )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+interface CouponDetailModalProps {
+  coupon: Coupon;
+  styles: SettingsSectionProps["styles"];
+  copy: SettingsSectionProps["copy"];
+  onClose: () => void;
+  onChanged: () => void;
+}
+
+function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponDetailModalProps) {
+  const theme = useAuraTheme();
+  const [code, setCode] = useState<string | null>(null);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
+
+  // 화면 unmount/close 시 평문 code를 메모리에서 즉시 폐기.
+  useEffect(() => {
+    return () => {
+      setCode(null);
+    };
+  }, []);
+
+  async function reveal() {
+    setIsRevealing(true);
+    setError(null);
+    try {
+      const token = await getCurrentAccessToken();
+      if (!token) throw new Error("not signed in");
+      const plain = await revealCouponCode(token, coupon.id);
+      setCode(plain);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
+    } finally {
+      setIsRevealing(false);
+    }
+  }
+
+  async function markUsed() {
+    setIsBusy(true);
+    try {
+      const token = await getCurrentAccessToken();
+      if (!token) return;
+      await updateCoupon(token, coupon.id, { used: true });
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  function confirmDelete() {
+    Alert.alert(copy.wallet.confirmDeleteTitle, copy.wallet.confirmDeleteBody, [
+      { text: copy.wallet.actionCancel, style: "cancel" },
+      {
+        text: copy.wallet.actionDelete,
+        style: "destructive",
+        onPress: () => void doDelete()
+      }
+    ]);
+  }
+
+  async function doDelete() {
+    setIsBusy(true);
+    try {
+      const token = await getCurrentAccessToken();
+      if (!token) return;
+      await deleteCoupon(token, coupon.id);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose} transparent>
+      <Pressable style={styles.modalBackdrop} onPress={onClose}>
+        <Pressable onPress={() => undefined} style={[styles.modalCard, { maxHeight: "90%" }]}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.messageMeta}>{coupon.brand}</Text>
+          <Text style={styles.sectionTitle}>{coupon.title}</Text>
+          {coupon.expiresAt ? (
+            <Text style={styles.detailLine}>
+              {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
+            </Text>
+          ) : null}
+
+          <View style={localStyles.codeArea}>
+            {code ? (
+              <>
+                <Text style={localStyles.codeText} selectable>
+                  {code}
+                </Text>
+                <Text style={styles.helperText}>{copy.wallet.detailScanInstruction}</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.helperText}>{copy.wallet.detailCodeRevealHint}</Text>
+                <Pressable
+                  onPress={() => void reveal()}
+                  style={[styles.primaryButton, { marginTop: 12 }]}
+                  disabled={isRevealing}
+                >
+                  {isRevealing ? (
+                    <ActivityIndicator color={theme.colors.accentText} />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>{copy.wallet.detailCodeShow}</Text>
+                  )}
+                </Pressable>
+              </>
+            )}
+          </View>
+
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <View style={styles.buttonRow}>
+            <Pressable
+              onPress={() => void markUsed()}
+              style={[styles.outlineButton, { flex: 1 }]}
+              disabled={isBusy || coupon.status === "used"}
+            >
+              <Text style={styles.outlineButtonText}>{copy.wallet.actionUsed}</Text>
+            </Pressable>
+            <Pressable
+              onPress={confirmDelete}
+              style={[styles.dangerButton, { flex: 1 }]}
+              disabled={isBusy}
+            >
+              <Text style={styles.dangerButtonText}>{copy.wallet.actionDelete}</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const localStyles = StyleSheet.create({
+  filterRow: { flexDirection: "row", marginBottom: 8 },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    marginRight: 8
+  },
+  filterChipText: { fontSize: 13, fontWeight: "700" },
+  cardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 6
+  },
+  cardBadgeCol: { alignItems: "flex-end", gap: 2 },
+  cardBadge: { fontSize: 11, fontWeight: "800" },
+  formContent: { paddingBottom: 12, gap: 6 },
+  input: {
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(150,150,170,0.35)",
+    fontSize: 15
+  },
+  formatRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  formatChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999
+  },
+  formatChipText: { fontSize: 12, fontWeight: "700" },
+  codeArea: {
+    marginTop: 18,
+    marginBottom: 14,
+    paddingVertical: 18,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  codeText: {
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: 2,
+    marginBottom: 6
+  }
+});

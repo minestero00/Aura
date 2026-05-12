@@ -259,6 +259,7 @@ export function AppShell({ app }: AppShellProps) {
             onLoadUnsubscribeCandidates={app.handleLoadUnsubscribeCandidates}
             onOneClickUnsubscribe={app.handleOneClickUnsubscribe}
             onOpenUnsubscribeSettings={app.handleOpenUnsubscribeSettings}
+            onOpenWalletSettings={app.handleOpenWalletSettings}
           />
         </View>
       </ScrollView>
@@ -282,6 +283,7 @@ export function AppShell({ app }: AppShellProps) {
         onDismiss={app.handleCloseNavExpand}
         onOpenAsk={app.handleOpenAsk}
         onOpenTransit={app.handleOpenTransit}
+        onOpenWallet={app.handleOpenWalletSettings}
       />
 
       <ReplyDraftModal
