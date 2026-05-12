@@ -4,10 +4,15 @@ BEGIN;
 -- 코드는 현금 등가물이므로 AES-256-GCM 암호화 후 TEXT(`enc:v1:...`)로 저장 —
 -- encryption.ts pattern과 통일. UNIQUE(user_id, code_ciphertext) 로 중복 등록 차단.
 -- 코드 참조: back/src/modules/wallet/service.ts.
+--
+-- schema 명시 — search_path가 변경되거나 users 테이블이 다른 schema에 있을
+-- 가능성 대비 (Railway 배포 시 42P01 발생 사례 — 이 마이그레이션에서만 우리
+-- 가 owner인 aura schema 강제 참조).
+-- users 테이블 user_id는 varchar(36) (0001_init.sql) 이므로 동일 type 사용.
 
-CREATE TABLE IF NOT EXISTS coupons (
+CREATE TABLE IF NOT EXISTS aura.coupons (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id varchar(36) NOT NULL REFERENCES aura.users(id) ON DELETE CASCADE,
   brand text NOT NULL,
   title text NOT NULL,
   code_ciphertext text NOT NULL,
@@ -29,14 +34,14 @@ CREATE TABLE IF NOT EXISTS coupons (
 );
 
 CREATE INDEX IF NOT EXISTS coupons_user_status_idx
-  ON coupons (user_id, status);
+  ON aura.coupons (user_id, status);
 
 CREATE INDEX IF NOT EXISTS coupons_user_expires_active_idx
-  ON coupons (user_id, expires_at)
+  ON aura.coupons (user_id, expires_at)
   WHERE status = 'active';
 
 CREATE INDEX IF NOT EXISTS coupons_user_geofence_idx
-  ON coupons (user_id)
+  ON aura.coupons (user_id)
   WHERE geofence_lat IS NOT NULL;
 
 COMMIT;

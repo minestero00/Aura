@@ -1,6 +1,8 @@
+-- portable 미러는 schema prefix 없이 (Oracle 등 호환). FK 동일 type 유지.
 CREATE TABLE coupons (
   id VARCHAR(36) PRIMARY KEY,
   user_id VARCHAR(36) NOT NULL,
+  -- FK는 portable에서 application-level enforcement (Oracle/Cloud SQL의 schema 차이 회피)
   brand VARCHAR(255) NOT NULL,
   title VARCHAR(500) NOT NULL,
   code_ciphertext VARCHAR(2000) NOT NULL,
