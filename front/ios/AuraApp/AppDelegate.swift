@@ -6,6 +6,7 @@ import ReactAppDependencyProvider
 import GoogleSignIn
 import FirebaseCore
 import FirebaseMessaging
+import RNCPushNotificationIOS
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {

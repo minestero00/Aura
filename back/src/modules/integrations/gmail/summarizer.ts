@@ -7,6 +7,19 @@ function containsHangul(value: string) {
   return /[가-힣]/.test(value);
 }
 
+/**
+ * "Name <email>" → "Name", "User via Service <email>" → "Service".
+ * headline에 발신자 표시할 때 길고 시끄러운 이메일 부분을 제거하기 위함.
+ */
+function shortSenderName(from: string): string {
+  let name = from.replace(/\s*<[^>]+>\s*$/, "").trim();
+  name = name.replace(/^["']|["']$/g, "").trim();
+  const viaMatch = name.match(/\bvia\s+(.+)$/i);
+  if (viaMatch) name = viaMatch[1].trim();
+  if (name.length > 20) name = `${name.slice(0, 18).trim()}…`;
+  return name || from;
+}
+
 interface MessageLabelEntry {
   id: string;
   label: GmailMessageLabel;
@@ -26,13 +39,13 @@ const VALID_LABELS: ReadonlySet<GmailMessageLabel> = new Set([
 ]);
 
 function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "ko"): GmailDigest {
-  const senders = Array.from(new Set(messages.map(message => message.from))).slice(0, 3);
+  const senders = Array.from(new Set(messages.map(message => shortSenderName(message.from)))).slice(0, 3);
 
   if (language === "ko") {
     return {
       headline:
         messages.length > 0
-          ? `${senders.join(", ")} 관련 중요한 메일 ${messages.length}건`
+          ? `${senders.join(", ")} 메일 ${messages.length}건`
           : "중요한 메일이 없습니다",
       bullets: messages.slice(0, 3).map(message => {
         const snippet = message.snippet.trim();
@@ -44,7 +57,7 @@ function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "
   return {
     headline:
       messages.length > 0
-        ? `${messages.length} recent emails from ${senders.join(", ")}`
+        ? `${senders.join(", ")} — ${messages.length} emails`
         : "No recent emails found",
     bullets: messages.slice(0, 3).map(message => {
       const snippet = message.snippet.trim();
@@ -68,12 +81,12 @@ export async function summarizeGmailMessages(
     maxTokens: 400,
     system:
       language === "ko"
-        ? "당신은 사용자의 메일을 모바일용으로 한국어 요약하고 자동 분류한다. headline, bullets, labels 세 키를 가진 strict JSON만 반환하라.\n- bullets: 가장 중요한 내용만 2~3개의 짧은 bullet (일정, 요청, 회신 필요 여부 우선). 모든 문장 자연스러운 한국어 한글.\n- labels: 입력된 모든 메일에 대해 [{id, label}] 배열. label은 정확히 다음 4가지 중 하나: \"needs_reply\"(즉답이 필요한 개인 요청/질문), \"info\"(정보성 알림/뉴스레터/일정), \"promo\"(광고/프로모션), \"social\"(SNS 알림/커뮤니티)."
-        : "You summarize a user's emails for a mobile assistant and auto-classify each. Return strict JSON with keys headline, bullets, and labels.\n- bullets: 2~3 short bullets focusing on urgency and commitments.\n- labels: array of {id, label} for every input message. label must be exactly one of \"needs_reply\" (personal questions/requests needing a reply), \"info\" (informational/newsletter/agenda), \"promo\" (marketing/ads), \"social\" (social network notifications).",
+        ? "당신은 사용자의 메일을 모바일용으로 한국어 요약하고 자동 분류한다. headline, bullets, labels 세 키를 가진 strict JSON만 반환하라.\n- headline: 30자 이내. 발신자 핵심 이름 2~3개를 쉼표로 잇고 \"메일 N건\" 형태. 이메일 주소(`<...>`)는 절대 포함하지 마라. 예: \"Google, TestFlight, SoundCloud 메일 8건\".\n- bullets: 가장 중요한 내용만 2~3개의 짧은 bullet (일정, 요청, 회신 필요 여부 우선). 모든 문장 자연스러운 한국어 한글.\n- labels: 입력된 모든 메일에 대해 [{id, label}] 배열. label은 정확히 다음 4가지 중 하나: \"needs_reply\"(즉답이 필요한 개인 요청/질문), \"info\"(정보성 알림/뉴스레터/일정), \"promo\"(광고/프로모션), \"social\"(SNS 알림/커뮤니티)."
+        : "You summarize a user's emails for a mobile assistant and auto-classify each. Return strict JSON with keys headline, bullets, and labels.\n- headline: under 40 chars. Join 2~3 short sender names with commas and add \"— N emails\". Never include email addresses (`<...>`). Example: \"Google, TestFlight, SoundCloud — 8 emails\".\n- bullets: 2~3 short bullets focusing on urgency and commitments.\n- labels: array of {id, label} for every input message. label must be exactly one of \"needs_reply\" (personal questions/requests needing a reply), \"info\" (informational/newsletter/agenda), \"promo\" (marketing/ads), \"social\" (social network notifications).",
     payload: messages.map(message => ({
       responseLanguage: language,
       id: message.id,
-      from: message.from,
+      from: shortSenderName(message.from),
       subject: message.subject,
       receivedAt: message.receivedAt,
       snippet: message.snippet
@@ -93,6 +106,12 @@ export async function summarizeGmailMessages(
 
   if (!parsed.headline || !Array.isArray(parsed.bullets)) {
     return buildFallbackDigest(messages, language);
+  }
+
+  // LLM이 prompt 무시하고 긴 발신자 주소 그대로 넣는 케이스 가드.
+  // 60자 초과 또는 `<email>` 포함 시 fallback headline으로 강제 교체.
+  if (parsed.headline.length > 60 || /<[^>]+@[^>]+>/.test(parsed.headline)) {
+    parsed.headline = fallback.headline;
   }
 
   if (language === "ko") {
