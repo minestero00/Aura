@@ -1,3 +1,11 @@
+export interface TodayWeatherUpcoming {
+  rainAt: string | null;
+  snowAt: string | null;
+  peakTempC: number | null;
+  peakTempAt: string | null;
+  hint: string | null;
+}
+
 export interface TodayWeatherAdvice {
   locationName: string;
   observedAt: string;
@@ -21,4 +29,5 @@ export interface TodayWeatherAdvice {
     umbrellaAdvice: string;
     outfitAdvice: string;
   };
+  upcoming: TodayWeatherUpcoming | null;
 }

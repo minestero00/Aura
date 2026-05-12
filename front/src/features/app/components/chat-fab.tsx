@@ -37,11 +37,11 @@ export function ChatFab({ onPress, hidden }: ChatFabProps) {
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { top: insets.top + 8 },
+        { bottom: insets.bottom + 96 },
         pressed && styles.pressed
       ]}
     >
-      <SvgXml xml={SPARKLE_CHAT_SVG} width={22} height={22} color={theme.colors.accentText} />
+      <SvgXml xml={SPARKLE_CHAT_SVG} width={26} height={26} color={theme.colors.accentText} />
     </Pressable>
   );
 }

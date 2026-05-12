@@ -62,46 +62,45 @@ export function MessageList({
         return (
         <View key={message.id} style={styles.messageCard}>
           <View style={styles.messageHeaderRow}>
-            <View style={styles.messageHeaderMain}>
-              <View style={chipStyles.row}>
-                <View style={[chipStyles.chip, { backgroundColor: tone.background }]}>
-                  <Text style={[chipStyles.chipText, { color: tone.text }]}>{labelText(copy, label)}</Text>
-                </View>
+            <View style={chipStyles.row}>
+              <View style={[chipStyles.chip, { backgroundColor: tone.background }]}>
+                <Text style={[chipStyles.chipText, { color: tone.text }]}>{labelText(copy, label)}</Text>
               </View>
-              <Text style={styles.messageSubject}>{message.subject}</Text>
-              <Text style={styles.messageMeta}>{message.from}</Text>
             </View>
-
-            <View style={styles.messageActions}>
-              <Pressable
-                onPress={() => void onReplyToMessage(message)}
-                style={styles.replyButton}
-              >
-                <Text style={styles.replyButtonText}>
-                  {replyingMessageId === message.id ? copy.mail.draftingReply : copy.mail.replyDraft}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => void onExtractCalendarEvent(message.id)}
-                style={styles.replyButton}
-              >
-                <Text style={styles.replyButtonText}>{copy.mail.calendarExtractCta}</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setSelectedMessage(message)}
-                style={styles.messageMenuButton}
-              >
-                <Text style={styles.messageMenuButtonText}>•••</Text>
-              </Pressable>
-            </View>
+            <Pressable
+              onPress={() => setSelectedMessage(message)}
+              style={styles.messageMenuButton}
+              hitSlop={6}
+            >
+              <Text style={styles.messageMenuButtonText}>•••</Text>
+            </Pressable>
           </View>
+
+          <Text style={styles.messageSubject}>{message.subject}</Text>
+          <Text style={styles.messageMeta} numberOfLines={1}>{message.from}</Text>
 
           {showReceivedAt && message.receivedAt ? (
             <Text style={styles.messageMeta}>{message.receivedAt}</Text>
           ) : null}
-          <Text style={styles.messageSnippet}>{message.snippet || copy.mail.noPreview}</Text>
+          <Text style={styles.messageSnippet} numberOfLines={3}>{message.snippet || copy.mail.noPreview}</Text>
+
+          <View style={styles.messageActionsFooter}>
+            <Pressable
+              onPress={() => void onReplyToMessage(message)}
+              style={[styles.replyButton, footerActionStyles.flexAction]}
+            >
+              <Text style={styles.replyButtonText} numberOfLines={1}>
+                {replyingMessageId === message.id ? copy.mail.draftingReply : copy.mail.replyDraft}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => void onExtractCalendarEvent(message.id)}
+              style={[styles.replyButton, footerActionStyles.flexAction]}
+            >
+              <Text style={styles.replyButtonText} numberOfLines={1}>{copy.mail.calendarExtractCta}</Text>
+            </Pressable>
+          </View>
         </View>
         );
       })}
@@ -148,8 +147,7 @@ export function MessageList({
 const chipStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    gap: 6,
-    marginBottom: 6
+    gap: 6
   },
   chip: {
     paddingHorizontal: 8,
@@ -160,5 +158,11 @@ const chipStyles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 0.3
+  }
+});
+
+const footerActionStyles = StyleSheet.create({
+  flexAction: {
+    flex: 1
   }
 });

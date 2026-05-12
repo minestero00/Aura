@@ -147,9 +147,10 @@ export function buildContentStyles(theme: AuraTheme) {
       borderColor: colors.lineStrong,
       backgroundColor: colors.elevated
     },
-    messageHeaderRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
+    messageHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 },
     messageHeaderMain: { flex: 1 },
     messageActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+    messageActionsFooter: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 },
     replyButton: {
       minHeight: 32,
       borderRadius: 999,

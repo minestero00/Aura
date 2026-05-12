@@ -50,10 +50,17 @@ export function AskScreen({
 }: AskScreenProps) {
   const theme = useAuraTheme();
   const styles = createAppStyles(theme);
-  const userLabel = currentUserName?.trim() || copy.ask.userLabel;
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const trimmedDraft = chatInputDraft.trim();
   const sendDisabled = isChatLoading || trimmedDraft.length === 0;
+  const localeTag = language === "ko" ? "ko-KR" : "en-US";
+
+  function formatBubbleTime(iso: string | undefined): string {
+    if (!iso) return "";
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleTimeString(localeTag, { hour: "numeric", minute: "2-digit", hour12: true });
+  }
 
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [voiceToast, setVoiceToast] = useState<string | null>(null);
@@ -204,37 +211,34 @@ export function AskScreen({
                 isUrgentMailQuestion(previousUser!.content) &&
                 dailyEmailMessages.length > 0;
 
+              const isAssistant = message.role === 'assistant';
+              const timeLabel = formatBubbleTime(message.createdAt);
+              const showTime =
+                timeLabel.length > 0 && !(isAssistant && message.isStreaming);
               return (
                 <View style={styles.chatMessageBlock}>
                   <View
                     style={[
                       styles.chatBubbleRow,
-                      message.role === 'assistant'
+                      isAssistant
                         ? styles.chatBubbleRowLeft
                         : styles.chatBubbleRowRight,
                     ]}
                   >
+                    {!isAssistant && showTime ? (
+                      <Text style={[styles.chatBubbleTime, styles.chatBubbleTimeUser]}>
+                        {timeLabel}
+                      </Text>
+                    ) : null}
                     <View
                       style={[
                         styles.chatBubble,
-                        message.role === 'assistant'
+                        isAssistant
                           ? styles.chatBubbleAssistant
                           : styles.chatBubbleUser,
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.chatBubbleLabel,
-                          message.role === 'assistant'
-                            ? styles.chatBubbleLabelAssistant
-                            : styles.chatBubbleLabelUser,
-                        ]}
-                      >
-                        {message.role === 'assistant'
-                          ? copy.ask.assistantLabel
-                          : userLabel}
-                      </Text>
-                      {message.role === 'assistant' &&
+                      {isAssistant &&
                       message.isStreaming &&
                       !message.content.trim() ? (
                         <View style={styles.chatTypingRow}>
@@ -256,7 +260,7 @@ export function AskScreen({
                         <Text
                           style={[
                             styles.chatBubbleText,
-                            message.role === 'assistant'
+                            isAssistant
                               ? styles.chatBubbleTextAssistant
                               : styles.chatBubbleTextUser,
                           ]}
@@ -264,8 +268,7 @@ export function AskScreen({
                           {message.content}
                         </Text>
                       )}
-                      {message.role === 'assistant' &&
-                      message.citations.length > 0 ? (
+                      {isAssistant && message.citations.length > 0 ? (
                         <View style={styles.chatCitationRow}>
                           {message.citations.map((citation, index) => (
                             <Text
@@ -278,6 +281,11 @@ export function AskScreen({
                         </View>
                       ) : null}
                     </View>
+                    {isAssistant && showTime ? (
+                      <Text style={[styles.chatBubbleTime, styles.chatBubbleTimeAssistant]}>
+                        {timeLabel}
+                      </Text>
+                    ) : null}
                   </View>
                   {shouldShowUrgentCards ? (
                     <View style={styles.urgentMailCardsWrap}>
@@ -316,16 +324,7 @@ export function AskScreen({
         </View>
 
         <View style={styles.askComposerCard}>
-          {/* <Text style={styles.inputLabel}>{copy.ask.inputLabel}</Text> */}
-          <TextInput
-            multiline
-            onChangeText={onChatInputChange}
-            placeholder={copy.ask.inputPlaceholder}
-            placeholderTextColor={theme.colors.textMuted}
-            style={styles.askComposerInput}
-            value={chatInputDraft}
-          />
-          <View style={styles.askComposerActions}>
+          <View style={styles.askComposerRow}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={voiceState === 'recording' ? copy.ask.voiceStop : copy.ask.voiceStart}
@@ -357,18 +356,28 @@ export function AskScreen({
               )}
             </Pressable>
 
+            <TextInput
+              multiline
+              onChangeText={onChatInputChange}
+              placeholder={copy.ask.inputPlaceholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={[styles.askComposerInput, styles.askComposerInputFlex]}
+              value={chatInputDraft}
+            />
+
             <Pressable
               disabled={sendDisabled}
               onPress={() => void onSendChatMessage()}
+              hitSlop={6}
               style={[
-                styles.primaryButton,
-                sendDisabled ? styles.primaryButtonDisabled : null,
+                styles.askComposerSendButton,
+                sendDisabled ? styles.askComposerSendButtonDisabled : null,
               ]}
             >
               {isChatLoading ? (
                 <ActivityIndicator color={theme.colors.accentText} />
               ) : (
-                <Text style={styles.primaryButtonText}>{copy.ask.send}</Text>
+                <Text style={styles.askComposerSendIcon}>↑</Text>
               )}
             </Pressable>
           </View>

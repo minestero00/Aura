@@ -74,7 +74,7 @@ export function MailScreen({
           <Text style={styles.subtitleOnGradient}>{copy.mail.subtitle}</Text>
         </View>
 
-        {!gmailConnected ? (
+        {!gmailConnected && dailyEmailMessages.length === 0 ? (
           <View style={styles.sectionCard}>
             <EmptyStateHero
               title={copy.mail.gmailNotConnectedTitle}

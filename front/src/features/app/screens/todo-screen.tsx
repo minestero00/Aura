@@ -115,6 +115,9 @@ export function TodoScreen({
               <Text style={styles.detailLine}>{todayWeatherAdvice.advice.summary}</Text>
               <Text style={styles.detailLine}>{todayWeatherAdvice.advice.umbrellaAdvice}</Text>
               <Text style={styles.detailLine}>{todayWeatherAdvice.advice.outfitAdvice}</Text>
+              {todayWeatherAdvice.upcoming?.hint ? (
+                <Text style={styles.detailLine}>{todayWeatherAdvice.upcoming.hint}</Text>
+              ) : null}
             </View>
           ) : isWeatherLoading ? (
             <View style={[styles.compactDigestCard, { paddingVertical: 24, alignItems: "center" }]}>

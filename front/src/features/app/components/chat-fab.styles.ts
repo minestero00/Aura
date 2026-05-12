@@ -6,19 +6,19 @@ export function buildChatFabStyles(theme: AuraTheme) {
   return StyleSheet.create({
     button: {
       position: "absolute",
-      top: 0,
-      right: 16,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      bottom: 0,
+      right: 18,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.accent,
       shadowColor: colors.accent,
-      shadowOpacity: theme.isDark ? 0.32 : 0.28,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 4,
+      shadowOpacity: theme.isDark ? 0.42 : 0.34,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 6,
       zIndex: 50
     },
     pressed: {

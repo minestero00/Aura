@@ -31,9 +31,9 @@ export function buildShellStyles(theme: AuraTheme) {
     askConversationList: { flex: 1 },
     askConversationContent: { paddingBottom: 10, paddingTop: 6, gap: 8 },
     askComposerCard: {
-      paddingHorizontal: 20,
-      paddingTop: 10,
-      paddingBottom: 14,
+      paddingHorizontal: 14,
+      paddingTop: 8,
+      paddingBottom: 12,
       borderTopWidth: 1,
       borderTopColor: colors.line,
       backgroundColor: colors.elevated
@@ -53,6 +53,36 @@ export function buildShellStyles(theme: AuraTheme) {
       textAlignVertical: "top"
     },
     askComposerActions: { marginTop: 8 },
+    askComposerRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: 8
+    },
+    askComposerInputFlex: {
+      flex: 1,
+      marginTop: 0,
+      minHeight: 44,
+      maxHeight: 110,
+      borderRadius: 22,
+      paddingVertical: 10
+    },
+    askComposerSendButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.accent
+    },
+    askComposerSendButtonDisabled: {
+      backgroundColor: colors.surfaceMuted
+    },
+    askComposerSendIcon: {
+      color: colors.accentText,
+      fontSize: 20,
+      fontWeight: "800",
+      lineHeight: 22
+    },
     // 5탭 화면 안 SafeAreaView/ScrollView는 transparent — AppShell의 background가 비침.
     safeArea: { flex: 1, backgroundColor: "transparent" },
     safeAreaSolid: { flex: 1, backgroundColor: colors.background },
