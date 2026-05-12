@@ -5,6 +5,7 @@ import com.dumbteam.aura.health.AuraHealthPackage
 import com.dumbteam.aura.notifications.NotificationChannelInitializer
 import com.dumbteam.aura.transit.TransitGeofenceModule
 import com.dumbteam.aura.transit.TransitGeofencePackage
+import com.dumbteam.aura.wallet.AuraOCRPackage
 import com.dumbteam.aura.widget.AuraWidgetPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -22,6 +23,7 @@ class MainApplication : Application(), ReactApplication {
           add(TransitGeofencePackage())
           add(AuraWidgetPackage())
           add(AuraHealthPackage())
+          add(AuraOCRPackage())
         },
     )
   }

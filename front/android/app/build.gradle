@@ -122,6 +122,10 @@ dependencies {
     // Permission UI는 Health Connect 시스템 화면이 처리. minSdk 26 필요.
     implementation("androidx.health.connect:connect-client:1.1.0-rc03")
 
+    // ML Kit Text Recognition — Korean + Latin. on-device, 모델은 첫 사용 시 자동 다운로드.
+    // 카톡 기프티콘 등 사용자 이미지에서 텍스트 추출 (Phase J.3 — Aura Wallet).
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
