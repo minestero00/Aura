@@ -12,6 +12,7 @@ import { transitRouter } from "../modules/transit/index.js";
 import { usageRouter } from "../modules/usage/index.js";
 import { voiceRouter } from "../modules/voice/index.js";
 import { usersRouter } from "../modules/users/routes.js";
+import { walletRouter } from "../modules/wallet/index.js";
 import { weatherRouter } from "../modules/weather/index.js";
 import { healthRouter } from "./health.js";
 
@@ -28,6 +29,7 @@ apiRouter.use("/news", newsRouter);
 apiRouter.use("/push", pushRouter);
 apiRouter.use("/transit", transitRouter);
 apiRouter.use("/voice", voiceRouter);
+apiRouter.use("/wallet", walletRouter);
 apiRouter.use("/weather", weatherRouter);
 apiRouter.use("/usage", usageRouter);
 apiRouter.use("/me/health", userHealthRouter);

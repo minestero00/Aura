@@ -5,9 +5,60 @@ import { authStore } from "./modules/auth/store.js";
 import { briefingsService } from "./modules/briefings/service.js";
 import { jobsService } from "./modules/jobs/service.js";
 import { evaluateAllUsersDepartures } from "./modules/departure/service.js";
+import { walletService } from "./modules/wallet/index.js";
 
 const DEPARTURE_EVALUATE_INTERVAL_MS = 5 * 60 * 1000;
 let departureTimer: NodeJS.Timeout | null = null;
+
+// Phase J — 쿠폰 status 전이(active → expiring_soon → expired) + used+90일 hard delete.
+// 6시간 간격 (idempotent — 멱등이므로 중복 실행 안전). 시작 시 즉시 1회.
+const WALLET_SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000;
+let walletTimer: NodeJS.Timeout | null = null;
+let walletSweepInFlight = false;
+
+async function runWalletSweep() {
+  if (walletSweepInFlight) return;
+  walletSweepInFlight = true;
+  try {
+    const result = await walletService.runDailySweep();
+    console.log(
+      JSON.stringify({
+        level: "info",
+        service: "aura-worker",
+        module: "wallet",
+        message: "daily sweep done",
+        ...result
+      })
+    );
+  } catch (error) {
+    console.log(
+      JSON.stringify({
+        level: "warn",
+        service: "aura-worker",
+        module: "wallet",
+        message: "daily sweep failed",
+        error: error instanceof Error ? error.message : String(error)
+      })
+    );
+  } finally {
+    walletSweepInFlight = false;
+  }
+}
+
+function startWalletSweep() {
+  if (walletTimer) return;
+  void runWalletSweep();
+  walletTimer = setInterval(() => {
+    void runWalletSweep();
+  }, WALLET_SWEEP_INTERVAL_MS);
+}
+
+function stopWalletSweep() {
+  if (walletTimer) {
+    clearInterval(walletTimer);
+    walletTimer = null;
+  }
+}
 
 function startDepartureLoop() {
   if (departureTimer) return;
@@ -50,6 +101,7 @@ async function bootstrapWorker() {
   briefingsService.startScheduler();
   jobsService.startWorker();
   startDepartureLoop();
+  startWalletSweep();
 
   async function shutdown(signal: string) {
     console.log(
@@ -62,6 +114,7 @@ async function bootstrapWorker() {
     );
 
     stopDepartureLoop();
+    stopWalletSweep();
     await Promise.all([
       jobsService.close(),
       authStore.close(),
