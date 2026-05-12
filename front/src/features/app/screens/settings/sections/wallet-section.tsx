@@ -275,6 +275,7 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
   const [imageBusy, setImageBusy] = useState<null | "picking" | "ocr">(null);
 
   async function handleExtractFromImage() {
+    console.log("[wallet] extract button pressed, ocrAvailable:", isNativeOcrAvailable());
     if (!isNativeOcrAvailable()) {
       setFormError(copy.wallet.ocrUnavailable);
       return;
@@ -288,31 +289,40 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         selectionLimit: 1,
         includeBase64: false
       });
+      console.log("[wallet] picker result didCancel:", picked.didCancel, "assets:", picked.assets?.length, "errorCode:", picked.errorCode);
       if (picked.didCancel) {
         setImageBusy(null);
         return;
       }
       imageUri = picked.assets?.[0]?.uri ?? null;
-    } catch {
+    } catch (err) {
+      console.log("[wallet] picker threw:", err);
       setFormError(copy.wallet.ocrFailed);
       setImageBusy(null);
       return;
     }
     if (!imageUri) {
+      console.log("[wallet] picker no uri");
       setImageBusy(null);
       return;
     }
 
     setImageBusy("ocr");
     try {
+      console.log("[wallet] running OCR on:", imageUri);
       const ocr = await extractTextFromImage(imageUri);
+      console.log("[wallet] OCR result lines:", ocr?.lines?.length, "fullText len:", ocr?.fullText?.length);
       if (!ocr || ocr.fullText.trim().length === 0) {
         setFormError(copy.wallet.ocrFailed);
         return;
       }
       const accessToken = await getCurrentAccessToken();
-      if (!accessToken) return;
+      if (!accessToken) {
+        console.log("[wallet] no access token — user not signed in?");
+        return;
+      }
       const candidate = await extractCouponFromImageText(accessToken, ocr.fullText, "ko");
+      console.log("[wallet] candidate:", candidate);
       if (candidate.brand) setBrand(candidate.brand);
       if (candidate.title) setTitle(candidate.title);
       if (candidate.code) setCode(candidate.code);
@@ -327,6 +337,7 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         }
       }
     } catch (err) {
+      console.log("[wallet] extract error:", err);
       setFormError(err instanceof Error ? err.message : copy.wallet.ocrFailed);
     } finally {
       setImageBusy(null);
