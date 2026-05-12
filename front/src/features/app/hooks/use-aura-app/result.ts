@@ -44,6 +44,9 @@ interface BuildResultParams {
   isCalendarExtractOpen: UseAuraAppResult["isCalendarExtractOpen"];
   isCalendarExtractLoading: UseAuraAppResult["isCalendarExtractLoading"];
   extractedEvent: UseAuraAppResult["extractedEvent"];
+  isWalletExtractOpen: UseAuraAppResult["isWalletExtractOpen"];
+  isWalletExtractLoading: UseAuraAppResult["isWalletExtractLoading"];
+  walletExtractCandidate: UseAuraAppResult["walletExtractCandidate"];
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
   isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
@@ -109,6 +112,9 @@ interface BuildResultParams {
     handleOneClickUnsubscribe: UseAuraAppResult["handleOneClickUnsubscribe"];
     handleExtractCalendarEvent: UseAuraAppResult["handleExtractCalendarEvent"];
     handleCloseCalendarExtract: UseAuraAppResult["handleCloseCalendarExtract"];
+    handleExtractCouponFromMessage: UseAuraAppResult["handleExtractCouponFromMessage"];
+    handleSaveExtractedCoupon: UseAuraAppResult["handleSaveExtractedCoupon"];
+    handleCloseWalletExtract: UseAuraAppResult["handleCloseWalletExtract"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
     handleCloseNavExpand: UseAuraAppResult["handleCloseNavExpand"];
     handleOpenTransit: UseAuraAppResult["handleOpenTransit"];
@@ -170,6 +176,9 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isCalendarExtractOpen: params.isCalendarExtractOpen,
     isCalendarExtractLoading: params.isCalendarExtractLoading,
     extractedEvent: params.extractedEvent,
+    isWalletExtractOpen: params.isWalletExtractOpen,
+    isWalletExtractLoading: params.isWalletExtractLoading,
+    walletExtractCandidate: params.walletExtractCandidate,
     isNavExpanded: params.isNavExpanded,
     isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
@@ -255,6 +264,9 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleOneClickUnsubscribe: params.handlers.handleOneClickUnsubscribe,
     handleExtractCalendarEvent: params.handlers.handleExtractCalendarEvent,
     handleCloseCalendarExtract: params.handlers.handleCloseCalendarExtract,
+    handleExtractCouponFromMessage: params.handlers.handleExtractCouponFromMessage,
+    handleSaveExtractedCoupon: params.handlers.handleSaveExtractedCoupon,
+    handleCloseWalletExtract: params.handlers.handleCloseWalletExtract,
     handleOpenUnsubscribeSettings: params.openHandlers.handleOpenUnsubscribeSettings,
     handleOpenNavExpand: params.handlers.handleOpenNavExpand,
     handleCloseNavExpand: params.handlers.handleCloseNavExpand,

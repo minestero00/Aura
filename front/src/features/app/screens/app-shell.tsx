@@ -28,6 +28,7 @@ import { ChatFab } from "@features/app/components/chat-fab";
 import { NavExpandDrawer } from "@features/app/components/nav-expand-drawer";
 import { ReplyDraftModal } from "@features/app/components/reply-draft-modal";
 import { CalendarExtractModal } from "@features/app/components/calendar-extract-modal";
+import { WalletExtractModal } from "@features/app/components/wallet-extract-modal";
 import { openComposeInExternalApp } from "@features/gmail/compose";
 import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
 import { TransitModal } from "@features/app/components/transit-modal";
@@ -157,6 +158,7 @@ export function AppShell({ app }: AppShellProps) {
             onLoadDailyEmailBrief={app.handleLoadDailyEmailBrief}
             onReplyToMessage={app.handleReplyToMessage}
             onExtractCalendarEvent={app.handleExtractCalendarEvent}
+            onExtractCoupon={app.handleExtractCouponFromMessage}
             replyingMessageId={app.replyingMessageId}
           />
         </View>
@@ -305,6 +307,15 @@ export function AppShell({ app }: AppShellProps) {
         event={app.extractedEvent}
         copy={app.copy}
         onClose={app.handleCloseCalendarExtract}
+      />
+
+      <WalletExtractModal
+        visible={app.isWalletExtractOpen}
+        isLoading={app.isWalletExtractLoading}
+        candidate={app.walletExtractCandidate}
+        copy={app.copy}
+        onSave={app.handleSaveExtractedCoupon}
+        onClose={app.handleCloseWalletExtract}
       />
 
       <TransitModal

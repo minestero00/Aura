@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { GmailMessage, GmailMessageLabel } from "@features/gmail/types";
+import { isCouponCandidateMail } from "@features/wallet/filtering";
 
 interface MessageListProps {
   copy: AppCopy;
@@ -10,6 +11,7 @@ interface MessageListProps {
   onOpenIgnoredSenderSettings: (message: GmailMessage) => void;
   onReplyToMessage: (message: GmailMessage) => Promise<void>;
   onExtractCalendarEvent: (messageId: string) => Promise<void>;
+  onExtractCoupon: (messageId: string) => Promise<void>;
   replyingMessageId: string | null;
   showReceivedAt?: boolean;
 }
@@ -48,6 +50,7 @@ export function MessageList({
   onOpenIgnoredSenderSettings,
   onReplyToMessage,
   onExtractCalendarEvent,
+  onExtractCoupon,
   replyingMessageId,
   showReceivedAt = true
 }: MessageListProps) {
@@ -100,6 +103,15 @@ export function MessageList({
             >
               <Text style={styles.replyButtonText} numberOfLines={1}>{copy.mail.calendarExtractCta}</Text>
             </Pressable>
+
+            {isCouponCandidateMail({ subject: message.subject, snippet: message.snippet }) ? (
+              <Pressable
+                onPress={() => void onExtractCoupon(message.id)}
+                style={[styles.replyButton, footerActionStyles.flexAction]}
+              >
+                <Text style={styles.replyButtonText} numberOfLines={1}>{copy.mail.couponExtractCta}</Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
         );

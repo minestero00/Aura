@@ -16,7 +16,8 @@ export type UsageFeature =
   | "chat"
   | "transit_eta"
   | "transit_directions"
-  | "voice_transcribe";
+  | "voice_transcribe"
+  | "wallet_extract";
 
 interface QuotaRow {
   id: string;

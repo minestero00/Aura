@@ -21,6 +21,8 @@ import {
 } from "@features/gmail/api";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
+import { createCoupon, extractCouponFromMessage } from "@features/wallet/api";
+import type { CreateCouponInput } from "@features/wallet/types";
 import type {
   UseAuraAppResult
 } from "@features/app/types";
@@ -219,6 +221,43 @@ export function useAuraApp(): UseAuraAppResult {
     state.setIsCalendarExtractOpen(false);
     state.setExtractedEvent(null);
   }
+  async function handleExtractCouponFromMessage(messageId: string) {
+    const session = state.authState?.session;
+    if (!session) return;
+    state.setIsWalletExtractOpen(true);
+    state.setIsWalletExtractLoading(true);
+    state.setWalletExtractCandidate(null);
+    try {
+      const { result } = await withSessionAutoRefresh(
+        accessToken => extractCouponFromMessage(accessToken, messageId, state.language),
+        session
+      );
+      state.setWalletExtractCandidate(result ?? null);
+    } catch {
+      state.setWalletExtractCandidate(null);
+    } finally {
+      state.setIsWalletExtractLoading(false);
+    }
+  }
+  async function handleSaveExtractedCoupon(input: CreateCouponInput): Promise<boolean> {
+    const session = state.authState?.session;
+    if (!session) return false;
+    try {
+      await withSessionAutoRefresh(
+        accessToken => createCoupon(accessToken, input),
+        session
+      );
+      state.setIsWalletExtractOpen(false);
+      state.setWalletExtractCandidate(null);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function handleCloseWalletExtract() {
+    state.setIsWalletExtractOpen(false);
+    state.setWalletExtractCandidate(null);
+  }
   function handleOpenNavExpand() {
     state.setIsNavExpanded(true);
   }
@@ -287,6 +326,9 @@ export function useAuraApp(): UseAuraAppResult {
       handleOneClickUnsubscribe,
       handleExtractCalendarEvent,
       handleCloseCalendarExtract,
+      handleExtractCouponFromMessage,
+      handleSaveExtractedCoupon,
+      handleCloseWalletExtract,
       handleOpenNavExpand,
       handleCloseNavExpand,
       handleOpenTransit,

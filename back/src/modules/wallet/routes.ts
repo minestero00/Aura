@@ -5,6 +5,7 @@ import { requireAuth } from "../auth/middleware/require-auth.js";
 import {
   couponIdParamSchema,
   createCouponSchema,
+  extractFromMessageSchema,
   listCouponsQuerySchema,
   updateCouponSchema
 } from "./schemas.js";
@@ -94,5 +95,19 @@ walletRouter.delete(
     const { id } = couponIdParamSchema.parse(req.params);
     await walletService.deleteCoupon(id, req.authUser!.id);
     res.status(204).send();
+  })
+);
+
+walletRouter.post(
+  "/coupons/extract-from-message",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const input = extractFromMessageSchema.parse(req.body);
+    const candidate = await walletService.extractFromMessage({
+      userId: req.authUser!.id,
+      messageId: input.messageId,
+      language: input.language
+    });
+    res.json({ candidate });
   })
 );

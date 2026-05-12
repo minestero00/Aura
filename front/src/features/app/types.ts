@@ -180,6 +180,12 @@ export interface UseAuraAppResult {
   isCalendarExtractOpen: boolean;
   isCalendarExtractLoading: boolean;
   extractedEvent: import("@features/gmail/api").ExtractedCalendarEvent | null;
+  handleExtractCouponFromMessage: (messageId: string) => Promise<void>;
+  handleSaveExtractedCoupon: (input: import("@features/wallet/types").CreateCouponInput) => Promise<boolean>;
+  handleCloseWalletExtract: () => void;
+  isWalletExtractOpen: boolean;
+  isWalletExtractLoading: boolean;
+  walletExtractCandidate: import("@features/wallet/api").CouponExtractCandidate | null;
   /** Bottom nav 끌어올림 → expanded drawer 열기. */
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */

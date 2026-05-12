@@ -21,6 +21,7 @@ interface MailScreenProps {
   onLoadDailyEmailBrief: () => Promise<void>;
   onReplyToMessage: (message: GmailMessage) => Promise<void>;
   onExtractCalendarEvent: (messageId: string) => Promise<void>;
+  onExtractCoupon: (messageId: string) => Promise<void>;
   replyingMessageId: string | null;
 }
 
@@ -54,6 +55,7 @@ export function MailScreen({
   onLoadDailyEmailBrief,
   onReplyToMessage,
   onExtractCalendarEvent,
+  onExtractCoupon,
   replyingMessageId
 }: MailScreenProps) {
   const theme = useAuraTheme();
@@ -157,6 +159,7 @@ export function MailScreen({
             onOpenIgnoredSenderSettings={onOpenIgnoredSenderSettings}
             onReplyToMessage={onReplyToMessage}
             onExtractCalendarEvent={onExtractCalendarEvent}
+            onExtractCoupon={onExtractCoupon}
             replyingMessageId={replyingMessageId}
             showReceivedAt={false}
           />

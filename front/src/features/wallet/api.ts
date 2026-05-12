@@ -1,5 +1,14 @@
 import { apiRequest } from "@lib/api/client";
-import type { Coupon, CouponStatus, CreateCouponInput, UpdateCouponInput } from "./types";
+import type { CodeFormat, Coupon, CouponStatus, CreateCouponInput, UpdateCouponInput } from "./types";
+
+export interface CouponExtractCandidate {
+  brand: string | null;
+  title: string | null;
+  code: string | null;
+  codeFormat: CodeFormat | null;
+  expiresAt: string | null;
+  confidence: number;
+}
 
 export async function fetchCoupons(
   accessToken: string,
@@ -58,3 +67,25 @@ export async function revealCouponCode(accessToken: string, id: string): Promise
   });
   return result.code;
 }
+
+/**
+ * 메일 1통 → 쿠폰 후보 추출. 백엔드 1차 regex 필터 + LLM.
+ * confidence < 0.5는 모달에 prefill만 하고 사용자 확정 필요.
+ */
+export async function extractCouponFromMessage(
+  accessToken: string,
+  messageId: string,
+  language: "ko" | "en"
+): Promise<CouponExtractCandidate> {
+  const result = await apiRequest<{ candidate: CouponExtractCandidate }>(
+    `/api/v1/wallet/coupons/extract-from-message`,
+    {
+      method: "POST",
+      accessToken,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messageId, language })
+    }
+  );
+  return result.candidate;
+}
+

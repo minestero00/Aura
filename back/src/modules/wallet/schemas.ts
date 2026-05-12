@@ -48,3 +48,8 @@ export const listCouponsQuerySchema = z.object({
 export const couponIdParamSchema = z.object({
   id: z.string().uuid()
 });
+
+export const extractFromMessageSchema = z.object({
+  messageId: z.string().min(1).max(200),
+  language: z.enum(["ko", "en"]).optional().default("ko")
+});

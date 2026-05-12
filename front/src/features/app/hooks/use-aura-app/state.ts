@@ -15,6 +15,7 @@ import type { IgnoredSenderRule } from "@features/gmail/storage";
 import type { GmailDigest, GmailMessage } from "@features/gmail/types";
 import type { NewsArticle, NewsBriefing, NewsCategory } from "@features/news/types";
 import type { TodayWeatherAdvice } from "@features/weather/types";
+import type { CouponExtractCandidate } from "@features/wallet/api";
 
 export function useAuraAppState() {
   const [authState, setAuthState] = useState<AuthSessionState | null>(null);
@@ -87,6 +88,9 @@ export function useAuraAppState() {
   const [isCalendarExtractOpen, setIsCalendarExtractOpen] = useState(false);
   const [isCalendarExtractLoading, setIsCalendarExtractLoading] = useState(false);
   const [extractedEvent, setExtractedEvent] = useState<ExtractedCalendarEvent | null>(null);
+  const [isWalletExtractOpen, setIsWalletExtractOpen] = useState(false);
+  const [isWalletExtractLoading, setIsWalletExtractLoading] = useState(false);
+  const [walletExtractCandidate, setWalletExtractCandidate] = useState<CouponExtractCandidate | null>(null);
 
   const hasStartedInitialDailyBriefRef = useRef(false);
   const hasAttemptedDeviceCalendarPromptRef = useRef(false);
@@ -212,6 +216,12 @@ export function useAuraAppState() {
     setIsCalendarExtractLoading,
     extractedEvent,
     setExtractedEvent,
+    isWalletExtractOpen,
+    setIsWalletExtractOpen,
+    isWalletExtractLoading,
+    setIsWalletExtractLoading,
+    walletExtractCandidate,
+    setWalletExtractCandidate,
     hasStartedInitialDailyBriefRef,
     hasAttemptedDeviceCalendarPromptRef,
     lastTravelPlanSignatureRef,

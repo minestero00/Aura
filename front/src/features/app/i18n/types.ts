@@ -86,6 +86,7 @@ export interface AppCopy {
     calendarExtractInsufficient: string;
     calendarExtractAdd: string;
     calendarExtractCta: string;
+    couponExtractCta: string;
     gmailNotConnectedTitle: string;
     gmailNotConnectedBody: string;
     todayBriefTitle: string;
@@ -321,6 +322,11 @@ export interface AppCopy {
     errorRequired: string;
     confirmDeleteTitle: string;
     confirmDeleteBody: string;
+    extractTitle: string;
+    extractLoading: string;
+    extractInsufficient: string;
+    extractConfidenceLow: string;
+    extractSaveButton: string;
   };
   ask: {
     eyebrow: string;

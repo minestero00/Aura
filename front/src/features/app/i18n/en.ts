@@ -95,6 +95,7 @@ export const EN_COPY: AppCopy = {
     calendarExtractInsufficient: 'Couldn\'t find enough event info in this email',
     calendarExtractAdd: 'Add to Google Calendar',
     calendarExtractCta: '📅 Event',
+    couponExtractCta: '🎟️ Coupon',
     gmailNotConnectedTitle: 'Gmail not connected',
     gmailNotConnectedBody:
       'Gmail access is connected automatically right after Google sign-in. If it is still not connected, open Settings and reconnect Gmail there.',
@@ -356,6 +357,11 @@ export const EN_COPY: AppCopy = {
     errorRequired: 'Brand, name, and code are required.',
     confirmDeleteTitle: 'Delete coupon?',
     confirmDeleteBody: 'This cannot be undone.',
+    extractTitle: 'Extract coupon from email',
+    extractLoading: 'AURA is parsing the coupon...',
+    extractInsufficient: 'No coupon found in this email — try adding it manually.',
+    extractConfidenceLow: 'Low confidence — please verify before saving.',
+    extractSaveButton: 'Save to wallet',
   },
   ask: {
     eyebrow: 'Ask',

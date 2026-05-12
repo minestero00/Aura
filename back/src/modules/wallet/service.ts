@@ -1,13 +1,18 @@
 import { AppError } from "../../lib/errors/app-error.js";
 import { decryptSecret, encryptSecret } from "../../lib/security/encryption.js";
+import { requireUser } from "../auth/guards.js";
+import { fetchGmailMessageBody } from "../integrations/gmail/gmail-api.js";
+import { usageService } from "../usage/service.js";
+import { extractCouponFromMessage } from "./extractor.js";
+import type { CouponExtractCandidate } from "./extractor.js";
 import { walletRepository } from "./repository.js";
 import type {
+  CodeFormat,
   Coupon,
   CouponListFilter,
   CouponPatch,
-  CouponStatus,
   CouponSource,
-  CodeFormat
+  CouponStatus
 } from "./types.js";
 
 const D3_MS = 3 * 24 * 60 * 60 * 1000;
@@ -119,6 +124,28 @@ export const walletService = {
     if (!ok) {
       throw new AppError(404, "WALLET_COUPON_NOT_FOUND", "Coupon not found.");
     }
+  },
+
+  /**
+   * 메일 한 통에서 쿠폰 후보 추출. usage guard + gmail body fetch + LLM.
+   * 1차 regex 필터에서 떨어지면 confidence 0 즉시 반환 (LLM 비용 0).
+   */
+  async extractFromMessage(input: {
+    userId: string;
+    messageId: string;
+    language: "en" | "ko";
+  }): Promise<CouponExtractCandidate> {
+    requireUser(input.userId);
+    await usageService.consumeOrThrow({ userId: input.userId, feature: "wallet_extract" });
+    const message = await fetchGmailMessageBody(input.userId, input.messageId);
+    return extractCouponFromMessage({
+      subject: message.subject,
+      from: message.from,
+      body: message.body,
+      receivedAt: message.receivedAt,
+      language: input.language,
+      userId: input.userId
+    });
   },
 
   /** Daily cron 진입점 — status 전이 + 90일 used purge. */

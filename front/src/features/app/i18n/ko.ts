@@ -91,6 +91,7 @@ export const KO_COPY: AppCopy = {
     calendarExtractInsufficient: '메일에서 일정 정보를 충분히 찾지 못했어요',
     calendarExtractAdd: 'Google 캘린더로 추가',
     calendarExtractCta: '📅 일정',
+    couponExtractCta: '🎟️ 쿠폰',
     gmailNotConnectedTitle: 'Gmail이 연결되지 않음..',
     gmailNotConnectedBody:
       'Google 로그인 직후 Gmail 연결을 자동으로 시도합니다. 아직 연결되지 않았다면 설정에서 다시 연결해주세요.',
@@ -351,6 +352,11 @@ export const KO_COPY: AppCopy = {
     errorRequired: '브랜드 · 쿠폰명 · 코드는 필수입니다.',
     confirmDeleteTitle: '쿠폰을 삭제할까요?',
     confirmDeleteBody: '되돌릴 수 없습니다.',
+    extractTitle: '메일에서 쿠폰 추출',
+    extractLoading: 'AURA가 쿠폰 정보를 정리하는 중...',
+    extractInsufficient: '이 메일에서 쿠폰을 찾지 못했어요. 직접 추가해 주세요.',
+    extractConfidenceLow: '정확도가 낮습니다. 저장 전 내용을 확인해 주세요.',
+    extractSaveButton: '지갑에 저장',
   },
   ask: {
     eyebrow: '질문',
