@@ -13,7 +13,8 @@ import { AuraLoader } from "@features/app/components/aura-loader";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { CouponExtractCandidate } from "@features/wallet/api";
-import type { CodeFormat, CreateCouponInput } from "@features/wallet/types";
+import { CouponGeofencePicker } from "@features/wallet/components/coupon-geofence-picker";
+import type { CodeFormat, CouponGeofence, CreateCouponInput } from "@features/wallet/types";
 
 interface Props {
   visible: boolean;
@@ -53,6 +54,7 @@ export function WalletExtractModal({ visible, isLoading, candidate, copy, onSave
   const [code, setCode] = useState("");
   const [codeFormat, setCodeFormat] = useState<CodeFormat>("text_only");
   const [expires, setExpires] = useState("");
+  const [geofence, setGeofence] = useState<CouponGeofence | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +66,7 @@ export function WalletExtractModal({ visible, isLoading, candidate, copy, onSave
       setCode("");
       setCodeFormat("text_only");
       setExpires("");
+      setGeofence(null);
       setError(null);
       setIsSaving(false);
       return;
@@ -90,7 +93,8 @@ export function WalletExtractModal({ visible, isLoading, candidate, copy, onSave
       code: code.trim(),
       codeFormat,
       expiresAt: dateInputToIso(expires),
-      source: "mail_auto"
+      source: "mail_auto",
+      geofence: geofence ?? null
     });
     if (!ok) {
       setError(copy.wallet.errorDuplicate);
@@ -202,6 +206,8 @@ export function WalletExtractModal({ visible, isLoading, candidate, copy, onSave
                   autoCapitalize="none"
                   autoCorrect={false}
                 />
+
+                <CouponGeofencePicker copy={copy} value={geofence} onChange={setGeofence} />
 
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
               </>

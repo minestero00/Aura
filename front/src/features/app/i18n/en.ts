@@ -362,6 +362,13 @@ export const EN_COPY: AppCopy = {
     extractInsufficient: 'No coupon found in this email — try adding it manually.',
     extractConfidenceLow: 'Low confidence — please verify before saving.',
     extractSaveButton: 'Save to wallet',
+    geofencePlaceholder: 'e.g. GS25 Gangnam',
+    geofencePlaceLabel: 'Where you use it (optional)',
+    geofenceUseCurrent: 'Save current location',
+    geofenceCapturing: 'Capturing location...',
+    geofencePermissionDenied: 'Location permission required. Enable it in Settings.',
+    geofenceClear: 'Clear location',
+    geofenceSavedAt: (place: string) => `📍 ${place}`,
   },
   ask: {
     eyebrow: 'Ask',

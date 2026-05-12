@@ -23,7 +23,8 @@ import {
   updateCoupon
 } from "@features/wallet/api";
 import { CouponCodeRenderer } from "@features/wallet/components/coupon-code-renderer";
-import type { CodeFormat, Coupon, CouponStatus } from "@features/wallet/types";
+import { CouponGeofencePicker } from "@features/wallet/components/coupon-geofence-picker";
+import type { CodeFormat, Coupon, CouponGeofence, CouponStatus } from "@features/wallet/types";
 import { useAuraTheme } from "@features/app/styles";
 
 const FILTER_ORDER: Array<CouponStatus | "all"> = ["active", "expiring_soon", "all"];
@@ -201,6 +202,11 @@ export function WalletSection(props: SettingsSectionProps) {
                       ) : null}
                     </View>
                   </View>
+                  {coupon.geofence?.placeName ? (
+                    <Text style={styles.helperText}>
+                      {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
+                    </Text>
+                  ) : null}
                   {coupon.expiresAt ? (
                     <Text style={styles.messageMeta}>
                       {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
@@ -260,6 +266,7 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
   const [codeFormat, setCodeFormat] = useState<CodeFormat>("text_only");
   const [expires, setExpires] = useState("");
   const [notes, setNotes] = useState("");
+  const [geofence, setGeofence] = useState<CouponGeofence | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -271,6 +278,7 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
       setCodeFormat("text_only");
       setExpires("");
       setNotes("");
+      setGeofence(null);
       setFormError(null);
       setIsSaving(false);
     }
@@ -293,7 +301,8 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         codeFormat,
         expiresAt: parseExpiryInput(expires),
         source: "manual",
-        notes: notes.trim() || null
+        notes: notes.trim() || null,
+        geofence: geofence ?? null
       });
       onCreated();
     } catch (err) {
@@ -399,6 +408,8 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
               placeholderTextColor={theme.colors.textMuted}
               style={localStyles.input}
             />
+
+            <CouponGeofencePicker copy={copy} value={geofence} onChange={setGeofence} />
 
             {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
           </ScrollView>
@@ -508,6 +519,11 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
           <View style={styles.modalHandle} />
           <Text style={styles.messageMeta}>{coupon.brand}</Text>
           <Text style={styles.sectionTitle}>{coupon.title}</Text>
+          {coupon.geofence?.placeName ? (
+            <Text style={styles.helperText}>
+              {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
+            </Text>
+          ) : null}
           {coupon.expiresAt ? (
             <Text style={styles.detailLine}>
               {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}

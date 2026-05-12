@@ -357,6 +357,13 @@ export const KO_COPY: AppCopy = {
     extractInsufficient: '이 메일에서 쿠폰을 찾지 못했어요. 직접 추가해 주세요.',
     extractConfidenceLow: '정확도가 낮습니다. 저장 전 내용을 확인해 주세요.',
     extractSaveButton: '지갑에 저장',
+    geofencePlaceholder: '예: 강남역 GS25',
+    geofencePlaceLabel: '사용 매장 (선택)',
+    geofenceUseCurrent: '현재 위치 저장',
+    geofenceCapturing: '위치 가져오는 중...',
+    geofencePermissionDenied: '위치 권한이 필요해요. 설정에서 허용해 주세요.',
+    geofenceClear: '매장 정보 지우기',
+    geofenceSavedAt: (place: string) => `📍 ${place}`,
   },
   ask: {
     eyebrow: '질문',

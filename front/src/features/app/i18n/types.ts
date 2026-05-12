@@ -327,6 +327,13 @@ export interface AppCopy {
     extractInsufficient: string;
     extractConfidenceLow: string;
     extractSaveButton: string;
+    geofencePlaceholder: string;
+    geofencePlaceLabel: string;
+    geofenceUseCurrent: string;
+    geofenceCapturing: string;
+    geofencePermissionDenied: string;
+    geofenceClear: string;
+    geofenceSavedAt: (place: string) => string;
   };
   ask: {
     eyebrow: string;
