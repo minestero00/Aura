@@ -172,6 +172,81 @@ i18n.ts에 ja / zh-CN. detectSystemLanguage 확장. LLM은 prompt language param
 
 ---
 
+## 🎟️ Phase J — Aura Wallet (QR/바코드 쿠폰 통합 관리)
+
+**시나리오**: 사용자가 매장 카운터에서 카톡/메일/문자 뒤져서 쿠폰 찾는 짜증을 없앤다. 메일/공유/스캔 모든 입력 경로를 한 곳으로 흡수, 매장 도착 시 자동 표시.
+
+**기준**: 메일 자동 추출 비용은 1차 regex 필터 통과한 메일만 LLM 호출. 보안적으로 쿠폰 코드는 현금 등가물 — AES-256-GCM + biometric 옵션. 5탭 고정 정책 유지: 설정 → 지갑 sub-page로.
+
+### J.0 · DB + 모듈 skeleton (P0, ~0.5d)
+
+- 새 모듈 `back/src/modules/wallet/` — routes / service / repository / extractor / geocoder / schemas / types / CLAUDE.md
+- DB 마이그레이션 `coupons` 테이블 — `code_ciphertext BYTEA`, brand/title/codeFormat/expiresAt/source/sourceRef/status/usedAt/geofence_*/notes + UNIQUE(user_id, code_ciphertext)
+- CRUD 4 API: GET/POST/PATCH/DELETE `/wallet/coupons` + GET `/wallet/coupons/:id/code` (분당 10회 rate limit, 30초 cache)
+- 상태 머신 (active → expiring_soon → expired/used) 처리하는 cron 1회/day
+
+### J.1 · 카메라 스캔 + 수동 입력 + 풀스크린 표시 (P0, ~1.5d)
+
+- `react-native-vision-camera` v4 RN 0.84 호환 사전 확인 (incompat 시 expo-camera fallback)
+- 바코드: codeScanner (EAN-13/Code-128/QR 자동)
+- 수동: brand/title/code/expiresAt input form
+- `CouponDetailScreen` 풀스크린 — 바코드 SVG 렌더 (`@kichiyaki/react-native-barcode-generator` + `react-native-qrcode-svg`) + 코드 큰 글씨 + `KeepAwake` + 화면 밝기 max + "사용 완료" 버튼
+- 진입점: 설정 → 지갑 → AddCouponSheet (4탭: 카메라/사진/메일후보/수동)
+
+### J.2 · 메일 자동 추출 + 자동 push (P0, ~1d)
+
+- 1차 deterministic 필터: subject+snippet에 `쿠폰|기프티콘|바코드|할인코드|유효기간|coupon|voucher|redeem` 매칭만
+- 2차 LLM 추출 — Anthropic Haiku, brand/title/code/codeFormat/expiresAt/confidence JSON
+- confidence < 0.6: 자동 저장 X, `MailCandidatesSheet`에 후보로만 표시 (사용자 confirm 후 저장)
+- dedupe: UNIQUE(user_id, code_ciphertext) 위배 시 skip
+- 자동 저장 N건 발생 시 push 1건 ("쿠폰 N건 자동 추가") → 탭하면 지갑 직행
+- 비용 영향: 메일 1건당 ~600 input + 200 output token (필터 통과한 후보만)
+
+### J.3 · 사진첩 OCR (네이티브 ML Kit/Vision bridge) (P1, ~1.5d)
+
+- iOS Vision framework + Android ML Kit Text Recognition v2 (둘 다 free, on-device)
+- 네이티브 모듈 `NativeModules.AuraOCR.extractText(uri) → string[]` 패턴 — health 모듈처럼 silent skip 폴백
+- 추출된 텍스트 후보 중 사용자가 어느 게 code인지 tap → AddCouponSheet 자동 채움
+- vision LLM 호출 fallback 옵션 (비용 발생, P2)
+
+### J.4 · Geofence 자동 알림 + 매장 좌표 picker (P1, ~1d)
+
+- `features/transit/native-geofence.ts` 패턴 재사용 — 같은 native module에 쿠폰 region 추가
+- 매장 좌표: 신규 쿠폰 등록 시 Google Places API로 brand → 가장 가까운 매장 좌표 추천 (사용자 confirm). brand별 좌표 DB 캐시(공유 자원)로 비용 최소화
+- 반경 200m 진입 → local notification ("GS25 쿠폰 보유") → 탭 deeplink → CouponDetailScreen 직행
+- iOS Region monitoring 동시 20개 제한 — `expiring_soon + nearest` 우선순위로 동적 swap
+
+### J.5 · 홈/잠금 위젯 (P1, ~1d)
+
+- iOS WidgetKit: 새 widget kind `AuraCouponWidget` — small(가장 빨리 만료 임박 1건) + medium(top 3) + accessoryCircular(만료 임박 카운트)
+- Android AppWidget: `features/widget/sync.ts` 패턴 재사용
+- 데이터 source: App Group `wallet/widget-state.json` (메인 앱이 갱신)
+- 보안: 잠금화면/위젯에는 코드 `****1234` 마스킹. 평문은 메인 앱 풀스크린에서만
+
+### J.6 · iOS Share Extension (카톡 기프티콘 등) (P2, ~1.5d)
+
+- 새 Xcode target `AuraShareExtension` — App Group 공유 (기존 widget capability 재사용)
+- 카톡 기프티콘 길게 → "공유" → "Aura" → Extension이 image/text를 `wallet/incoming.json`에 저장
+- 메인 앱 foreground 시 incoming 폴더 검사 → AddCouponSheet 자동 모달 + OCR 후보 적용
+- fastlane Archive 재설정 필요 (다중 target — ModuleCache 이슈 주의)
+
+### J — Edge cases & 보안 점검
+
+- 같은 쿠폰 중복 (메일 + 카톡 공유): code_ciphertext UNIQUE로 차단
+- 만료 후 90일: hard delete cron (`daily_brief_open_events` cleanup과 같은 위치)
+- 사용자가 사용했지만 마킹 안 함: 매장 geofence 진입 + 1h 후 silent prompt "사용했나요?"
+- 텍스트만 있는 쿠폰 (바코드 없음): `code_format = 'text_only'`, 풀스크린에 코드만 큰 글씨
+- 코드 평문은 응답에만 — DB/캐시/로그 어디에도 평문 X
+- biometric prompt (FaceID/TouchID) 옵션: Settings 토글, 기본 off
+
+### J — 의존성 리스크
+
+- `react-native-vision-camera` RN 0.84 호환 — Voice STT(audio-recorder-player v3)처럼 incompat 가능. 사전 확인 후 expo-camera fallback 대비
+- Google Places API quota — 무조건 brand별 매장 좌표 DB 캐시 (사용자 위치 변화 후만 refresh)
+- Share Extension은 별도 target — fastlane build 복잡도 ↑ (RNCPushNotificationIOS 같은 module 이슈 가능)
+
+---
+
 ## 🔁 White-spaces (작은 누적 개선)
 
 | 영역   | 작업                                                                  | 우선순위 |
