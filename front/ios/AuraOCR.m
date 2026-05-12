@@ -6,4 +6,8 @@ RCT_EXTERN_METHOD(extractText:(NSString *)imagePath
                   resolver:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 
+RCT_EXTERN_METHOD(cropBarcode:(NSString *)imagePath
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter)
+
 @end

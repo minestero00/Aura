@@ -28,7 +28,7 @@ import {
 } from "@features/wallet/api";
 import { CouponCodeRenderer } from "@features/wallet/components/coupon-code-renderer";
 import { CouponGeofencePicker } from "@features/wallet/components/coupon-geofence-picker";
-import { extractTextFromImage, isNativeOcrAvailable } from "@features/wallet/native-ocr";
+import { cropBarcodeFromImage, extractTextFromImage, isNativeOcrAvailable } from "@features/wallet/native-ocr";
 import type { CodeFormat, Coupon, CouponGeofence, CouponStatus } from "@features/wallet/types";
 import { useAuraTheme } from "@features/app/styles";
 
@@ -313,12 +313,18 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
       return;
     }
 
-    // 원본 이미지 보존 — 저장 시 createCoupon에 첨부됨.
-    setImageBase64(pickedBase64);
-    setImageMime(pickedMime);
-
     setImageBusy("ocr");
     try {
+      // 바코드 영역 자동 crop 시도 → 있으면 그것을 codeImage로 사용 (점원 스캔 편의).
+      // 없으면 원본 이미지 fallback.
+      const cropped = await cropBarcodeFromImage(imageUri);
+      if (cropped) {
+        setImageBase64(cropped.base64);
+        setImageMime(cropped.mime);
+      } else {
+        setImageBase64(pickedBase64);
+        setImageMime(pickedMime);
+      }
       const ocr = await extractTextFromImage(imageUri);
       if (!ocr || ocr.fullText.trim().length === 0) {
         setFormError(copy.wallet.ocrFailed);
@@ -644,11 +650,23 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
           {code ? (
             <>
               {imageBase64 ? (
-                <Image
-                  source={{ uri: imageBase64 }}
-                  style={localStyles.couponImageFull}
-                  resizeMode="contain"
-                />
+                <ScrollView
+                  style={localStyles.zoomScroll}
+                  contentContainerStyle={localStyles.zoomContent}
+                  maximumZoomScale={6}
+                  minimumZoomScale={1}
+                  pinchGestureEnabled
+                  bouncesZoom
+                  showsHorizontalScrollIndicator={false}
+                  showsVerticalScrollIndicator={false}
+                  centerContent
+                >
+                  <Image
+                    source={{ uri: imageBase64 }}
+                    style={localStyles.couponImageFull}
+                    resizeMode="contain"
+                  />
+                </ScrollView>
               ) : (
                 <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} size={280} />
               )}
@@ -787,11 +805,22 @@ const localStyles = StyleSheet.create({
   },
   detailScanHint: { fontSize: 14, textAlign: "center" },
   detailReveal: { alignItems: "center", gap: 8 },
-  // 풀스크린 이미지 — 화면 너비 거의 100%, aspectRatio로 비율 유지.
+  // 풀스크린 이미지 — ScrollView 안에서 핀치줌 가능 (max 6x).
+  // 매장에서 바코드 영역만 핀치인하면 화면 가득. 다음 commit에서 native
+  // VNDetectBarcodesRequest로 자동 crop 도입 예정.
+  zoomScroll: {
+    flex: 1,
+    width: "100%"
+  },
+  zoomContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
   couponImageFull: {
     width: "100%",
     aspectRatio: 0.65,
-    maxHeight: "90%",
+    maxHeight: "100%",
     borderRadius: 16,
     backgroundColor: "#FFFFFF"
   },
