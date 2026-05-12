@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BottomSheetModal } from "@features/app/components/bottom-sheet-modal";
 import { SettingsSubpageHeader } from "@features/app/screens/settings/shared";
 import type { SettingsSectionProps } from "@features/app/screens/settings/sections/section-props";
 import { getCurrentAccessToken } from "@lib/supabase/client";
@@ -323,14 +323,16 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
   ];
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent>
-      <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <Pressable onPress={() => undefined} style={styles.modalCard}>
-          <View style={styles.modalHandle} />
-          <Text style={styles.sectionTitle}>{copy.wallet.addModalTitle}</Text>
+    <BottomSheetModal visible={visible} onClose={onClose} sheetStyle={styles.modalCard}>
+      <View style={styles.modalHandle} />
+      <Text style={styles.sectionTitle}>{copy.wallet.addModalTitle}</Text>
 
-          <ScrollView style={styles.modalBodyScroll} contentContainerStyle={localStyles.formContent}>
-            <Text style={styles.inputLabel}>{copy.wallet.formBrand}</Text>
+      <ScrollView
+        style={localStyles.formScroll}
+        contentContainerStyle={localStyles.formContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.inputLabel}>{copy.wallet.formBrand}</Text>
             <TextInput
               value={brand}
               onChangeText={setBrand}
@@ -409,30 +411,28 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
               style={localStyles.input}
             />
 
-            <CouponGeofencePicker copy={copy} value={geofence} onChange={setGeofence} />
+        <CouponGeofencePicker copy={copy} value={geofence} onChange={setGeofence} />
 
-            {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
-          </ScrollView>
+        {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
+      </ScrollView>
 
-          <View style={styles.buttonRow}>
-            <Pressable onPress={onClose} style={styles.outlineButton} disabled={isSaving}>
-              <Text style={styles.outlineButtonText}>{copy.wallet.actionCancel}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => void handleSave()}
-              style={[styles.primaryButton, isSaving ? styles.primaryButtonDisabled : null]}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <ActivityIndicator color={theme.colors.accentText} />
-              ) : (
-                <Text style={styles.primaryButtonText}>{copy.wallet.actionSave}</Text>
-              )}
-            </Pressable>
-          </View>
+      <View style={styles.buttonRow}>
+        <Pressable onPress={onClose} style={styles.outlineButton} disabled={isSaving}>
+          <Text style={styles.outlineButtonText}>{copy.wallet.actionCancel}</Text>
         </Pressable>
-      </Pressable>
-    </Modal>
+        <Pressable
+          onPress={() => void handleSave()}
+          style={[styles.primaryButton, isSaving ? styles.primaryButtonDisabled : null]}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color={theme.colors.accentText} />
+          ) : (
+            <Text style={styles.primaryButtonText}>{copy.wallet.actionSave}</Text>
+          )}
+        </Pressable>
+      </View>
+    </BottomSheetModal>
   );
 }
 
@@ -513,70 +513,66 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
   }
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose} transparent>
-      <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <Pressable onPress={() => undefined} style={[styles.modalCard, { maxHeight: "90%" }]}>
-          <View style={styles.modalHandle} />
-          <Text style={styles.messageMeta}>{coupon.brand}</Text>
-          <Text style={styles.sectionTitle}>{coupon.title}</Text>
-          {coupon.geofence?.placeName ? (
-            <Text style={styles.helperText}>
-              {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
+    <BottomSheetModal visible onClose={onClose} sheetStyle={styles.modalCard}>
+      <View style={styles.modalHandle} />
+      <Text style={styles.messageMeta}>{coupon.brand}</Text>
+      <Text style={styles.sectionTitle}>{coupon.title}</Text>
+      {coupon.geofence?.placeName ? (
+        <Text style={styles.helperText}>
+          {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
+        </Text>
+      ) : null}
+      {coupon.expiresAt ? (
+        <Text style={styles.detailLine}>
+          {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
+        </Text>
+      ) : null}
+
+      <View style={localStyles.codeArea}>
+        {code ? (
+          <>
+            <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} />
+            <Text style={[styles.helperText, { marginTop: 14 }]}>
+              {copy.wallet.detailScanInstruction}
             </Text>
-          ) : null}
-          {coupon.expiresAt ? (
-            <Text style={styles.detailLine}>
-              {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
-            </Text>
-          ) : null}
-
-          <View style={localStyles.codeArea}>
-            {code ? (
-              <>
-                <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} />
-                <Text style={[styles.helperText, { marginTop: 14 }]}>
-                  {copy.wallet.detailScanInstruction}
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.helperText}>{copy.wallet.detailCodeRevealHint}</Text>
-                <Pressable
-                  onPress={() => void reveal()}
-                  style={[styles.primaryButton, { marginTop: 12 }]}
-                  disabled={isRevealing}
-                >
-                  {isRevealing ? (
-                    <ActivityIndicator color={theme.colors.accentText} />
-                  ) : (
-                    <Text style={styles.primaryButtonText}>{copy.wallet.detailCodeShow}</Text>
-                  )}
-                </Pressable>
-              </>
-            )}
-          </View>
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-          <View style={styles.buttonRow}>
+          </>
+        ) : (
+          <>
+            <Text style={styles.helperText}>{copy.wallet.detailCodeRevealHint}</Text>
             <Pressable
-              onPress={() => void markUsed()}
-              style={[styles.outlineButton, { flex: 1 }]}
-              disabled={isBusy || coupon.status === "used"}
+              onPress={() => void reveal()}
+              style={[styles.primaryButton, { marginTop: 12 }]}
+              disabled={isRevealing}
             >
-              <Text style={styles.outlineButtonText}>{copy.wallet.actionUsed}</Text>
+              {isRevealing ? (
+                <ActivityIndicator color={theme.colors.accentText} />
+              ) : (
+                <Text style={styles.primaryButtonText}>{copy.wallet.detailCodeShow}</Text>
+              )}
             </Pressable>
-            <Pressable
-              onPress={confirmDelete}
-              style={[styles.dangerButton, { flex: 1 }]}
-              disabled={isBusy}
-            >
-              <Text style={styles.dangerButtonText}>{copy.wallet.actionDelete}</Text>
-            </Pressable>
-          </View>
+          </>
+        )}
+      </View>
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <View style={styles.buttonRow}>
+        <Pressable
+          onPress={() => void markUsed()}
+          style={[styles.outlineButton, { flex: 1 }]}
+          disabled={isBusy || coupon.status === "used"}
+        >
+          <Text style={styles.outlineButtonText}>{copy.wallet.actionUsed}</Text>
         </Pressable>
-      </Pressable>
-    </Modal>
+        <Pressable
+          onPress={confirmDelete}
+          style={[styles.dangerButton, { flex: 1 }]}
+          disabled={isBusy}
+        >
+          <Text style={styles.dangerButtonText}>{copy.wallet.actionDelete}</Text>
+        </Pressable>
+      </View>
+    </BottomSheetModal>
   );
 }
 
@@ -598,6 +594,7 @@ const localStyles = StyleSheet.create({
   },
   cardBadgeCol: { alignItems: "flex-end", gap: 2 },
   cardBadge: { fontSize: 11, fontWeight: "800" },
+  formScroll: { maxHeight: 460 },
   formContent: { paddingBottom: 12, gap: 6 },
   input: {
     minHeight: 44,
