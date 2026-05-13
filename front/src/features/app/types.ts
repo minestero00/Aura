@@ -11,6 +11,10 @@ import type { TodayWeatherAdvice } from "@features/weather/types";
 export type AppTabKey = "mail" | "todo" | "news" | "ask" | "settings";
 export type SettingsSectionKey =
   | "menu"
+  | "cat-account"
+  | "cat-notifications"
+  | "cat-mail"
+  | "cat-content"
   | "gmail"
   | "ignored-senders"
   | "news"
@@ -181,11 +185,20 @@ export interface UseAuraAppResult {
   isCalendarExtractLoading: boolean;
   extractedEvent: import("@features/gmail/api").ExtractedCalendarEvent | null;
   handleExtractCouponFromMessage: (messageId: string) => Promise<void>;
+  /** iOS Share Extension(AuraCouponShare)이 전달한 이미지를 OCR → backend extract → WalletExtractModal에 표시. */
+  handleShareCouponImage: (payload: import("@features/wallet/share-receiver").SharePayload) => Promise<void>;
   handleSaveExtractedCoupon: (input: import("@features/wallet/types").CreateCouponInput) => Promise<boolean>;
   handleCloseWalletExtract: () => void;
   isWalletExtractOpen: boolean;
   isWalletExtractLoading: boolean;
   walletExtractCandidate: import("@features/wallet/api").CouponExtractCandidate | null;
+  /** 지갑 sub-page에서 "쿠폰 추가" 누르면 AppShell-level drawer가 nav 위로 슬라이드. */
+  isWalletAddOpen: boolean;
+  handleOpenWalletAdd: () => void;
+  handleCloseWalletAdd: () => void;
+  /** 신규 쿠폰 저장 완료 시 WalletSection이 reload하도록 increment. */
+  walletRefreshKey: number;
+  handleWalletAddCreated: () => void;
   /** Bottom nav 끌어올림 → expanded drawer 열기. */
   handleOpenNavExpand: () => void;
   /** Drawer 닫기 (백드롭 탭 또는 swipe down). */

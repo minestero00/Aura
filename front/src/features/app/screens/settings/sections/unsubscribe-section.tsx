@@ -51,6 +51,7 @@ export function UnsubscribeSection(props: SettingsSectionProps) {
           title={copy.settings.unsubscribeTitle}
           subtitle={copy.settings.unsubscribeSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-mail"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>

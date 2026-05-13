@@ -32,8 +32,10 @@ import { WalletExtractModal } from "@features/app/components/wallet-extract-moda
 import { openComposeInExternalApp } from "@features/gmail/compose";
 import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
 import { TransitModal } from "@features/app/components/transit-modal";
+import { AddCouponDrawer } from "@features/app/screens/settings/sections/wallet-section";
 import { mergeAgendaDays } from "@features/calendar/merge";
 import { loadNavExpandHintSeen, markNavExpandHintSeen } from "@features/app/storage";
+import { fetchPendingShare, subscribeToShare } from "@features/wallet/share-receiver";
 
 interface AppShellProps {
   app: UseAuraAppResult;
@@ -80,6 +82,26 @@ export function AppShell({ app }: AppShellProps) {
     setShowNavExpandCoachmark(false);
     void markNavExpandHintSeen().catch(() => undefined);
   }
+
+  // iOS Share Extension(AuraCouponShare) — cold start 시 pending payload pull,
+  // 그 이후는 NativeEventEmitter로 실시간 수신. handleShareCouponImage가 매 render마다
+  // 새 reference라 useEffect deps에 두면 매 render마다 cleanup + 재실행되어
+  // pending payload가 race condition으로 중복 처리되거나 listener가 불안정해짐.
+  // ref로 안정화해 mount 시 1회만 fetchPending + subscribe.
+  const shareHandlerRef = useRef(app.handleShareCouponImage);
+  useEffect(() => {
+    shareHandlerRef.current = app.handleShareCouponImage;
+  });
+  useEffect(() => {
+    void fetchPendingShare().then(payload => {
+      if (payload) void shareHandlerRef.current(payload);
+    });
+    const unsubscribe = subscribeToShare(payload => {
+      void shareHandlerRef.current(payload);
+    });
+    return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // BottomNav 탭 누르면 selectedTab → useEffect에서 ScrollView 동기화.
   // 스와이프로 탭 바뀌면 onMomentumScrollEnd → handleSelectTab 호출 (handleSelectTab
@@ -262,6 +284,8 @@ export function AppShell({ app }: AppShellProps) {
             onOneClickUnsubscribe={app.handleOneClickUnsubscribe}
             onOpenUnsubscribeSettings={app.handleOpenUnsubscribeSettings}
             onOpenWalletSettings={app.handleOpenWalletSettings}
+            onOpenWalletAdd={app.handleOpenWalletAdd}
+            walletRefreshKey={app.walletRefreshKey}
           />
         </View>
       </ScrollView>
@@ -274,6 +298,12 @@ export function AppShell({ app }: AppShellProps) {
         onPullUp={app.handleOpenNavExpand}
         onCancelExpand={app.handleCloseNavExpand}
         sheetProgress={sheetProgress}
+        centerIndicatorIcon={
+          app.selectedTab === "settings" && app.selectedSettingsSection === "wallet"
+            ? "wallet"
+            : undefined
+        }
+        onCenterIndicatorPress={() => app.handleSelectSettingsSection("menu")}
       />
 
       <ChatFab onPress={app.handleOpenAsk} hidden={app.isAskFabHidden} />
@@ -286,6 +316,14 @@ export function AppShell({ app }: AppShellProps) {
         onOpenAsk={app.handleOpenAsk}
         onOpenTransit={app.handleOpenTransit}
         onOpenWallet={app.handleOpenWalletSettings}
+      />
+
+      <AddCouponDrawer
+        visible={app.isWalletAddOpen}
+        styles={styles}
+        copy={app.copy}
+        onClose={app.handleCloseWalletAdd}
+        onCreated={app.handleWalletAddCreated}
       />
 
       <ReplyDraftModal

@@ -270,6 +270,14 @@ export const KO_COPY: AppCopy = {
     menuPermissions: '권한',
     menuUsage: '일일 사용량',
     menuDataPrivacy: '데이터 및 개인정보',
+    catAccountTitle: '계정 & 연동',
+    catAccountSubtitle: 'Google 계정·권한·언어·로그아웃',
+    catNotificationsTitle: '알림',
+    catNotificationsSubtitle: '데일리 브리핑 시각·출발 알림',
+    catMailTitle: '메일',
+    catMailSubtitle: '무시 발신자·구독 정리',
+    catContentTitle: '콘텐츠 & 사용',
+    catContentSubtitle: '뉴스 토픽·디스플레이·사용량·개인정보',
     dataPrivacyMenuHint: '무엇을 읽고 저장하고 전송하는지',
     dataPrivacyTitle: '데이터 및 개인정보',
     dataPrivacySubtitle:
@@ -369,6 +377,7 @@ export const KO_COPY: AppCopy = {
     ocrRunning: '이미지에서 텍스트 인식 중...',
     ocrUnavailable: 'OCR을 사용할 수 없어요. 이 기기/OS에서는 수동 입력만 가능합니다.',
     ocrFailed: '이미지에서 텍스트를 인식하지 못했어요. 다른 사진을 시도해 보세요.',
+    ocrAttachedHint: '풀스크린에서 그대로 보여줍니다',
   },
   ask: {
     eyebrow: '질문',

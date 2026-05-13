@@ -43,6 +43,7 @@ export function PermissionsSection(props: SettingsSectionProps) {
           title={copy.settings.permissionsTitle}
           subtitle={copy.settings.permissionsSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-account"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>

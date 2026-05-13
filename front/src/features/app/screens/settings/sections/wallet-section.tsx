@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -63,13 +63,12 @@ function parseExpiryInput(value: string): string | null {
 }
 
 export function WalletSection(props: SettingsSectionProps) {
-  const { styles, copy, onSelectSettingsSection } = props;
+  const { styles, copy, onSelectSettingsSection, onOpenWalletAdd, walletRefreshKey } = props;
   const theme = useAuraTheme();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<CouponStatus | "all">("active");
-  const [isAddOpen, setIsAddOpen] = useState(false);
   const [detailCoupon, setDetailCoupon] = useState<Coupon | null>(null);
 
   const load = useCallback(async () => {
@@ -93,6 +92,12 @@ export function WalletSection(props: SettingsSectionProps) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // 외부에서 신규 쿠폰 create 완료 → walletRefreshKey 증가 → reload.
+  useEffect(() => {
+    if (walletRefreshKey > 0) void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletRefreshKey]);
 
   function statusLabel(status: CouponStatus): string {
     switch (status) {
@@ -124,11 +129,7 @@ export function WalletSection(props: SettingsSectionProps) {
           onSelectSettingsSection={onSelectSettingsSection}
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={localStyles.filterRow}
-          >
+          <View style={localStyles.filterRow}>
             {FILTER_ORDER.map(key => {
               const isActive = filter === key;
               return (
@@ -138,7 +139,8 @@ export function WalletSection(props: SettingsSectionProps) {
                   style={[
                     localStyles.filterChip,
                     {
-                      backgroundColor: isActive ? theme.colors.accent : theme.colors.surfaceMuted
+                      backgroundColor: isActive ? theme.colors.accent : theme.colors.surfaceMuted,
+                      borderColor: isActive ? theme.colors.accent : theme.colors.line
                     }
                   ]}
                 >
@@ -153,7 +155,7 @@ export function WalletSection(props: SettingsSectionProps) {
                 </Pressable>
               );
             })}
-          </ScrollView>
+          </View>
 
           {error ? (
             <View style={styles.warningCard}>
@@ -162,82 +164,137 @@ export function WalletSection(props: SettingsSectionProps) {
           ) : null}
 
           {isLoading ? (
-            <View style={styles.sectionCard}>
+            <View style={[styles.sectionCard, { alignItems: "center", paddingVertical: 32 }]}>
               <ActivityIndicator color={theme.colors.accent} />
             </View>
           ) : coupons.length === 0 ? (
-            <View style={styles.sectionCard}>
-              <Text style={styles.sectionTitle}>{copy.wallet.empty}</Text>
-              <Text style={styles.helperText}>{copy.wallet.emptyHint}</Text>
+            <View style={[localStyles.emptyCard, { backgroundColor: theme.colors.accentSoft }]}>
+              <Text style={[localStyles.emptyIcon, { color: theme.colors.accent }]}>🎟️</Text>
+              <Text style={[localStyles.emptyTitle, { color: theme.colors.textPrimary }]}>
+                {copy.wallet.empty}
+              </Text>
+              <Text style={[localStyles.emptyHint, { color: theme.colors.textSecondary }]}>
+                {copy.wallet.emptyHint}
+              </Text>
             </View>
           ) : (
-            coupons.map(coupon => {
-              const daysLeft = daysUntil(coupon.expiresAt);
-              return (
-                <Pressable
-                  key={coupon.id}
-                  onPress={() => setDetailCoupon(coupon)}
-                  style={styles.sectionCard}
-                >
-                  <View style={localStyles.cardHeaderRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.messageMeta}>{coupon.brand}</Text>
-                      <Text style={styles.messageSubject}>{coupon.title}</Text>
-                    </View>
-                    <View style={localStyles.cardBadgeCol}>
-                      <Text style={[localStyles.cardBadge, { color: theme.colors.textMuted }]}>
-                        {statusLabel(coupon.status)}
-                      </Text>
-                      {daysLeft !== null && coupon.status !== "used" ? (
+            <View style={localStyles.cardList}>
+              {coupons.map(coupon => {
+                const daysLeft = daysUntil(coupon.expiresAt);
+                const isUrgent = daysLeft !== null && daysLeft <= 3 && coupon.status !== "used";
+                const isUsed = coupon.status === "used";
+                return (
+                  <Pressable
+                    key={coupon.id}
+                    onPress={() => setDetailCoupon(coupon)}
+                    style={({ pressed }) => [
+                      localStyles.couponCard,
+                      {
+                        backgroundColor: theme.colors.elevated,
+                        borderColor: isUrgent ? theme.colors.dangerText : theme.colors.line,
+                        opacity: isUsed ? 0.55 : pressed ? 0.85 : 1
+                      }
+                    ]}
+                  >
+                    <View style={localStyles.couponCardLeftRail}>
+                      <View
+                        style={[
+                          localStyles.couponBrandChip,
+                          {
+                            backgroundColor: isUrgent
+                              ? theme.colors.dangerSoft
+                              : theme.colors.accentSoft
+                          }
+                        ]}
+                      >
                         <Text
                           style={[
-                            localStyles.cardBadge,
+                            localStyles.couponBrandChipText,
                             {
-                              color:
-                                daysLeft <= 0
-                                  ? theme.colors.dangerText
-                                  : daysLeft <= 3
-                                  ? theme.colors.dangerText
-                                  : theme.colors.textPrimary
+                              color: isUrgent ? theme.colors.dangerText : theme.colors.accent
+                            }
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {coupon.brand}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={localStyles.couponCardBody}>
+                      <Text
+                        style={[localStyles.couponTitle, { color: theme.colors.textPrimary }]}
+                        numberOfLines={2}
+                      >
+                        {coupon.title}
+                      </Text>
+                      <View style={localStyles.couponMetaRow}>
+                        {coupon.expiresAt ? (
+                          <Text
+                            style={[
+                              localStyles.couponMetaText,
+                              { color: theme.colors.textSecondary }
+                            ]}
+                          >
+                            {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
+                          </Text>
+                        ) : null}
+                        {coupon.geofence?.placeName ? (
+                          <Text
+                            style={[
+                              localStyles.couponMetaText,
+                              { color: theme.colors.textMuted }
+                            ]}
+                            numberOfLines={1}
+                          >
+                            · {coupon.geofence.placeName}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+
+                    <View style={localStyles.couponCardRight}>
+                      {daysLeft !== null && !isUsed ? (
+                        <View
+                          style={[
+                            localStyles.dDayBadge,
+                            {
+                              backgroundColor: isUrgent
+                                ? theme.colors.dangerText
+                                : theme.colors.surfaceMuted
                             }
                           ]}
                         >
-                          {copy.wallet.daysLeft(daysLeft)}
+                          <Text
+                            style={[
+                              localStyles.dDayBadgeText,
+                              {
+                                color: isUrgent ? "#FFFFFF" : theme.colors.textPrimary
+                              }
+                            ]}
+                          >
+                            {copy.wallet.daysLeft(daysLeft)}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text
+                          style={[localStyles.statusText, { color: theme.colors.textMuted }]}
+                        >
+                          {statusLabel(coupon.status)}
                         </Text>
-                      ) : null}
+                      )}
                     </View>
-                  </View>
-                  {coupon.geofence?.placeName ? (
-                    <Text style={styles.helperText}>
-                      {copy.wallet.geofenceSavedAt(coupon.geofence.placeName)}
-                    </Text>
-                  ) : null}
-                  {coupon.expiresAt ? (
-                    <Text style={styles.messageMeta}>
-                      {copy.wallet.expiresLabel(formatDate(coupon.expiresAt))}
-                    </Text>
-                  ) : null}
-                </Pressable>
-              );
-            })
+                  </Pressable>
+                );
+              })}
+            </View>
           )}
 
-          <Pressable onPress={() => setIsAddOpen(true)} style={[styles.primaryButton, { marginTop: 18 }]}>
+          <Pressable onPress={onOpenWalletAdd} style={[styles.primaryButton, { marginTop: 18 }]}>
             <Text style={styles.primaryButtonText}>{copy.wallet.addButton}</Text>
           </Pressable>
         </ScrollView>
       </View>
-
-      <AddCouponModal
-        visible={isAddOpen}
-        styles={styles}
-        copy={copy}
-        onClose={() => setIsAddOpen(false)}
-        onCreated={() => {
-          setIsAddOpen(false);
-          void load();
-        }}
-      />
 
       {detailCoupon ? (
         <CouponDetailModal
@@ -255,7 +312,7 @@ export function WalletSection(props: SettingsSectionProps) {
   );
 }
 
-interface AddCouponModalProps {
+interface AddCouponDrawerProps {
   visible: boolean;
   styles: SettingsSectionProps["styles"];
   copy: SettingsSectionProps["copy"];
@@ -263,7 +320,7 @@ interface AddCouponModalProps {
   onCreated: () => void;
 }
 
-function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCouponModalProps) {
+export function AddCouponDrawer({ visible, styles, copy, onClose, onCreated }: AddCouponDrawerProps) {
   const theme = useAuraTheme();
   const [brand, setBrand] = useState("");
   const [title, setTitle] = useState("");
@@ -409,6 +466,15 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
     { key: "barcode_code128", label: copy.wallet.codeFormatBarcode }
   ];
 
+  const inputStyle = [
+    localStyles.input,
+    {
+      backgroundColor: theme.colors.surfaceMuted,
+      borderColor: theme.colors.line,
+      color: theme.colors.textPrimary
+    }
+  ];
+
   return (
     <BottomSheetModal visible={visible} onClose={onClose} sheetStyle={styles.modalCard}>
       <View style={styles.modalHandle} />
@@ -422,100 +488,147 @@ function AddCouponModal({ visible, styles, copy, onClose, onCreated }: AddCoupon
         <Pressable
           onPress={() => void handleExtractFromImage()}
           disabled={imageBusy !== null}
-          style={[styles.secondaryButton, { marginBottom: 10 }]}
+          style={[
+            localStyles.imagePickerCard,
+            {
+              backgroundColor: imageBase64
+                ? theme.colors.accentSoft
+                : theme.colors.surfaceMuted,
+              borderColor: imageBase64 ? theme.colors.accent : theme.colors.line
+            }
+          ]}
         >
-          {imageBusy ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <ActivityIndicator color={theme.colors.textSecondary} size="small" />
-              <Text style={styles.secondaryButtonText}>
-                {imageBusy === "picking" ? copy.wallet.pickingImage : copy.wallet.ocrRunning}
-              </Text>
-            </View>
+          {imageBase64 && imageMime ? (
+            <Image
+              source={{ uri: `data:${imageMime};base64,${imageBase64}` }}
+              style={localStyles.imagePickerThumb}
+              resizeMode="cover"
+            />
           ) : (
-            <Text style={styles.secondaryButtonText}>{copy.wallet.fromImageButton}</Text>
+            <Text style={[localStyles.imagePickerIcon, { color: theme.colors.accent }]}>📷</Text>
           )}
+          <View style={{ flex: 1 }}>
+            {imageBusy ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <ActivityIndicator color={theme.colors.accent} size="small" />
+                <Text style={[localStyles.imagePickerText, { color: theme.colors.textPrimary }]}>
+                  {imageBusy === "picking" ? copy.wallet.pickingImage : copy.wallet.ocrRunning}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <Text
+                  style={[localStyles.imagePickerText, { color: theme.colors.textPrimary }]}
+                >
+                  {copy.wallet.fromImageButton}
+                </Text>
+                {imageBase64 ? (
+                  <Text
+                    style={[localStyles.imagePickerHint, { color: theme.colors.textSecondary }]}
+                  >
+                    {copy.wallet.ocrAttachedHint}
+                  </Text>
+                ) : null}
+              </>
+            )}
+          </View>
         </Pressable>
 
-        <Text style={styles.inputLabel}>{copy.wallet.formBrand}</Text>
-            <TextInput
-              value={brand}
-              onChangeText={setBrand}
-              placeholder={copy.wallet.formBrandPlaceholder}
-              placeholderTextColor={theme.colors.textMuted}
-              style={localStyles.input}
-            />
+        <View style={localStyles.fieldGroup}>
+          <Text style={styles.inputLabel}>{copy.wallet.formBrand}</Text>
+          <TextInput
+            value={brand}
+            onChangeText={setBrand}
+            placeholder={copy.wallet.formBrandPlaceholder}
+            placeholderTextColor={theme.colors.textMuted}
+            style={inputStyle}
+          />
+        </View>
 
-            <Text style={styles.inputLabel}>{copy.wallet.formTitle}</Text>
-            <TextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder={copy.wallet.formTitlePlaceholder}
-              placeholderTextColor={theme.colors.textMuted}
-              style={localStyles.input}
-            />
+        <View style={localStyles.fieldGroup}>
+          <Text style={styles.inputLabel}>{copy.wallet.formTitle}</Text>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder={copy.wallet.formTitlePlaceholder}
+            placeholderTextColor={theme.colors.textMuted}
+            style={inputStyle}
+          />
+        </View>
 
-            <Text style={styles.inputLabel}>{copy.wallet.formCode}</Text>
-            <TextInput
-              value={code}
-              onChangeText={setCode}
-              placeholder={copy.wallet.formCodePlaceholder}
-              placeholderTextColor={theme.colors.textMuted}
-              style={localStyles.input}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+        <View style={localStyles.fieldGroup}>
+          <Text style={styles.inputLabel}>{copy.wallet.formCode}</Text>
+          <TextInput
+            value={code}
+            onChangeText={setCode}
+            placeholder={copy.wallet.formCodePlaceholder}
+            placeholderTextColor={theme.colors.textMuted}
+            style={inputStyle}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
 
-            <Text style={styles.inputLabel}>{copy.wallet.codeFormatLabel}</Text>
-            <View style={localStyles.formatRow}>
-              {formatOptions.map(option => {
-                const isActive = codeFormat === option.key;
-                return (
-                  <Pressable
-                    key={option.key}
-                    onPress={() => setCodeFormat(option.key)}
+        <View style={localStyles.fieldGroup}>
+          <Text style={styles.inputLabel}>{copy.wallet.codeFormatLabel}</Text>
+          <View style={localStyles.formatRow}>
+            {formatOptions.map(option => {
+              const isActive = codeFormat === option.key;
+              return (
+                <Pressable
+                  key={option.key}
+                  onPress={() => setCodeFormat(option.key)}
+                  style={[
+                    localStyles.formatChip,
+                    {
+                      backgroundColor: isActive
+                        ? theme.colors.accent
+                        : theme.colors.surfaceMuted,
+                      borderColor: isActive ? theme.colors.accent : theme.colors.line
+                    }
+                  ]}
+                >
+                  <Text
                     style={[
-                      localStyles.formatChip,
-                      {
-                        backgroundColor: isActive
-                          ? theme.colors.accent
-                          : theme.colors.surfaceMuted
-                      }
+                      localStyles.formatChipText,
+                      { color: isActive ? theme.colors.accentText : theme.colors.textSecondary }
                     ]}
                   >
-                    <Text
-                      style={[
-                        localStyles.formatChipText,
-                        { color: isActive ? theme.colors.accentText : theme.colors.textSecondary }
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
-            <Text style={styles.inputLabel}>{copy.wallet.formExpires}</Text>
-            <TextInput
-              value={expires}
-              onChangeText={setExpires}
-              placeholder={copy.wallet.formExpiresPlaceholder}
-              placeholderTextColor={theme.colors.textMuted}
-              style={localStyles.input}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+        <View style={localStyles.fieldGroup}>
+          <Text style={styles.inputLabel}>{copy.wallet.formExpires}</Text>
+          <TextInput
+            value={expires}
+            onChangeText={setExpires}
+            placeholder={copy.wallet.formExpiresPlaceholder}
+            placeholderTextColor={theme.colors.textMuted}
+            style={inputStyle}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
 
-            <Text style={styles.inputLabel}>{copy.wallet.formNotes}</Text>
-            <TextInput
-              value={notes}
-              onChangeText={setNotes}
-              placeholder={copy.wallet.formNotesPlaceholder}
-              placeholderTextColor={theme.colors.textMuted}
-              style={localStyles.input}
-            />
+        <View style={localStyles.fieldGroup}>
+          <Text style={styles.inputLabel}>{copy.wallet.formNotes}</Text>
+          <TextInput
+            value={notes}
+            onChangeText={setNotes}
+            placeholder={copy.wallet.formNotesPlaceholder}
+            placeholderTextColor={theme.colors.textMuted}
+            style={inputStyle}
+          />
+        </View>
 
-        <CouponGeofencePicker copy={copy} value={geofence} onChange={setGeofence} />
+        <View style={localStyles.fieldGroup}>
+          <CouponGeofencePicker copy={copy} value={geofence} onChange={setGeofence} />
+        </View>
 
         {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
       </ScrollView>
@@ -733,60 +846,92 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
 }
 
 const localStyles = StyleSheet.create({
-  filterRow: { flexDirection: "row", marginBottom: 8 },
+  filterRow: { flexDirection: "row", gap: 8, marginBottom: 14, flexWrap: "wrap" },
   filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    marginRight: 8
+    borderWidth: 1
   },
   filterChipText: { fontSize: 13, fontWeight: "700" },
-  cardHeaderRow: {
+  cardList: { gap: 10 },
+  couponCard: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
+    alignItems: "center",
     gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    borderWidth: 1
+  },
+  couponCardLeftRail: { justifyContent: "center" },
+  couponBrandChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    maxWidth: 96
+  },
+  couponBrandChipText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.2 },
+  couponCardBody: { flex: 1, gap: 4 },
+  couponTitle: { fontSize: 15, fontWeight: "700", lineHeight: 20 },
+  couponMetaRow: { flexDirection: "row", alignItems: "center", gap: 4, flexWrap: "wrap" },
+  couponMetaText: { fontSize: 12, fontWeight: "600" },
+  couponCardRight: { justifyContent: "center", alignItems: "flex-end", minWidth: 56 },
+  dDayBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    minWidth: 48,
+    alignItems: "center"
+  },
+  dDayBadgeText: { fontSize: 12, fontWeight: "800" },
+  statusText: { fontSize: 11, fontWeight: "700" },
+  emptyCard: {
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    borderRadius: 22,
+    alignItems: "center",
+    gap: 6,
     marginBottom: 6
   },
-  cardBadgeCol: { alignItems: "flex-end", gap: 2 },
-  cardBadge: { fontSize: 11, fontWeight: "800" },
-  formScroll: { maxHeight: 460 },
-  formContent: { paddingBottom: 12, gap: 6 },
+  emptyIcon: { fontSize: 36, marginBottom: 4 },
+  emptyTitle: { fontSize: 16, fontWeight: "800", textAlign: "center" },
+  emptyHint: { fontSize: 13, lineHeight: 18, textAlign: "center" },
+  imagePickerCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 14
+  },
+  imagePickerIcon: { fontSize: 26, width: 36, textAlign: "center" },
+  imagePickerThumb: { width: 44, height: 44, borderRadius: 10 },
+  imagePickerText: { fontSize: 14, fontWeight: "700" },
+  imagePickerHint: { fontSize: 12, marginTop: 2 },
+  fieldGroup: { marginBottom: 12 },
+  // ScrollView 자체에 maxHeight 두면 폼 필드가 짤린다. modalCard의 maxHeight 78%가
+  // 이미 부모 한계라 ScrollView는 그 안에서 자연스럽게 채움.
+  formScroll: { flexGrow: 0, flexShrink: 1 },
+  formContent: { paddingBottom: 12 },
   input: {
     minHeight: 44,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(150,150,170,0.35)",
     fontSize: 15
   },
-  formatRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  formatRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   formatChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999
+    borderRadius: 999,
+    borderWidth: 1
   },
   formatChipText: { fontSize: 12, fontWeight: "700" },
-  codeArea: {
-    marginTop: 18,
-    marginBottom: 14,
-    paddingVertical: 18,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  codeText: {
-    fontSize: 26,
-    fontWeight: "800",
-    letterSpacing: 2,
-    marginBottom: 6
-  },
-  couponImage: {
-    width: "100%",
-    height: 300,
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF"
-  },
   // 풀스크린 detail 화면
   detailRoot: {
     flex: 1

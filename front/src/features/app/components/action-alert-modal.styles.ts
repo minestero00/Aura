@@ -4,18 +4,6 @@ import type { AuraTheme } from "@features/app/styles";
 export function buildActionAlertModalStyles(theme: AuraTheme) {
   const { colors } = theme;
   return StyleSheet.create({
-    backdrop: {
-      flex: 1,
-      backgroundColor: colors.overlay,
-      justifyContent: "center",
-      padding: 20
-    },
-    card: {
-      borderRadius: 28,
-      backgroundColor: colors.surface,
-      padding: 24,
-      gap: 14
-    },
     title: { color: colors.textPrimary, fontSize: 20, fontWeight: "800" },
     body: { color: colors.textSecondary, fontSize: 15, lineHeight: 22 },
     primary: {

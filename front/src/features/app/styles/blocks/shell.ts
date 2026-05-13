@@ -9,10 +9,13 @@ export function buildShellStyles(theme: AuraTheme) {
     appShell: { flex: 1 },
     appShellContent: { flex: 1 },
     askScreen: { flex: 1 },
-    askTopBar: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8, gap: 2 },
-    // 그라디언트 위에 직접 노출되는 ask hero 텍스트는 흰색 톤(가독성).
-    askTopBarTitle: { color: "#FFFFFF", fontSize: 20, fontWeight: "800" },
-    askTopBarSubtitle: { color: "rgba(255,255,255,0.85)", fontSize: 12, lineHeight: 17 },
+    // Modal pageSheet은 SafeArea top inset이 적어 헤더가 X 버튼과 너무 붙음 —
+    // 여백을 더 줘서 시각적으로 호흡감 확보.
+    askTopBar: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12, gap: 4 },
+    // AskScreen은 Modal(pageSheet) 안 → 흰 배경. TransitModal 패턴과 통일해 헤더는
+    // theme 따라가는 진한 톤.
+    askTopBarTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: "800" },
+    askTopBarSubtitle: { color: colors.textSecondary, fontSize: 12, lineHeight: 17 },
     askQuickStripContent: { paddingHorizontal: 20, paddingBottom: 8 },
     askQuickPromptsRow: { flexDirection: "row", gap: 8 },
     askQuickPromptChip: {
@@ -112,21 +115,23 @@ export function buildShellStyles(theme: AuraTheme) {
       borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "rgba(255,255,255,0.18)"
+      backgroundColor: colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: colors.line
     },
-    // 그라디언트 위에 있는 backIcon은 흰 반투명 배경 + 흰 글자.
-    backIconText: { color: "#FFFFFF", fontSize: 22, fontWeight: "700", lineHeight: 22 },
+    // sub-section은 흰 배경 위라 backIcon도 theme 따라가는 진한 톤.
+    backIconText: { color: colors.textSecondary, fontSize: 22, fontWeight: "700", lineHeight: 22 },
     subpageHeader: { paddingHorizontal: 20, paddingBottom: 12, gap: 8 },
     subpageHeaderRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-    // 설정 sub-page 헤더는 그라디언트 위에 직접 노출 — 흰 톤으로 가독성 확보.
+    // sub-page는 colors.background(흰) 위 — TransitModal과 동일한 진한 톤 헤더.
     subpageTitle: {
       flex: 1,
-      color: "#FFFFFF",
+      color: colors.textPrimary,
       fontSize: 26,
       fontWeight: "800",
       lineHeight: 32
     },
-    subpageSubtitle: { color: "rgba(255,255,255,0.86)", fontSize: 15, lineHeight: 22 },
+    subpageSubtitle: { color: colors.textSecondary, fontSize: 15, lineHeight: 22 },
     subpageMetaRow: {
       flexDirection: "row",
       alignItems: "center",

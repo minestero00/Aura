@@ -1,4 +1,10 @@
 import React from "react";
+import {
+  AccountCategorySection,
+  ContentCategorySection,
+  MailCategorySection,
+  NotificationsCategorySection
+} from "@features/app/screens/settings/sections/category-section";
 import { GmailSection } from "@features/app/screens/settings/sections/gmail-section";
 import { IgnoredSendersSection } from "@features/app/screens/settings/sections/ignored-senders-section";
 import { LanguageSection } from "@features/app/screens/settings/sections/language-section";
@@ -11,47 +17,74 @@ import { UsageSection } from "@features/app/screens/settings/sections/usage-sect
 import { DataPrivacySection } from "@features/app/screens/settings/sections/data-privacy-section";
 import { UnsubscribeSection } from "@features/app/screens/settings/sections/unsubscribe-section";
 import { WalletSection } from "@features/app/screens/settings/sections/wallet-section";
+import {
+  SwipeBackContainer,
+  getParentSettingsSection
+} from "@features/app/screens/settings/shared";
 
+/**
+ * Settings router — 2단계 navigation:
+ * menu → 4 카테고리 (cat-*) → 개별 sub-section (gmail, notifications, …)
+ *
+ * sub-section과 카테고리는 SwipeBackContainer로 감싸서 좌측 edge swipe로 부모로 복귀.
+ */
 export function SettingsSectionContent(props: SettingsSectionProps) {
-  if (props.selectedSettingsSection === "gmail") {
-    return <GmailSection {...props} />;
-  }
+  const current = props.selectedSettingsSection;
 
-  if (props.selectedSettingsSection === "ignored-senders") {
-    return <IgnoredSendersSection {...props} />;
-  }
+  if (current === "menu") return <MenuSection {...props} />;
 
-  if (props.selectedSettingsSection === "news") {
-    return <NewsSection {...props} />;
-  }
+  const body = pickSection(current, props);
+  if (!body) return <MenuSection {...props} />;
 
-  if (props.selectedSettingsSection === "language") {
-    return <LanguageSection {...props} />;
-  }
+  // parent 화면을 좌측 layer로 미리 렌더 → swipe 동안 iOS 표준 parallax 효과.
+  // 같은 props라 부담 거의 없음 (React reconciliation이 이전 상태 그대로).
+  const parent = getParentSettingsSection(current);
+  const previous = pickSection(parent, props);
 
-  if (props.selectedSettingsSection === "notifications") {
-    return <NotificationsSection {...props} />;
-  }
+  return (
+    <SwipeBackContainer
+      onBack={() => props.onSelectSettingsSection(parent)}
+      previous={previous}
+    >
+      {body}
+    </SwipeBackContainer>
+  );
+}
 
-  if (props.selectedSettingsSection === "permissions") {
-    return <PermissionsSection {...props} />;
+function pickSection(
+  key: SettingsSectionProps["selectedSettingsSection"],
+  props: SettingsSectionProps
+) {
+  switch (key) {
+    case "cat-account":
+      return <AccountCategorySection {...props} />;
+    case "cat-notifications":
+      return <NotificationsCategorySection {...props} />;
+    case "cat-mail":
+      return <MailCategorySection {...props} />;
+    case "cat-content":
+      return <ContentCategorySection {...props} />;
+    case "gmail":
+      return <GmailSection {...props} />;
+    case "ignored-senders":
+      return <IgnoredSendersSection {...props} />;
+    case "news":
+      return <NewsSection {...props} />;
+    case "language":
+      return <LanguageSection {...props} />;
+    case "notifications":
+      return <NotificationsSection {...props} />;
+    case "permissions":
+      return <PermissionsSection {...props} />;
+    case "usage":
+      return <UsageSection {...props} />;
+    case "data-privacy":
+      return <DataPrivacySection {...props} />;
+    case "unsubscribe":
+      return <UnsubscribeSection {...props} />;
+    case "wallet":
+      return <WalletSection {...props} />;
+    default:
+      return null;
   }
-
-  if (props.selectedSettingsSection === "usage") {
-    return <UsageSection {...props} />;
-  }
-
-  if (props.selectedSettingsSection === "data-privacy") {
-    return <DataPrivacySection {...props} />;
-  }
-
-  if (props.selectedSettingsSection === "unsubscribe") {
-    return <UnsubscribeSection {...props} />;
-  }
-
-  if (props.selectedSettingsSection === "wallet") {
-    return <WalletSection {...props} />;
-  }
-
-  return <MenuSection {...props} />;
 }

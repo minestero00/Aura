@@ -108,6 +108,7 @@ export function NotificationsSection(props: SettingsSectionProps) {
           title={copy.settings.notificationsTitle}
           subtitle={copy.settings.notificationsSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-notifications"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>

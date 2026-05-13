@@ -67,6 +67,10 @@ export interface SettingsScreenProps {
   onLoadUnsubscribeCandidates: () => Promise<void>;
   onOneClickUnsubscribe: (url: string) => Promise<void>;
   onOpenUnsubscribeSettings: () => void;
+  /** 지갑: "쿠폰 추가" 버튼 누름 → AppShell의 AddCouponDrawer 열기. */
+  onOpenWalletAdd: () => void;
+  /** AppShell이 신규 쿠폰 create 후 증가 → WalletSection이 변화 보고 list reload. */
+  walletRefreshKey: number;
 }
 
 export const NEWS_CATEGORIES: NewsCategory[] = [

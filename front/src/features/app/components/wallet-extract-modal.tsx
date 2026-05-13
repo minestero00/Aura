@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   View
 } from "react-native";
 import { AuraLoader } from "@features/app/components/aura-loader";
+import { BottomSheetModal } from "@features/app/components/bottom-sheet-modal";
 import type { AppCopy } from "@features/app/i18n";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { CouponExtractCandidate } from "@features/wallet/api";
@@ -112,21 +112,19 @@ export function WalletExtractModal({ visible, isLoading, candidate, copy, onSave
   const isLowConfidence = !isLoading && candidate !== null && candidate.confidence >= 0.1 && candidate.confidence < 0.6;
 
   return (
-    <Modal animationType="fade" transparent visible={visible}>
-      <View style={styles.dailyBriefModalBackdrop}>
-        <Pressable accessibilityLabel="Close" onPress={onClose} style={StyleSheet.absoluteFill} />
-        <View style={styles.dailyBriefModalCard}>
-          <View style={styles.dailyBriefModalHeader}>
-            <View style={styles.dailyBriefHeaderMain}>
-              <Text style={styles.dailyBriefEyebrow}>AURA</Text>
-              <Text style={styles.dailyBriefTitle}>{copy.wallet.extractTitle}</Text>
-            </View>
-            <Pressable onPress={onClose} style={styles.dailyBriefCloseButton}>
-              <Text style={styles.dailyBriefCloseText}>×</Text>
-            </Pressable>
-          </View>
+    <BottomSheetModal visible={visible} onClose={onClose} sheetStyle={styles.modalCard}>
+      <View style={styles.modalHandle} />
+      <View style={styles.dailyBriefModalHeader}>
+        <View style={styles.dailyBriefHeaderMain}>
+          <Text style={styles.dailyBriefEyebrow}>AURA</Text>
+          <Text style={styles.dailyBriefTitle}>{copy.wallet.extractTitle}</Text>
+        </View>
+        <Pressable onPress={onClose} style={styles.dailyBriefCloseButton}>
+          <Text style={styles.dailyBriefCloseText}>×</Text>
+        </Pressable>
+      </View>
 
-          <ScrollView contentContainerStyle={styles.dailyBriefBodyContent} style={styles.dailyBriefBodyScroll}>
+      <ScrollView contentContainerStyle={styles.dailyBriefBodyContent} style={styles.dailyBriefBodyScroll}>
             {isLoading ? (
               <AuraLoader size="md" message={copy.wallet.extractLoading} />
             ) : isInsufficient ? (
@@ -229,9 +227,7 @@ export function WalletExtractModal({ visible, isLoading, candidate, copy, onSave
               </Pressable>
             </View>
           ) : null}
-        </View>
-      </View>
-    </Modal>
+    </BottomSheetModal>
   );
 }
 

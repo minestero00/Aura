@@ -114,7 +114,27 @@ export function SettingsIcon({ color, size = 22 }: TabIconProps) {
   );
 }
 
+// Solo bottom-nav indicator용 — settings sub-section(예: wallet) 진입 시 BottomNav
+// 중앙에 단독 표시. NavExpandDrawer의 wallet SVG와 동일 path.
+export function WalletIcon({ color, size = 22 }: TabIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x={3} y={6} width={18} height={13} rx={2.5} stroke={color} strokeWidth={1.75} />
+      <Path d="M3 9h18" stroke={color} strokeWidth={1.75} strokeLinecap="round" />
+      <Path d="M16.5 13h2" stroke={color} strokeWidth={1.75} strokeLinecap="round" />
+      <Path
+        d="M7 6V4.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 19 4.5V6"
+        stroke={color}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export type TabIconKey = "mail" | "todo" | "news" | "ask" | "settings";
+export type SoloIconKey = "wallet";
 
 export const TAB_ICONS: Record<
   TabIconKey,
@@ -125,4 +145,11 @@ export const TAB_ICONS: Record<
   news: NewsIcon,
   ask: AskIcon,
   settings: SettingsIcon
+};
+
+export const SOLO_ICONS: Record<
+  SoloIconKey,
+  React.ComponentType<TabIconProps>
+> = {
+  wallet: WalletIcon
 };

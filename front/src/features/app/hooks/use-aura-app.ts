@@ -21,7 +21,13 @@ import {
 } from "@features/gmail/api";
 import { getSenderKey } from "@features/gmail/filtering";
 import type { GmailMessage } from "@features/gmail/types";
-import { createCoupon, extractCouponFromMessage } from "@features/wallet/api";
+import {
+  createCoupon,
+  extractCouponFromImageText,
+  extractCouponFromMessage
+} from "@features/wallet/api";
+import { extractTextFromImage } from "@features/wallet/native-ocr";
+import type { SharePayload } from "@features/wallet/share-receiver";
 import type { CreateCouponInput } from "@features/wallet/types";
 import type {
   UseAuraAppResult
@@ -239,6 +245,33 @@ export function useAuraApp(): UseAuraAppResult {
       state.setIsWalletExtractLoading(false);
     }
   }
+  // iOS Share Extension(AuraCouponShare)이 전달한 이미지를 OCR + backend extract →
+  // WalletExtractModal에 후보 prefill. Native OCR이 없으면 candidate=null로 modal만 표시
+  // (사용자가 폼 직접 입력).
+  async function handleShareCouponImage(payload: SharePayload) {
+    if (payload.kind !== "image" || !payload.imagePath) return;
+    const session = state.authState?.session;
+    if (!session) return;
+    state.setIsWalletExtractOpen(true);
+    state.setIsWalletExtractLoading(true);
+    state.setWalletExtractCandidate(null);
+    try {
+      const ocr = await extractTextFromImage(payload.imagePath);
+      if (!ocr || ocr.fullText.trim().length === 0) {
+        state.setWalletExtractCandidate(null);
+        return;
+      }
+      const { result } = await withSessionAutoRefresh(
+        accessToken => extractCouponFromImageText(accessToken, ocr.fullText, state.language),
+        session
+      );
+      state.setWalletExtractCandidate(result ?? null);
+    } catch {
+      state.setWalletExtractCandidate(null);
+    } finally {
+      state.setIsWalletExtractLoading(false);
+    }
+  }
   async function handleSaveExtractedCoupon(input: CreateCouponInput): Promise<boolean> {
     const session = state.authState?.session;
     if (!session) return false;
@@ -327,6 +360,7 @@ export function useAuraApp(): UseAuraAppResult {
       handleExtractCalendarEvent,
       handleCloseCalendarExtract,
       handleExtractCouponFromMessage,
+      handleShareCouponImage,
       handleSaveExtractedCoupon,
       handleCloseWalletExtract,
       handleOpenNavExpand,

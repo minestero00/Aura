@@ -47,6 +47,10 @@ interface BuildResultParams {
   isWalletExtractOpen: UseAuraAppResult["isWalletExtractOpen"];
   isWalletExtractLoading: UseAuraAppResult["isWalletExtractLoading"];
   walletExtractCandidate: UseAuraAppResult["walletExtractCandidate"];
+  isWalletAddOpen: UseAuraAppResult["isWalletAddOpen"];
+  walletRefreshKey: UseAuraAppResult["walletRefreshKey"];
+  setIsWalletAddOpen: (value: boolean) => void;
+  setWalletRefreshKey: (updater: (prev: number) => number) => void;
   isNavExpanded: UseAuraAppResult["isNavExpanded"];
   isTransitOpen: UseAuraAppResult["isTransitOpen"];
   isDeviceCalendarLoading: UseAuraAppResult["isDeviceCalendarLoading"];
@@ -113,6 +117,7 @@ interface BuildResultParams {
     handleExtractCalendarEvent: UseAuraAppResult["handleExtractCalendarEvent"];
     handleCloseCalendarExtract: UseAuraAppResult["handleCloseCalendarExtract"];
     handleExtractCouponFromMessage: UseAuraAppResult["handleExtractCouponFromMessage"];
+    handleShareCouponImage: UseAuraAppResult["handleShareCouponImage"];
     handleSaveExtractedCoupon: UseAuraAppResult["handleSaveExtractedCoupon"];
     handleCloseWalletExtract: UseAuraAppResult["handleCloseWalletExtract"];
     handleOpenNavExpand: UseAuraAppResult["handleOpenNavExpand"];
@@ -179,6 +184,14 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     isWalletExtractOpen: params.isWalletExtractOpen,
     isWalletExtractLoading: params.isWalletExtractLoading,
     walletExtractCandidate: params.walletExtractCandidate,
+    isWalletAddOpen: params.isWalletAddOpen,
+    walletRefreshKey: params.walletRefreshKey,
+    handleOpenWalletAdd: () => params.setIsWalletAddOpen(true),
+    handleCloseWalletAdd: () => params.setIsWalletAddOpen(false),
+    handleWalletAddCreated: () => {
+      params.setIsWalletAddOpen(false);
+      params.setWalletRefreshKey(prev => prev + 1);
+    },
     isNavExpanded: params.isNavExpanded,
     isTransitOpen: params.isTransitOpen,
     isDeviceCalendarLoading: params.isDeviceCalendarLoading,
@@ -265,6 +278,7 @@ export function buildAuraAppResult(params: BuildResultParams): UseAuraAppResult 
     handleExtractCalendarEvent: params.handlers.handleExtractCalendarEvent,
     handleCloseCalendarExtract: params.handlers.handleCloseCalendarExtract,
     handleExtractCouponFromMessage: params.handlers.handleExtractCouponFromMessage,
+    handleShareCouponImage: params.handlers.handleShareCouponImage,
     handleSaveExtractedCoupon: params.handlers.handleSaveExtractedCoupon,
     handleCloseWalletExtract: params.handlers.handleCloseWalletExtract,
     handleOpenUnsubscribeSettings: params.openHandlers.handleOpenUnsubscribeSettings,

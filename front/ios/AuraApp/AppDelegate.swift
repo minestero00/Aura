@@ -49,6 +49,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
+    // Share Extension(AuraCouponShare)이 aura://share로 호출 — pending payload를
+    // App Groups에서 읽어 RN으로 emit. listener 미등록 상태(cold start)면 RN startup
+    // 시 fetchPending()이 가져간다.
+    if url.scheme == "aura" {
+      AuraShareReceiver.notifyShareReceived()
+      return true
+    }
     return GIDSignIn.sharedInstance.handle(url)
   }
 

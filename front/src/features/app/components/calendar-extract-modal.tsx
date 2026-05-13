@@ -1,6 +1,7 @@
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { AuraLoader } from "@features/app/components/aura-loader";
+import { BottomSheetModal } from "@features/app/components/bottom-sheet-modal";
 import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import { openInGoogleCalendar } from "@features/calendar/google-template";
 import type { ExtractedCalendarEvent } from "@features/gmail/api";
@@ -30,55 +31,49 @@ export function CalendarExtractModal({ visible, isLoading, event, copy, onClose 
   const styles = createAppStyles(useAuraTheme());
 
   return (
-    <Modal animationType="fade" transparent visible={visible}>
-      <View style={styles.dailyBriefModalBackdrop}>
-        <Pressable accessibilityLabel="Close" onPress={onClose} style={StyleSheet.absoluteFill} />
-        <View style={styles.dailyBriefModalCard}>
-          <View style={styles.dailyBriefModalHeader}>
-            <View style={styles.dailyBriefHeaderMain}>
-              <Text style={styles.dailyBriefEyebrow}>AURA</Text>
-              <Text style={styles.dailyBriefTitle}>{copy.mail.calendarExtractTitle}</Text>
-            </View>
-            <Pressable onPress={onClose} style={styles.dailyBriefCloseButton}>
-              <Text style={styles.dailyBriefCloseText}>×</Text>
+    <BottomSheetModal visible={visible} onClose={onClose} sheetStyle={styles.modalCard}>
+      <View style={styles.modalHandle} />
+      <View style={styles.dailyBriefModalHeader}>
+        <View style={styles.dailyBriefHeaderMain}>
+          <Text style={styles.dailyBriefEyebrow}>AURA</Text>
+          <Text style={styles.dailyBriefTitle}>{copy.mail.calendarExtractTitle}</Text>
+        </View>
+        <Pressable onPress={onClose} style={styles.dailyBriefCloseButton}>
+          <Text style={styles.dailyBriefCloseText}>×</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.dailyBriefBodyContent}>
+        {isLoading ? (
+          <AuraLoader size="md" message={copy.mail.calendarExtractLoading} />
+        ) : !event || !event.hasEnoughInfo ? (
+          <Text style={styles.dailyBriefEmptyText}>{copy.mail.calendarExtractInsufficient}</Text>
+        ) : (
+          <View>
+            <Text style={styles.dailyBriefDigestHeadline}>{event.title || "—"}</Text>
+            {event.startsAt ? (
+              <Text style={styles.detailLine}>
+                {formatLocalDateTime(event.startsAt, event.allDay)}
+                {event.endsAt && event.endsAt !== event.startsAt
+                  ? ` — ${formatLocalDateTime(event.endsAt, event.allDay)}`
+                  : ""}
+              </Text>
+            ) : null}
+            {event.location ? <Text style={styles.helperText}>📍 {event.location}</Text> : null}
+            {event.details ? <Text style={styles.helperText}>{event.details}</Text> : null}
+
+            <Pressable
+              onPress={async () => {
+                await openInGoogleCalendar(event);
+                onClose();
+              }}
+              style={[styles.secondaryButton, { marginTop: 12 }]}
+            >
+              <Text style={styles.secondaryButtonText}>{copy.mail.calendarExtractAdd}</Text>
             </Pressable>
           </View>
-
-          <View style={styles.dailyBriefBodyContent}>
-            {isLoading ? (
-              <AuraLoader size="md" message={copy.mail.calendarExtractLoading} />
-            ) : !event || !event.hasEnoughInfo ? (
-              <Text style={styles.dailyBriefEmptyText}>{copy.mail.calendarExtractInsufficient}</Text>
-            ) : (
-              <View>
-                <Text style={styles.dailyBriefDigestHeadline}>{event.title || "—"}</Text>
-                {event.startsAt ? (
-                  <Text style={styles.detailLine}>
-                    {formatLocalDateTime(event.startsAt, event.allDay)}
-                    {event.endsAt && event.endsAt !== event.startsAt
-                      ? ` — ${formatLocalDateTime(event.endsAt, event.allDay)}`
-                      : ""}
-                  </Text>
-                ) : null}
-                {event.location ? (
-                  <Text style={styles.helperText}>📍 {event.location}</Text>
-                ) : null}
-                {event.details ? <Text style={styles.helperText}>{event.details}</Text> : null}
-
-                <Pressable
-                  onPress={async () => {
-                    await openInGoogleCalendar(event);
-                    onClose();
-                  }}
-                  style={[styles.secondaryButton, { marginTop: 12 }]}
-                >
-                  <Text style={styles.secondaryButtonText}>{copy.mail.calendarExtractAdd}</Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        </View>
+        )}
       </View>
-    </Modal>
+    </BottomSheetModal>
   );
 }

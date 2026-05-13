@@ -40,6 +40,7 @@ export function UsageSection(props: SettingsSectionProps) {
           title={copy.settings.usageTitle}
           subtitle={copy.settings.usageSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-content"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           {usage ? (

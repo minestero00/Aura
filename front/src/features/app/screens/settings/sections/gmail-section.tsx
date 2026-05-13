@@ -26,6 +26,7 @@ export function GmailSection(props: SettingsSectionProps) {
           title={copy.settings.gmailTitle}
           subtitle={copy.settings.gmailSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-account"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>

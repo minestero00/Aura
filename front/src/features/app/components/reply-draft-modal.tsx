@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { useAuraTheme } from "@features/app/styles";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
+import { BottomSheetModal } from "@features/app/components/bottom-sheet-modal";
+import { createAppStyles, useAuraTheme } from "@features/app/styles";
 import type { AppCopy } from "@features/app/i18n";
 
 interface ReplyDraftModalProps {
@@ -16,6 +26,7 @@ interface ReplyDraftModalProps {
  */
 export function ReplyDraftModal({ draft, copy, onSend, onDismiss }: ReplyDraftModalProps) {
   const theme = useAuraTheme();
+  const appStyles = createAppStyles(theme);
   const [subject, setSubject] = useState(draft?.subject ?? "");
   const [body, setBody] = useState(draft?.body ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -37,114 +48,81 @@ export function ReplyDraftModal({ draft, copy, onSend, onDismiss }: ReplyDraftMo
   }
 
   return (
-    <Modal
-      transparent
-      visible={draft !== null}
-      animationType="slide"
-      onRequestClose={onDismiss}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <Pressable style={styles.backdrop} onPress={onDismiss}>
-          <Pressable
-            onPress={() => undefined}
-            style={[styles.sheet, { backgroundColor: theme.colors.elevated }]}
+    <BottomSheetModal visible={draft !== null} onClose={onDismiss} sheetStyle={appStyles.modalCard}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <View style={appStyles.modalHandle} />
+        <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
+          {copy.mail.replyDraft}
+        </Text>
+        <Text style={[styles.recipientLabel, { color: theme.colors.textSecondary }]}>
+          {copy.mail.replyTo}: {draft?.to ?? ""}
+        </Text>
+
+        <ScrollView keyboardShouldPersistTaps="handled" style={styles.scroll}>
+          <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>
+            {copy.mail.replySubject}
+          </Text>
+          <TextInput
+            value={subject}
+            onChangeText={setSubject}
+            style={[
+              styles.subjectInput,
+              {
+                color: theme.colors.textPrimary,
+                backgroundColor: theme.colors.surfaceMuted,
+                borderColor: theme.colors.line
+              }
+            ]}
+          />
+
+          <Text
+            style={[styles.fieldLabel, { color: theme.colors.textSecondary, marginTop: 12 }]}
           >
-            <View style={[styles.handle, { backgroundColor: theme.colors.lineStrong }]} />
-            <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
-              {copy.mail.replyDraft}
+            {copy.mail.replyBody}
+          </Text>
+          <TextInput
+            value={body}
+            onChangeText={setBody}
+            multiline
+            style={[
+              styles.bodyInput,
+              {
+                color: theme.colors.textPrimary,
+                backgroundColor: theme.colors.surfaceMuted,
+                borderColor: theme.colors.line
+              }
+            ]}
+          />
+        </ScrollView>
+
+        <View style={styles.buttonRow}>
+          <Pressable
+            onPress={onDismiss}
+            style={[styles.outlineButton, { borderColor: theme.colors.line }]}
+          >
+            <Text style={[styles.outlineButtonText, { color: theme.colors.textPrimary }]}>
+              {copy.common.close}
             </Text>
-            <Text style={[styles.recipientLabel, { color: theme.colors.textSecondary }]}>
-              {copy.mail.replyTo}: {draft?.to ?? ""}
-            </Text>
-
-            <ScrollView keyboardShouldPersistTaps="handled" style={styles.scroll}>
-              <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>
-                {copy.mail.replySubject}
-              </Text>
-              <TextInput
-                value={subject}
-                onChangeText={setSubject}
-                style={[
-                  styles.subjectInput,
-                  {
-                    color: theme.colors.textPrimary,
-                    backgroundColor: theme.colors.surfaceMuted,
-                    borderColor: theme.colors.line
-                  }
-                ]}
-              />
-
-              <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary, marginTop: 12 }]}>
-                {copy.mail.replyBody}
-              </Text>
-              <TextInput
-                value={body}
-                onChangeText={setBody}
-                multiline
-                style={[
-                  styles.bodyInput,
-                  {
-                    color: theme.colors.textPrimary,
-                    backgroundColor: theme.colors.surfaceMuted,
-                    borderColor: theme.colors.line
-                  }
-                ]}
-              />
-            </ScrollView>
-
-            <View style={styles.buttonRow}>
-              <Pressable
-                onPress={onDismiss}
-                style={[styles.outlineButton, { borderColor: theme.colors.line }]}
-              >
-                <Text style={[styles.outlineButtonText, { color: theme.colors.textPrimary }]}>
-                  {copy.common.close}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => void handleSend()}
-                disabled={submitting}
-                style={[
-                  styles.primaryButton,
-                  { backgroundColor: theme.colors.accent, opacity: submitting ? 0.6 : 1 }
-                ]}
-              >
-                <Text style={[styles.primaryButtonText, { color: theme.colors.accentText }]}>
-                  {copy.mail.openInGmail}
-                </Text>
-              </Pressable>
-            </View>
           </Pressable>
-        </Pressable>
+          <Pressable
+            onPress={() => void handleSend()}
+            disabled={submitting}
+            style={[
+              styles.primaryButton,
+              { backgroundColor: theme.colors.accent, opacity: submitting ? 0.6 : 1 }
+            ]}
+          >
+            <Text style={[styles.primaryButtonText, { color: theme.colors.accentText }]}>
+              {copy.mail.openInGmail}
+            </Text>
+          </Pressable>
+        </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end"
-  },
-  sheet: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
-    maxHeight: "85%"
-  },
-  handle: {
-    alignSelf: "center",
-    width: 44,
-    height: 5,
-    borderRadius: 999,
-    marginBottom: 12
-  },
   title: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   recipientLabel: { fontSize: 13, marginBottom: 12 },
   scroll: { maxHeight: 360 },

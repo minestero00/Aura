@@ -24,6 +24,7 @@ export function IgnoredSendersSection(props: SettingsSectionProps) {
           title={copy.settings.ignoredTitle}
           subtitle={copy.settings.ignoredSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-mail"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>

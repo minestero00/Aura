@@ -15,6 +15,7 @@ export function LanguageSection(props: SettingsSectionProps) {
           title={copy.settings.languageTitle}
           subtitle={copy.settings.languageSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-account"
         />
         <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
           <View style={styles.sectionCard}>

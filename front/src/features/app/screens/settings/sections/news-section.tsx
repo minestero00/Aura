@@ -23,6 +23,7 @@ export function NewsSection(props: SettingsSectionProps) {
           title={copy.settings.newsTopicsTitle}
           subtitle={copy.settings.newsTopicsSubtitle}
           onSelectSettingsSection={onSelectSettingsSection}
+          parentSection="cat-content"
           meta={
             <View style={styles.subpageMetaRow}>
               <Text style={styles.helperText}>{copy.settings.maxTopicsHelp}</Text>

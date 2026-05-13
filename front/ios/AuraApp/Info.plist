@@ -49,9 +49,19 @@
 				<string>com.googleusercontent.apps.1009976239077-teat0o47lpsirkhfa47p92ug0ha1uqod</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.dumbteam.aura.share</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>aura</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>7</string>
+	<string>8</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>

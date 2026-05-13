@@ -247,6 +247,15 @@ export interface AppCopy {
     menuPermissions: string;
     menuUsage: string;
     menuDataPrivacy: string;
+    /** 4-카테고리 그룹 라벨 — 설정 최상단 메뉴 카드에 노출. */
+    catAccountTitle: string;
+    catAccountSubtitle: string;
+    catNotificationsTitle: string;
+    catNotificationsSubtitle: string;
+    catMailTitle: string;
+    catMailSubtitle: string;
+    catContentTitle: string;
+    catContentSubtitle: string;
     dataPrivacyMenuHint: string;
     dataPrivacyTitle: string;
     dataPrivacySubtitle: string;
@@ -339,6 +348,7 @@ export interface AppCopy {
     ocrRunning: string;
     ocrUnavailable: string;
     ocrFailed: string;
+    ocrAttachedHint: string;
   };
   ask: {
     eyebrow: string;

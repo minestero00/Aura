@@ -91,6 +91,9 @@ export function useAuraAppState() {
   const [isWalletExtractOpen, setIsWalletExtractOpen] = useState(false);
   const [isWalletExtractLoading, setIsWalletExtractLoading] = useState(false);
   const [walletExtractCandidate, setWalletExtractCandidate] = useState<CouponExtractCandidate | null>(null);
+  const [isWalletAddOpen, setIsWalletAddOpen] = useState(false);
+  // 신규 쿠폰 create 시 increment. WalletSection이 이 값 변화 보고 list reload.
+  const [walletRefreshKey, setWalletRefreshKey] = useState(0);
 
   const hasStartedInitialDailyBriefRef = useRef(false);
   const hasAttemptedDeviceCalendarPromptRef = useRef(false);
@@ -222,6 +225,10 @@ export function useAuraAppState() {
     setIsWalletExtractLoading,
     walletExtractCandidate,
     setWalletExtractCandidate,
+    isWalletAddOpen,
+    setIsWalletAddOpen,
+    walletRefreshKey,
+    setWalletRefreshKey,
     hasStartedInitialDailyBriefRef,
     hasAttemptedDeviceCalendarPromptRef,
     lastTravelPlanSignatureRef,
