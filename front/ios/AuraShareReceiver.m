@@ -8,4 +8,9 @@
 RCT_EXTERN_METHOD(fetchPending:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(setSharedSession:(NSString *)accessToken
+                  apiBase:(NSString *)apiBase
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
 @end

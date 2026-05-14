@@ -70,6 +70,40 @@ class AuraShareReceiver: RCTEventEmitter {
     resolver(payload)
   }
 
+  /**
+   * Main app → Share Extension에 auth token + API base URL을 공유.
+   * Share Extension은 sandboxed라 main app의 AsyncStorage/Supabase 세션에 접근 불가.
+   * App Group UserDefaults가 유일하게 합법적인 공유 채널.
+   *
+   * 호출 시점:
+   * - 앱 launch 시 (현재 session 즉시 mirror)
+   * - supabase.auth.onAuthStateChange (login / TOKEN_REFRESHED / logout)
+   * - logout 시 token nil로 호출해 extension에서 401 발생 → "AURA 로그인 필요" 안내
+   */
+  @objc func setSharedSession(
+    _ accessToken: NSString?,
+    apiBase: NSString?,
+    resolver: @escaping RCTPromiseResolveBlock,
+    rejecter: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let defaults = UserDefaults(suiteName: appGroupId) else {
+      rejecter("ERR_DEFAULTS", "App Group UserDefaults unavailable", nil)
+      return
+    }
+    if let token = accessToken as String?, !token.isEmpty {
+      defaults.set(token, forKey: "accessToken")
+    } else {
+      defaults.removeObject(forKey: "accessToken")
+    }
+    if let base = apiBase as String?, !base.isEmpty {
+      defaults.set(base, forKey: "apiBase")
+    }
+    defaults.set(Date().timeIntervalSince1970, forKey: "sessionMirroredAt")
+    defaults.synchronize()
+    NSLog("[AURA-SHARE-TRACE] setSharedSession token=%@ apiBase=%@", accessToken == nil ? "nil" : "set", apiBase ?? "nil")
+    resolver(nil)
+  }
+
   private func readPendingPayload() -> [String: Any]? {
     guard let defaults = UserDefaults(suiteName: appGroupId) else { return nil }
 

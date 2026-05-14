@@ -1,7 +1,8 @@
 import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NativeModules, Platform } from "react-native";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@env";
+import { API_BASE_URL_ANDROID, API_BASE_URL_IOS, SUPABASE_ANON_KEY, SUPABASE_URL } from "@env";
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.warn(
@@ -31,4 +32,34 @@ export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON
 export async function getCurrentAccessToken(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
   return data.session?.access_token ?? null;
+}
+
+/**
+ * iOS Share Extension(AuraCouponShare)이 main app과 같은 백엔드를 호출할 수 있도록
+ * access token + API base URL을 App Group UserDefaults에 mirror.
+ * Extension은 sandboxed라 AsyncStorage/Supabase 세션을 못 읽으므로 이게 유일 경로.
+ * 호출 시점: 앱 launch 후 1회, supabase auth state 변경 시(SIGNED_IN / TOKEN_REFRESHED / SIGNED_OUT).
+ */
+async function mirrorSessionToAppGroup(accessToken: string | null) {
+  if (Platform.OS !== "ios") return;
+  const bridge = NativeModules.AuraShareReceiver as
+    | { setSharedSession?: (token: string | null, apiBase: string | null) => Promise<void> }
+    | undefined;
+  if (!bridge?.setSharedSession) return;
+  const apiBase = Platform.OS === "android" ? API_BASE_URL_ANDROID : API_BASE_URL_IOS;
+  try {
+    await bridge.setSharedSession(accessToken ?? null, apiBase ?? null);
+  } catch {
+    // mirror 실패는 무시 — extension은 이전 token으로 동작 시도, 401이면 사용자에게 "로그인 필요" 안내
+  }
+}
+
+if (Platform.OS === "ios") {
+  // 앱 시작 후 현재 세션을 즉시 mirror (cold start 직후 share 시도 케이스 대비).
+  void supabase.auth.getSession().then(({ data }) => {
+    void mirrorSessionToAppGroup(data.session?.access_token ?? null);
+  });
+  supabase.auth.onAuthStateChange((_event, session) => {
+    void mirrorSessionToAppGroup(session?.access_token ?? null);
+  });
 }
