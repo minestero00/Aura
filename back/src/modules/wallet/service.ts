@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { AppError } from "../../lib/errors/app-error.js";
 import { decryptSecret, encryptSecret } from "../../lib/security/encryption.js";
 import { requireUser } from "../auth/guards.js";
@@ -51,12 +52,16 @@ export const walletService = {
     if (!codeCiphertext) {
       throw new AppError(500, "WALLET_ENCRYPT_FAILED", "Failed to encrypt coupon code.");
     }
+    // SHA-256(plaintext code) — deterministic dedup key. AES-GCM ciphertext는 매번
+    // random IV로 달라져 ciphertext 기반 unique constraint가 실질 무력했다.
+    const codeHash = createHash("sha256").update(input.code, "utf8").digest();
 
     const inserted = await walletRepository.insertCoupon({
       userId: input.userId,
       brand: input.brand,
       title: input.title,
       codeCiphertext,
+      codeHash,
       codeFormat: input.codeFormat,
       codeImagePath: input.codeImagePath,
       codeImageBase64: input.codeImageBase64,
@@ -68,6 +73,11 @@ export const walletService = {
     });
 
     if (!inserted) {
+      // 같은 사용자의 같은 code → 기존 row를 idempotent하게 반환. share extension에서
+      // 같은 쿠폰을 두 번 등록해도 사용자에게는 "저장됨"으로 보임 (실제 새 row 생성 안 됨).
+      const existing = await walletRepository.findByCodeHash(input.userId, codeHash);
+      if (existing) return existing;
+      // existing이 없는데 insert도 실패한 케이스 (legacy NULL hash 등) — 안전망 409.
       throw new AppError(
         409,
         "WALLET_DUPLICATE_CODE",

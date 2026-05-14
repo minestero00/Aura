@@ -335,29 +335,43 @@ class ShareViewController: UIViewController {
       NSLog("[AURA-SHARE-TRACE] OCR text length=%d", text?.count ?? 0)
 
       guard let text = text, !text.isEmpty else {
-        await MainActor.run {
-          // OCR이 비어도 폼은 활성화 — 사용자가 직접 입력 가능
-          self.setStage(.form)
-        }
+        await MainActor.run { self.setStage(.form) }
         return
       }
 
+      // Tier 1 — device 측 regex/heuristic parser. 비용 0.
+      // 카톡 기프티콘/편의점/스타벅스 같은 정형 포맷은 대부분 여기서 처리됨.
+      let local = LocalExtractor.parse(text: text)
+      NSLog("[AURA-SHARE-TRACE] local extract confidence=%f", local.confidence)
+      if local.confidence >= 0.7 {
+        self.candidate = local
+        await MainActor.run { self.applyCandidate(local) }
+        return
+      }
+
+      // Tier 2 — backend LLM fallback. 자유 텍스트 / 정형 안 맞는 케이스.
       guard let apiBase = self.apiBase, let token = self.accessToken else {
-        await MainActor.run { self.setStage(.error("AURA에 먼저 로그인해 주세요")) }
+        // 토큰 없으면 local 결과라도 form에 prefill해 사용자 수동 보강 허용.
+        await MainActor.run {
+          if local.confidence > 0 { self.applyCandidate(local) } else { self.setStage(.form) }
+        }
         return
       }
       let client = ApiClient(baseUrl: apiBase, token: token)
       do {
         let candidate = try await client.extract(rawText: text, language: "ko")
-        NSLog("[AURA-SHARE-TRACE] extract confidence=%f", candidate.confidence)
-        self.candidate = candidate
-        await MainActor.run { self.applyCandidate(candidate) }
+        NSLog("[AURA-SHARE-TRACE] backend extract confidence=%f", candidate.confidence)
+        // local + backend 결과 중 confidence 높은 쪽 채택.
+        let best = candidate.confidence >= local.confidence ? candidate : local
+        self.candidate = best
+        await MainActor.run { self.applyCandidate(best) }
       } catch ApiError.unauthorized {
         await MainActor.run { self.setStage(.error("AURA에 다시 로그인해 주세요")) }
       } catch {
-        // extract 실패해도 폼은 열어서 수동 입력 허용
-        NSLog("[AURA-SHARE-TRACE] extract failed: %@", "\(error)")
-        await MainActor.run { self.setStage(.form) }
+        NSLog("[AURA-SHARE-TRACE] backend extract failed: %@", "\(error)")
+        await MainActor.run {
+          if local.confidence > 0 { self.applyCandidate(local) } else { self.setStage(.form) }
+        }
       }
     }
   }
@@ -530,6 +544,162 @@ private struct CreateCouponInput: Encodable {
   let codeImageBase64: String?
   let expiresAt: String?
   let source: String
+}
+
+// MARK: - Local Extractor (Tier 1)
+
+/**
+ * Device 측 regex/heuristic 기반 쿠폰 정보 파서. 비용 0.
+ *
+ * 정형 포맷(카카오톡 기프티콘, 편의점 영수증, 스타벅스 e-기프티콘 등)에서
+ * brand/title/code/expires를 직접 추출. confidence ≥ 0.7이면 backend LLM 호출 생략.
+ *
+ * 한계: 자유 텍스트(SMS, 자유 양식 영수증)는 정확도가 낮을 수 있어 LLM fallback 필요.
+ */
+private enum LocalExtractor {
+  // 한국 대표 매장 — 빠른 brand 매칭. 누락 시 "교환처/발급처" 키워드로 fallback.
+  static let knownBrands: [String] = [
+    "GS25", "CU", "세븐일레븐", "7-Eleven", "이마트24", "미니스톱",
+    "스타벅스", "투썸플레이스", "이디야", "메가커피", "메가MGC커피", "컴포즈커피", "빽다방",
+    "할리스", "탐앤탐스", "공차", "엔제리너스",
+    "이마트", "롯데마트", "신세계백화점", "현대백화점", "홈플러스",
+    "맥도날드", "버거킹", "롯데리아", "KFC", "서브웨이", "맘스터치",
+    "파리바게트", "뚜레쥬르", "던킨", "베스킨라빈스", "베이커리",
+    "올리브영", "다이소", "교촌치킨", "BHC", "BBQ", "굽네치킨", "네네치킨"
+  ]
+
+  static func parse(text: String) -> CouponCandidate {
+    let lines = text
+      .components(separatedBy: .newlines)
+      .map { $0.trimmingCharacters(in: .whitespaces) }
+      .filter { !$0.isEmpty }
+
+    let brand = extractBrand(text: text, lines: lines)
+    let (code, codeFormat) = extractCode(text: text)
+    let expires = extractExpires(text: text)
+    let title = extractTitle(lines: lines, brand: brand, code: code)
+
+    // Confidence — 어떤 필드가 채워졌는지 weighted score.
+    var score = 0.0
+    if brand != nil { score += 0.3 }
+    if title != nil { score += 0.2 }
+    if code != nil { score += 0.4 }
+    if expires != nil { score += 0.1 }
+
+    return CouponCandidate(
+      brand: brand,
+      title: title,
+      code: code,
+      codeFormat: codeFormat,
+      expiresAt: expires,
+      confidence: score
+    )
+  }
+
+  private static func extractBrand(text: String, lines: [String]) -> String? {
+    // 1. "교환처/발급처/Issued by" 라벨 다음 토큰.
+    let labels = ["교환처", "발급처", "사용처", "Brand"]
+    for line in lines {
+      for label in labels {
+        if let range = line.range(of: label) {
+          let after = line[range.upperBound...]
+            .trimmingCharacters(in: CharacterSet(charactersIn: " \t:\t-"))
+          if !after.isEmpty, after.count < 40 { return String(after) }
+        }
+      }
+    }
+    // 2. Known brand 직접 매칭. 텍스트 어디든 등장하면 채택.
+    for brand in knownBrands where text.contains(brand) {
+      return brand
+    }
+    // 3. 첫 줄이 짧고 한글/영문이면 brand 후보 (heuristic).
+    if let first = lines.first, first.count < 20,
+       first.range(of: #"[가-힣A-Za-z]"#, options: .regularExpression) != nil,
+       first.range(of: #"\d{4}"#, options: .regularExpression) == nil {
+      return first
+    }
+    return nil
+  }
+
+  private static func extractCode(text: String) -> (String?, String?) {
+    // 12자리 이상 숫자 (공백/하이픈 separator 허용). 쿠폰별로 길이가 다르고
+    // (카톡 기프티콘 22자리, EAN-13은 13, voucher는 16/20/30 등 다양) 정해진
+    // 상한이 없으므로 unbounded. 후보 중 가장 긴 것을 채택해 잘림 방지.
+    let patterns = [
+      #"(?:\d[\s\-]?){12,}"#,
+      #"\d{12,}"#
+    ]
+    var candidates: [String] = []
+    for pattern in patterns {
+      guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
+      let range = NSRange(text.startIndex..., in: text)
+      let matches = regex.matches(in: text, range: range)
+      for match in matches {
+        if let r = Range(match.range, in: text) {
+          let raw = String(text[r])
+          let digits = raw.filter { $0.isNumber }
+          if digits.count >= 12 {
+            candidates.append(digits)
+          }
+        }
+      }
+    }
+    let best = candidates.max(by: { $0.count < $1.count })
+    guard let digits = best else { return (nil, nil) }
+    // EAN-13만 명확히 분기, 나머지는 Code128 (range 가변 지원).
+    let format = digits.count == 13 ? "barcode_ean13" : "barcode_code128"
+    return (digits, format)
+  }
+
+  private static func extractExpires(text: String) -> String? {
+    let patterns: [String] = [
+      #"(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일"#,
+      #"(\d{4})[./-](\d{1,2})[./-](\d{1,2})"#
+    ]
+    for pattern in patterns {
+      guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
+      let range = NSRange(text.startIndex..., in: text)
+      guard let match = regex.firstMatch(in: text, range: range),
+            match.numberOfRanges >= 4 else { continue }
+      guard let yr = Range(match.range(at: 1), in: text),
+            let mr = Range(match.range(at: 2), in: text),
+            let dr = Range(match.range(at: 3), in: text),
+            let y = Int(text[yr]), let m = Int(text[mr]), let d = Int(text[dr]),
+            y >= 2020, y <= 2099, m >= 1, m <= 12, d >= 1, d <= 31 else { continue }
+      var comp = DateComponents()
+      comp.year = y; comp.month = m; comp.day = d
+      comp.hour = 23; comp.minute = 59; comp.second = 59
+      comp.timeZone = TimeZone(identifier: "Asia/Seoul")
+      let cal = Calendar(identifier: .gregorian)
+      if let date = cal.date(from: comp) {
+        let outFmt = ISO8601DateFormatter()
+        outFmt.formatOptions = [.withInternetDateTime]
+        return outFmt.string(from: date)
+      }
+    }
+    return nil
+  }
+
+  private static func extractTitle(lines: [String], brand: String?, code: String?) -> String? {
+    // brand/code/날짜/메타 라벨 라인을 제외하고, 한글/영문 포함의 의미 있는 라인을
+    // 모아 가장 긴 것을 채택. 짧은 제조사 로고("inno.N" 같은 OCR 부수입력)에
+    // 우선순위가 밀려 진짜 상품명("HK)컨디션100ML+HK)헛개수500ML")이 선택됨.
+    let labels = ["교환처", "발급처", "유효기간", "주문번호", "사용기한", "Brand", "Valid", "교환 가능"]
+    var candidates: [String] = []
+    for line in lines {
+      if line.count < 3 || line.count > 80 { continue }
+      if let b = brand, line.contains(b) && line.count - b.count < 4 { continue }
+      if let c = code, line.contains(c) { continue }
+      if line.range(of: #"^\d{4}[년./-]"#, options: .regularExpression) != nil { continue }
+      if line.range(of: #"^\d{3,}$"#, options: .regularExpression) != nil { continue }
+      var isLabel = false
+      for label in labels where line.hasPrefix(label) { isLabel = true; break }
+      if isLabel { continue }
+      let hasLetters = line.range(of: #"[가-힣A-Za-z]"#, options: .regularExpression) != nil
+      if hasLetters { candidates.append(line) }
+    }
+    return candidates.max(by: { $0.count < $1.count })
+  }
 }
 
 // MARK: - API

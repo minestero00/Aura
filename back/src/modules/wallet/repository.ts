@@ -77,6 +77,7 @@ export const walletRepository = {
     brand: string;
     title: string;
     codeCiphertext: string;
+    codeHash: Buffer;
     codeFormat: string;
     codeImagePath: string | null;
     codeImageBase64: string | null;
@@ -88,19 +89,23 @@ export const walletRepository = {
   }): Promise<Coupon | null> {
     const p = getPool();
     if (!p) return null;
+    // Migration 0014 — UNIQUE(user_id, code_hash) WHERE code_hash IS NOT NULL.
+    // AES-256-GCM ciphertext는 random IV로 매번 달라져서 ciphertext 기반 dedup이
+    // 실질 효과 없었다. SHA-256 hash로 deterministic dedup.
     const result = await p.query<CouponRow>(
       `INSERT INTO aura.coupons (
-         user_id, brand, title, code_ciphertext, code_format, code_image_path,
+         user_id, brand, title, code_ciphertext, code_hash, code_format, code_image_path,
          code_image_base64, expires_at, source, source_ref, geofence_lat, geofence_lng,
          geofence_radius_m, geofence_place_name, notes
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-       ON CONFLICT (user_id, code_ciphertext) DO NOTHING
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+       ON CONFLICT (user_id, code_hash) WHERE code_hash IS NOT NULL DO NOTHING
        RETURNING *`,
       [
         input.userId,
         input.brand,
         input.title,
         input.codeCiphertext,
+        input.codeHash,
         input.codeFormat,
         input.codeImagePath,
         input.codeImageBase64,
@@ -113,6 +118,17 @@ export const walletRepository = {
         input.geofence?.placeName ?? null,
         input.notes
       ]
+    );
+    return result.rows[0] ? rowToCoupon(result.rows[0]) : null;
+  },
+
+  /** 같은 user의 동일 code 쿠폰 조회 — dedup idempotency용. */
+  async findByCodeHash(userId: string, codeHash: Buffer): Promise<Coupon | null> {
+    const p = getPool();
+    if (!p) return null;
+    const result = await p.query<CouponRow>(
+      `SELECT * FROM aura.coupons WHERE user_id = $1 AND code_hash = $2 LIMIT 1`,
+      [userId, codeHash]
     );
     return result.rows[0] ? rowToCoupon(result.rows[0]) : null;
   },
