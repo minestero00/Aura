@@ -12,10 +12,12 @@ const TOKEN_BUDGET_WARN_RATIO = 0.8;
 export type UsageFeature =
   | "news_briefing"
   | "email_summary"
+  | "email_extract"
   | "daily_overview"
   | "chat"
   | "transit_eta"
   | "transit_directions"
+  | "transit_places"
   | "voice_transcribe"
   | "wallet_extract";
 
