@@ -133,8 +133,23 @@ export function WalletIcon({ color, size = 22 }: TabIconProps) {
   );
 }
 
+// Transit sub-section indicator icon — 위치/도착 알림 의미. Pin shape.
+export function TransitIcon({ color, size = 22 }: TabIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 21s-7-7.5-7-12.5a7 7 0 1 1 14 0C19 13.5 12 21 12 21Z"
+        stroke={color}
+        strokeWidth={1.75}
+        strokeLinejoin="round"
+      />
+      <Circle cx={12} cy={9} r={2.5} stroke={color} strokeWidth={1.75} />
+    </Svg>
+  );
+}
+
 export type TabIconKey = "mail" | "todo" | "news" | "ask" | "settings";
-export type SoloIconKey = "wallet";
+export type SoloIconKey = "wallet" | "transit";
 
 export const TAB_ICONS: Record<
   TabIconKey,
@@ -151,5 +166,6 @@ export const SOLO_ICONS: Record<
   SoloIconKey,
   React.ComponentType<TabIconProps>
 > = {
-  wallet: WalletIcon
+  wallet: WalletIcon,
+  transit: TransitIcon
 };

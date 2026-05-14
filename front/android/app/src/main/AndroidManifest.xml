@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Doze 모드에서 geofence ENTER 지연/누락을 방지하기 위해 사용자에게 배터리 최적화
+         제외 system dialog를 띄울 수 있게. dialog는 OS가 제공, 권한은 단지 호출 자격. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Health Connect — 어제 sleep/steps/heart rate 읽기 (daily brief 톤 조절용). -->
     <uses-permission android:name="android.permission.health.READ_SLEEP" />

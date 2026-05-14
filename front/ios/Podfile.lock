@@ -1562,6 +1562,53 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-maps (1.27.2):
+    - react-native-maps/Maps (= 1.27.2)
+  - react-native-maps/Generated (1.27.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
+  - react-native-maps/Maps (1.27.2):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - react-native-maps/Generated
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-safe-area-context (5.7.0):
     - hermes-engine
     - RCTRequired
@@ -2228,6 +2275,7 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - "react-native-geolocation (from `../../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../../node_modules/react-native-image-picker`)
+  - react-native-maps (from `../../node_modules/react-native-maps`)
   - react-native-safe-area-context (from `../../node_modules/react-native-safe-area-context`)
   - react-native-sqlite-storage (from `../../node_modules/react-native-sqlite-storage`)
   - React-NativeModulesApple (from `../../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2382,6 +2430,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@react-native-community/geolocation"
   react-native-image-picker:
     :path: "../../node_modules/react-native-image-picker"
+  react-native-maps:
+    :path: "../../node_modules/react-native-maps"
   react-native-safe-area-context:
     :path: "../../node_modules/react-native-safe-area-context"
   react-native-sqlite-storage:
@@ -2535,6 +2585,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: ab9d1a05fe1f58ea44a97d307ef1b53463f45a3f
   react-native-geolocation: fe635c262940780d5cef40e03d4f1d8f72edde26
   react-native-image-picker: 7793e84ad7b802351cf687c18bb42ad30150b29b
+  react-native-maps: c545a4c303ce633d2dce0c178c1ad84dd286d3b0
   react-native-safe-area-context: 29044d05d61f2c60d0828c373bd0ebe17eed58d0
   react-native-sqlite-storage: f6d515e1c446d1e6d026aa5352908a25d4de3261
   React-NativeModulesApple: b94faa2dce6d8c0a9d722ed7ee27b996d28b62d1

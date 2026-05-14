@@ -4,6 +4,8 @@ import {
   Alert,
   Image,
   Modal,
+  NativeModules,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -735,6 +737,28 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
     }
   }
 
+  // 외부 공유 — UIActivityViewController로 brand/title/expires text + 이미지 file 첨부.
+  // 평문 code는 별도로 보내지 않음 (이미지에 포함된 바코드가 실 사용 수단). 받는 사람이
+  // AURA 미설치라도 이미지로 바로 사용 가능.
+  async function handleShare() {
+    if (Platform.OS !== "ios") return;
+    const bridge = NativeModules.AuraShareReceiver as
+      | { presentShareSheet?: (msg: string, b64: string | null) => Promise<void> }
+      | undefined;
+    if (!bridge?.presentShareSheet) return;
+    const parts: string[] = [`🎟️ ${coupon.brand} - ${coupon.title}`];
+    if (coupon.expiresAt) parts.push(`유효기간 ${formatDate(coupon.expiresAt)}`);
+    parts.push("");
+    parts.push("받은 이미지를 길게 눌러 공유 → AURA에 저장을 선택하면 쿠폰이 자동 등록돼요.");
+    parts.push("(AURA 앱이 필요해요)");
+    const message = parts.join("\n");
+    try {
+      await bridge.presentShareSheet(message, imageBase64 ?? null);
+    } catch {
+      // 사용자가 share sheet을 취소하거나 시스템 거부 — 별도 알림 없이 무시.
+    }
+  }
+
   const [actionsOpen, setActionsOpen] = useState(false);
 
   return (
@@ -805,7 +829,17 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
             </Text>
           ) : null}
 
-          <View style={[styles.buttonRow, { marginTop: 14 }]}>
+          <Pressable
+            onPress={() => {
+              setActionsOpen(false);
+              void handleShare();
+            }}
+            style={[styles.outlineButton, { marginTop: 14 }]}
+            disabled={isBusy || !imageBase64}
+          >
+            <Text style={styles.outlineButtonText}>공유하기</Text>
+          </Pressable>
+          <View style={[styles.buttonRow, { marginTop: 10 }]}>
             <Pressable
               onPress={() => {
                 setActionsOpen(false);

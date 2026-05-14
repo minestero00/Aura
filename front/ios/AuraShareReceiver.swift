@@ -80,6 +80,54 @@ class AuraShareReceiver: RCTEventEmitter {
    * - supabase.auth.onAuthStateChange (login / TOKEN_REFRESHED / logout)
    * - logout 시 token nil로 호출해 extension에서 401 발생 → "AURA 로그인 필요" 안내
    */
+  /**
+   * RN 측에서 쿠폰을 다른 사람에게 공유. iOS UIActivityViewController를 RCT root에
+   * present. message + optional image(base64). 외부 라이브러리(react-native-share 등)
+   * 추가 의존성 없이 처리.
+   *
+   * 호출: NativeModules.AuraShareReceiver.presentShareSheet(message, base64orNull)
+   */
+  @objc func presentShareSheet(
+    _ message: NSString,
+    base64Image: NSString?,
+    resolver: @escaping RCTPromiseResolveBlock,
+    rejecter: @escaping RCTPromiseRejectBlock
+  ) {
+    var items: [Any] = [message as String]
+    if let b64 = base64Image as String?, !b64.isEmpty {
+      // base64 data URI prefix("data:image/...;base64,") 제거 후 decode.
+      let raw: String
+      if let commaIdx = b64.firstIndex(of: ","), b64.hasPrefix("data:") {
+        raw = String(b64[b64.index(after: commaIdx)...])
+      } else {
+        raw = b64
+      }
+      if let data = Data(base64Encoded: raw, options: .ignoreUnknownCharacters),
+         let img = UIImage(data: data) {
+        items.insert(img, at: 0)
+      }
+    }
+    DispatchQueue.main.async {
+      guard let rootVC = UIApplication.shared.delegate?.window??.rootViewController else {
+        rejecter("ERR_NO_ROOT", "No root view controller", nil)
+        return
+      }
+      let activity = UIActivityViewController(activityItems: items, applicationActivities: nil)
+      // iPad popover anchor — iPad에서 sourceView 없으면 crash.
+      if let pop = activity.popoverPresentationController {
+        pop.sourceView = rootVC.view
+        pop.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+        pop.permittedArrowDirections = []
+      }
+      // 가장 위 modal까지 traverse해서 그 위에 present.
+      var presenter: UIViewController = rootVC
+      while let next = presenter.presentedViewController { presenter = next }
+      presenter.present(activity, animated: true) {
+        resolver(nil)
+      }
+    }
+  }
+
   @objc func setSharedSession(
     _ accessToken: NSString?,
     apiBase: NSString?,

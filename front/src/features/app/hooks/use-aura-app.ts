@@ -309,11 +309,15 @@ export function useAuraApp(): UseAuraAppResult {
   function handleCloseNavExpand() {
     state.setIsNavExpanded(false);
   }
+  // Transit은 settings sub-section (wallet과 동일 패턴) — modal이 아니라 settings 탭의
+  // 'transit' section으로 진입. bottom-nav 중앙에 위치 indicator + "위치" 라벨이 표시.
   function handleOpenTransit() {
-    state.setIsTransitOpen(true);
+    state.setSelectedTab("settings");
+    state.setSelectedSettingsSection("transit");
+    state.setIsNavExpanded(false);
   }
   function handleCloseTransit() {
-    state.setIsTransitOpen(false);
+    state.setSelectedSettingsSection("menu");
   }
 
   function handleOpenNotificationSettings() {

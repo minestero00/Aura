@@ -24,7 +24,8 @@ export type SettingsSectionKey =
   | "usage"
   | "data-privacy"
   | "unsubscribe"
-  | "wallet";
+  | "wallet"
+  | "transit";
 
 export interface AuthSessionState {
   session: AuthResponse["session"];

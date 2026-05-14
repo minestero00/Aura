@@ -10,4 +10,7 @@ RCT_EXTERN_METHOD(startMonitoring:(NSArray *)regions
 RCT_EXTERN_METHOD(stopMonitoring:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 
+RCT_EXTERN_METHOD(getAuthorizationStatus:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter)
+
 @end

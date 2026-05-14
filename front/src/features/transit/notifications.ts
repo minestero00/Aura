@@ -74,3 +74,22 @@ export async function ensureTransitNotificationPermission(): Promise<boolean> {
   });
   return Boolean(result.alert || result.badge || result.sound);
 }
+
+export type TransitNotificationStatus = "granted" | "denied" | "notDetermined";
+
+/** Trip 시작 전 알림 권한 현재 상태 — request하지 않고 query만. UI 체크리스트용. */
+export async function getTransitNotificationStatus(): Promise<TransitNotificationStatus> {
+  if (Platform.OS !== "ios") return "granted"; // Android POST_NOTIFICATIONS는 별도 흐름
+  const permissions = await new Promise<{
+    alert?: boolean;
+    badge?: boolean;
+    sound?: boolean;
+    authorizationStatus?: number;
+  }>(resolve => {
+    PushNotificationIOS.checkPermissions(p => resolve(p));
+  });
+  if (permissions.alert || permissions.badge || permissions.sound) return "granted";
+  // authorizationStatus: 0=NotDetermined, 1=Denied, 2=Authorized, 3=Provisional.
+  if (permissions.authorizationStatus === 0) return "notDetermined";
+  return "denied";
+}

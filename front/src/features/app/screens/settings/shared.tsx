@@ -236,6 +236,7 @@ export function getParentSettingsSection(s: SettingsSectionKey): SettingsSection
     case "cat-mail":
     case "cat-content":
     case "wallet":
+    case "transit":
       return "menu";
     case "menu":
     default:

@@ -31,9 +31,7 @@ import { CalendarExtractModal } from "@features/app/components/calendar-extract-
 import { WalletExtractModal } from "@features/app/components/wallet-extract-modal";
 import { openComposeInExternalApp } from "@features/gmail/compose";
 import { NavExpandCoachmark } from "@features/app/components/nav-expand-coachmark";
-import { TransitModal } from "@features/app/components/transit-modal";
 import { AddCouponDrawer } from "@features/app/screens/settings/sections/wallet-section";
-import { mergeAgendaDays } from "@features/calendar/merge";
 import { loadNavExpandHintSeen, markNavExpandHintSeen } from "@features/app/storage";
 import { fetchPendingShare, subscribeToShare } from "@features/wallet/share-receiver";
 
@@ -307,7 +305,16 @@ export function AppShell({ app }: AppShellProps) {
         centerIndicatorIcon={
           app.selectedTab === "settings" && app.selectedSettingsSection === "wallet"
             ? "wallet"
-            : undefined
+            : app.selectedTab === "settings" && app.selectedSettingsSection === "transit"
+              ? "transit"
+              : undefined
+        }
+        centerIndicatorLabel={
+          app.selectedTab === "settings" && app.selectedSettingsSection === "wallet"
+            ? "지갑"
+            : app.selectedTab === "settings" && app.selectedSettingsSection === "transit"
+              ? "위치"
+              : undefined
         }
         onCenterIndicatorPress={() => app.handleSelectSettingsSection("menu")}
       />
@@ -360,14 +367,6 @@ export function AppShell({ app }: AppShellProps) {
         copy={app.copy}
         onSave={app.handleSaveExtractedCoupon}
         onClose={app.handleCloseWalletExtract}
-      />
-
-      <TransitModal
-        visible={app.isTransitOpen}
-        copy={app.copy}
-        language={app.language}
-        agendaDays={mergeAgendaDays(app.calendarAgendaDays, app.deviceCalendarAgendaDays)}
-        onDismiss={app.handleCloseTransit}
       />
 
       <NavExpandCoachmark

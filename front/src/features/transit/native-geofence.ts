@@ -24,6 +24,12 @@ interface GeofenceErrorEvent {
 interface NativeTransitGeofence {
   startMonitoring(regions: GeofenceRegionInput[]): Promise<{ added: number }>;
   stopMonitoring(): Promise<void>;
+  /** iOS/Android — 위치 권한 현재 상태. */
+  getAuthorizationStatus?(): Promise<"always" | "whenInUse" | "denied" | "notDetermined" | "restricted" | "unknown">;
+  /** Android only — 배터리 최적화 제외 상태. */
+  getBatteryOptimizationStatus?(): Promise<"exempt" | "optimized">;
+  /** Android only — 배터리 최적화 제외 system dialog. */
+  requestIgnoreBatteryOptimizations?(): Promise<void>;
   addListener?(event: string): void;
   removeListeners?(count: number): void;
 }
@@ -105,4 +111,38 @@ export async function requestBackgroundLocationPermission(): Promise<BackgroundP
 /** OS 설정의 앱 상세 페이지 열기 — 사용자가 "Always" 선택 가능. */
 export async function openLocationSettings(): Promise<void> {
   await Linking.openSettings();
+}
+
+export type LocationAuthStatus = "always" | "whenInUse" | "denied" | "notDetermined" | "restricted" | "unknown";
+
+/** 위치 권한 현재 상태. native module 미존재면 "unknown". */
+export async function getLocationAuthorizationStatus(): Promise<LocationAuthStatus> {
+  if (!moduleHandle?.getAuthorizationStatus) return "unknown";
+  try {
+    return await moduleHandle.getAuthorizationStatus();
+  } catch {
+    return "unknown";
+  }
+}
+
+/** Android 배터리 최적화 제외 상태. iOS는 항상 "exempt" (해당 없음). */
+export async function getBatteryOptimizationStatus(): Promise<"exempt" | "optimized" | "unknown"> {
+  if (Platform.OS !== "android") return "exempt";
+  if (!moduleHandle?.getBatteryOptimizationStatus) return "unknown";
+  try {
+    return await moduleHandle.getBatteryOptimizationStatus();
+  } catch {
+    return "unknown";
+  }
+}
+
+/** Android 배터리 최적화 제외 요청 system dialog. iOS는 no-op. */
+export async function requestIgnoreBatteryOptimizations(): Promise<void> {
+  if (Platform.OS !== "android") return;
+  if (!moduleHandle?.requestIgnoreBatteryOptimizations) return;
+  try {
+    await moduleHandle.requestIgnoreBatteryOptimizations();
+  } catch {
+    // dialog 표시 실패는 무시 — 사용자가 다시 시도 가능.
+  }
 }

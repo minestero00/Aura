@@ -95,6 +95,30 @@ class TransitGeofence: RCTEventEmitter, CLLocationManagerDelegate {
     }
   }
 
+  /// Background 알림 동작에 필요한 권한 상태를 RN에 노출.
+  /// 반환값: "notDetermined" | "whenInUse" | "always" | "denied" | "restricted".
+  /// RN side는 "always"가 아니면 사용자에게 "Settings 열기" 안내를 표시.
+  @objc(getAuthorizationStatus:rejecter:)
+  func getAuthorizationStatus(_ resolver: @escaping RCTPromiseResolveBlock,
+                              rejecter: @escaping RCTPromiseRejectBlock) {
+    let status: CLAuthorizationStatus
+    if #available(iOS 14.0, *) {
+      status = locationManager.authorizationStatus
+    } else {
+      status = CLLocationManager.authorizationStatus()
+    }
+    let str: String
+    switch status {
+    case .notDetermined: str = "notDetermined"
+    case .restricted: str = "restricted"
+    case .denied: str = "denied"
+    case .authorizedAlways: str = "always"
+    case .authorizedWhenInUse: str = "whenInUse"
+    @unknown default: str = "unknown"
+    }
+    resolver(str)
+  }
+
   // MARK: - CLLocationManagerDelegate
 
   func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {

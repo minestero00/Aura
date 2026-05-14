@@ -7,9 +7,9 @@ import {
   TextInput,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuraTheme } from "@features/app/styles";
-import { fetchDirections } from "@features/transit/api";
+import { fetchDirections, fetchPlacesCandidates, type PlaceCandidate } from "@features/transit/api";
+import { DestinationConfirmModal } from "@features/transit/components/DestinationConfirmModal";
 import { getCurrentDeviceLocation } from "@features/location/current-location";
 import type { DirectionsLeg, DirectionsOption } from "@features/transit/types";
 import { buildSearchTripStyles } from "./SearchTrip.styles";
@@ -18,7 +18,9 @@ interface SearchTripScreenProps {
   language: "ko" | "en";
   /** 옵션 선택 콜백 — caller가 createActiveTripFromOption + saveActiveTrip. */
   onSelectOption: (option: DirectionsOption, destinationLabel: string) => void;
-  onCancel: () => void;
+  /** "닫기" 버튼 표시 + 콜백. settings sub-section 안에서는 헤더의 back 버튼이 대신
+   * 하므로 미지정. modal 진입(legacy)에서는 지정해 fallback. */
+  onCancel?: () => void;
 }
 
 type TransitLeg = Extract<DirectionsLeg, { mode: "transit" }>;
@@ -38,6 +40,33 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
+  // 목적지 후보 확정 step — 후보가 2+개일 때 DestinationConfirmModal 띄움.
+  const [pendingCandidates, setPendingCandidates] = useState<PlaceCandidate[]>([]);
+  const [pendingQuery, setPendingQuery] = useState<string>("");
+
+  async function runDirections(
+    originLat: number,
+    originLng: number,
+    destinationStr: string
+  ) {
+    try {
+      const result = await fetchDirections({
+        originLat,
+        originLng,
+        destination: destinationStr,
+        language
+      });
+      setOptions(result.options);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed";
+      setErrorMessage(
+        language === "ko"
+          ? `경로를 받지 못했어요: ${message}`
+          : `Couldn't load directions: ${message}`
+      );
+    }
+  }
+
   async function handleSearch() {
     const trimmed = destination.trim();
     if (!trimmed) return;
@@ -55,27 +84,74 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
         );
         return;
       }
-      const result = await fetchDirections({
-        originLat: location.lat,
-        originLng: location.lng,
-        destination: trimmed,
-        language
+
+      // Step 1: 목적지 후보 검색. 모호한 질의("현대아파트")에 대해 다중 후보.
+      const placesResult = await fetchPlacesCandidates({
+        query: trimmed,
+        language,
+        origin: { lat: location.lat, lng: location.lng }
       });
-      setOptions(result.options);
+      const candidates = placesResult.candidates;
+
+      if (candidates.length === 0) {
+        setErrorMessage(
+          language === "ko"
+            ? "검색 결과가 없어요. 다른 단어로 시도해 보세요."
+            : "No results. Try a different query."
+        );
+        return;
+      }
+
+      // Step 2: 후보가 하나면 그대로 directions. 여러 개면 사용자에게 확인.
+      if (candidates.length === 1) {
+        const c = candidates[0];
+        await runDirections(location.lat, location.lng, `${c.lat},${c.lng}`);
+        return;
+      }
+      setPendingCandidates(candidates);
+      setPendingQuery(trimmed);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed";
       setErrorMessage(
         language === "ko"
-          ? `경로를 받지 못했어요: ${message}`
-          : `Couldn't load directions: ${message}`
+          ? `목적지를 찾지 못했어요: ${message}`
+          : `Couldn't search places: ${message}`
       );
     } finally {
       setIsSearching(false);
     }
   }
 
+  async function handleConfirmCandidate(picked: PlaceCandidate) {
+    setPendingCandidates([]);
+    setPendingQuery("");
+    setIsSearching(true);
+    try {
+      const location = await getCurrentDeviceLocation();
+      if (location.kind !== "ok") {
+        setErrorMessage(
+          language === "ko"
+            ? "위치 권한이 없거나 현재 위치를 받지 못해 경로를 찾을 수 없어요."
+            : "Couldn't get your location. Allow location permission and try again."
+        );
+        return;
+      }
+      // picked 좌표를 destination string으로 직접 전달 ("lat,lng" 형식 Google 인식).
+      await runDirections(location.lat, location.lng, `${picked.lat},${picked.lng}`);
+      // 사용자가 입력한 질의 대신 picked.name으로 결과 카드 라벨이 더 명확해지도록 갱신.
+      setDestination(picked.name);
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  function handleCancelConfirm() {
+    setPendingCandidates([]);
+    setPendingQuery("");
+  }
+
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>{language === "ko" ? "어디로 가세요?" : "Where to?"}</Text>
         <Text style={styles.subtitle}>
@@ -136,17 +212,28 @@ export function SearchTripScreen({ language, onSelectOption, onCancel }: SearchT
           </Text>
         ) : null}
 
-        <Pressable
-          onPress={onCancel}
-          style={{ alignSelf: "center", paddingVertical: 12 }}
-          accessibilityRole="button"
-        >
-          <Text style={{ color: theme.colors.textMuted, fontSize: 14, fontWeight: "700" }}>
-            {language === "ko" ? "닫기" : "Close"}
-          </Text>
-        </Pressable>
+        {onCancel ? (
+          <Pressable
+            onPress={onCancel}
+            style={{ alignSelf: "center", paddingVertical: 12 }}
+            accessibilityRole="button"
+          >
+            <Text style={{ color: theme.colors.textMuted, fontSize: 14, fontWeight: "700" }}>
+              {language === "ko" ? "닫기" : "Close"}
+            </Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
-    </SafeAreaView>
+
+      <DestinationConfirmModal
+        visible={pendingCandidates.length > 0}
+        query={pendingQuery}
+        candidates={pendingCandidates}
+        language={language}
+        onConfirm={picked => void handleConfirmCandidate(picked)}
+        onCancel={handleCancelConfirm}
+      />
+    </View>
   );
 }
 

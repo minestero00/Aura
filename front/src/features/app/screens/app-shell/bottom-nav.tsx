@@ -22,6 +22,8 @@ interface BottomNavProps {
    * 4-tab은 모두 비활성으로 표시 (사용자가 sub-section에 있다는 명확한 시각 단서).
    */
   centerIndicatorIcon?: SoloIconKey;
+  /** centerIndicator 아래 label — 비활성 4-tab과 동일 스타일로 표시. */
+  centerIndicatorLabel?: string;
   /** centerIndicator 클릭 시 호출 — sub-section을 닫고 부모 메뉴로 복귀. */
   onCenterIndicatorPress?: () => void;
 }
@@ -58,6 +60,7 @@ export function BottomNav({
   onCancelExpand,
   sheetProgress,
   centerIndicatorIcon,
+  centerIndicatorLabel,
   onCenterIndicatorPress
 }: BottomNavProps) {
   const styles = createAppStyles(theme);
@@ -133,6 +136,14 @@ export function BottomNav({
                   <View style={[styles.bottomNavIndicator, styles.bottomNavIndicatorActive]} />
                 </View>
                 <CenterIcon color={theme.colors.accent} size={22} />
+                {centerIndicatorLabel ? (
+                  <Text
+                    style={[styles.bottomNavLabel, styles.bottomNavLabelActive]}
+                    numberOfLines={1}
+                  >
+                    {centerIndicatorLabel}
+                  </Text>
+                ) : null}
               </Pressable>
             );
           }

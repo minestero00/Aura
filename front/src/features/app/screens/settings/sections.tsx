@@ -17,6 +17,7 @@ import { UsageSection } from "@features/app/screens/settings/sections/usage-sect
 import { DataPrivacySection } from "@features/app/screens/settings/sections/data-privacy-section";
 import { UnsubscribeSection } from "@features/app/screens/settings/sections/unsubscribe-section";
 import { WalletSection } from "@features/app/screens/settings/sections/wallet-section";
+import { TransitSection } from "@features/app/screens/settings/sections/transit-section";
 import {
   SwipeBackContainer,
   getParentSettingsSection
@@ -84,6 +85,8 @@ function pickSection(
       return <UnsubscribeSection {...props} />;
     case "wallet":
       return <WalletSection {...props} />;
+    case "transit":
+      return <TransitSection {...props} />;
     default:
       return null;
   }

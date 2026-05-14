@@ -115,6 +115,76 @@ class TransitGeofenceModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
+    /**
+     * 위치 권한 상태를 RN에 노출. iOS의 getAuthorizationStatus 미러.
+     * 반환값: "always" (background OK) | "whenInUse" (foreground만) | "denied" | "notDetermined".
+     */
+    @ReactMethod
+    fun getAuthorizationStatus(promise: Promise) {
+        val fine = androidx.core.content.ContextCompat.checkSelfPermission(
+            reactContext,
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val coarse = androidx.core.content.ContextCompat.checkSelfPermission(
+            reactContext,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val background = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                reactContext,
+                android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            // Android 9 이하는 foreground 권한이 곧 background 권한.
+            fine || coarse
+        }
+        val status = when {
+            background -> "always"
+            fine || coarse -> "whenInUse"
+            else -> "denied"
+        }
+        promise.resolve(status)
+    }
+
+    /**
+     * 배터리 최적화 제외 상태. Doze 모드에서 geofence ENTER 지연/누락을 방지하려면
+     * 사용자가 AURA를 배터리 최적화 제외 list에 추가해야 한다.
+     * 반환값: "exempt" (제외됨, 정상) | "optimized" (제한됨).
+     */
+    @ReactMethod
+    fun getBatteryOptimizationStatus(promise: Promise) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            // Marshmallow 미만은 Doze 모드 없음 — 항상 exempt 취급.
+            promise.resolve("exempt")
+            return
+        }
+        val pm = reactContext.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+        val ignoring = pm.isIgnoringBatteryOptimizations(reactContext.packageName)
+        promise.resolve(if (ignoring) "exempt" else "optimized")
+    }
+
+    /**
+     * 배터리 최적화 제외 요청. 사용자에게 system dialog 표시 (앱 자체 처리 불가).
+     * Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS는 권한 다이얼로그.
+     * 거부 시 결과는 알 수 없음 (사용자가 다시 status query 필요).
+     */
+    @ReactMethod
+    fun requestIgnoreBatteryOptimizations(promise: Promise) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            promise.resolve(null)
+            return
+        }
+        try {
+            val intent = Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            intent.data = android.net.Uri.parse("package:${reactContext.packageName}")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            reactContext.startActivity(intent)
+            promise.resolve(null)
+        } catch (e: Exception) {
+            promise.reject("BATTERY_OPT_FAILED", e.message, e)
+        }
+    }
+
     // RN required (NativeEventEmitter).
     @ReactMethod fun addListener(eventName: String) {}
     @ReactMethod fun removeListeners(count: Int) {}

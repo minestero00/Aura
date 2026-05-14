@@ -304,7 +304,8 @@ export const KO_COPY: AppCopy = {
     usageSubtitle: '현재 사용량과 한도를 표시합니다.',
     usageUpdatedAt: '현재',
     usageResetAt: '초기화 시각',
-    usageHelpBody: '일일 사용량은 매일 자정(UTC 기준 0시, 한국 시간 09:00)에 자동으로 초기화됩니다.',
+    usageHelpBody:
+      '일일 사용량은 매일 자정(UTC 기준 0시, 한국 시간 09:00)에 자동으로 초기화됩니다.',
     usageLoading: '사용량을 불러오는 중입니다..',
     usageOverview: '데일리 브리프 요청',
     usageChat: '질문 요청',
@@ -349,7 +350,8 @@ export const KO_COPY: AppCopy = {
     filterActive: '사용 가능',
     filterExpiring: '만료 임박',
     filterAll: '전체',
-    daysLeft: (n: number) => (n === 0 ? '오늘 만료' : n > 0 ? `D-${n}` : `${-n}일 지남`),
+    daysLeft: (n: number) =>
+      n === 0 ? '오늘 만료' : n > 0 ? `D-${n}` : `${-n}일 지남`,
     expiresLabel: (date: string) => `${date}까지`,
     detailScanInstruction: '매장에 이 코드를 보여주세요',
     detailCodeRevealHint: '버튼을 누르면 코드가 표시됩니다.',
@@ -362,7 +364,8 @@ export const KO_COPY: AppCopy = {
     confirmDeleteBody: '되돌릴 수 없습니다.',
     extractTitle: '메일에서 쿠폰 추출',
     extractLoading: 'AURA가 쿠폰 정보를 정리하는 중...',
-    extractInsufficient: '이 메일에서 쿠폰을 찾지 못했어요. 직접 추가해 주세요.',
+    extractInsufficient:
+      '이 메일에서 쿠폰을 찾지 못했어요. 직접 추가해 주세요.',
     extractConfidenceLow: '정확도가 낮습니다. 저장 전 내용을 확인해 주세요.',
     extractSaveButton: '지갑에 저장',
     geofencePlaceholder: '예: 강남역 GS25',
@@ -375,8 +378,10 @@ export const KO_COPY: AppCopy = {
     fromImageButton: '이미지에서 추출',
     pickingImage: '사진 선택 중...',
     ocrRunning: '이미지에서 텍스트 인식 중...',
-    ocrUnavailable: 'OCR을 사용할 수 없어요. 이 기기/OS에서는 수동 입력만 가능합니다.',
-    ocrFailed: '이미지에서 텍스트를 인식하지 못했어요. 다른 사진을 시도해 보세요.',
+    ocrUnavailable:
+      'OCR을 사용할 수 없어요. 이 기기/OS에서는 수동 입력만 가능합니다.',
+    ocrFailed:
+      '이미지에서 텍스트를 인식하지 못했어요. 다른 사진을 시도해 보세요.',
     ocrAttachedHint: '풀스크린에서 그대로 보여줍니다',
   },
   ask: {

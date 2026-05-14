@@ -13,4 +13,9 @@ RCT_EXTERN_METHOD(setSharedSession:(NSString *)accessToken
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(presentShareSheet:(NSString *)message
+                  base64Image:(NSString *)base64Image
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+
 @end
