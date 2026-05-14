@@ -258,17 +258,8 @@ export function ClientActiveTripBanner({
       <View style={styles.buttonRow}>
         <Pressable
           accessibilityRole="button"
-          onPress={() => void handleAdvance()}
-          style={styles.advanceButton}
-        >
-          <Text style={styles.advanceButtonText}>
-            {isLastLeg ? t.advanceLast : t.advance}
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
           onPress={() => void handleEnd()}
-          style={styles.endButton}
+          style={[styles.endButton, { flex: 1 }]}
         >
           <Text style={styles.endButtonText}>{t.end}</Text>
         </Pressable>

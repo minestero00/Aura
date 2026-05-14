@@ -3,21 +3,15 @@
 ## 책임
 프로젝트의 PRD, 기술 아키텍처, 배포 절차, API 스펙 같은 **변하지 않는 진실**을 담는 문서 폴더. 코드와 문서의 정합성이 깨지면 코드가 옳고 문서를 업데이트한다.
 
-## 문서 인덱스
-| 파일 | 용도 |
-|---|---|
-| `PRD.md` | 제품 요구사항 — 기능 리스트와 비목표 |
-| `TECHNICAL_ARCHITECTURE.md` | 시스템 아키텍처 + 비용 제어 6계층 |
-| `IMPLEMENTATION_STATUS.md` | 무엇이 완료/미완료인지 (자주 stale 됨 — 새 PR 직후 업데이트) |
-| `BACKEND_SCHEMA_API_SPEC.md` | DB 12개 테이블 + API 13개 엔드포인트 |
-| `DEPLOY_RUNBOOK.md` | 단계별 K8s 배포 절차 |
-| `DEPLOY_QUICKSTART.md` | 한국어 빠른 요약 |
-| `DEPLOY_RAILWAY.md` | **Railway 배포** (P3에서 추가) |
-| `HowToDeploy_Server.md` | K8s 시크릿/매니페스트 핸들링 |
-| `GOOGLE_SIGNIN_SETUP.md` | Google Cloud Console 단계 |
-| `PORTABILITY_AND_PRODUCTION_NOTES.md` | DB 이식성 가이드 (Postgres → Oracle/MySQL) |
-| `sequence.md` | 12단계 빌드 순서 |
-| `README.md` | 진입점 |
+## 폴더 구조 (2026-05-14 정리)
+
+- **루트** — 항상 참조하는 active 문서 (CLAUDE.md, README.md, IMPLEMENTATION_STATUS.md, CLEANCODE.ts.md, PORTABILITY_AND_PRODUCTION_NOTES.md, TRANSIT_IMPROVEMENT_PLAN.md)
+- `deploy/` — 현재 사용하는 배포 가이드 (Railway / Supabase / Mobile / Fastlane / Pre-deploy / Observability)
+- `setup/` — 일회성 초기 셋업 (Google Sign-in, iOS Widget, Firebase)
+- `specs/` — 제품/아키텍처 spec, transit schema 등
+- `archive/` — 옛 기록 (K8s runbook, 완료된 phase plan 등). 새 작업에 사용 X
+
+전체 인덱스는 [README.md](README.md) 참조.
 
 ## 절대 금지
 - 코드 변경 없이 문서만 바꿔서 "구현됨"으로 표시 — IMPLEMENTATION_STATUS는 항상 코드를 따라간다.
