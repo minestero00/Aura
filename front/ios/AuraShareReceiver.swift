@@ -43,11 +43,17 @@ class AuraShareReceiver: RCTEventEmitter {
    * 이벤트 전달, 아니면 다음 fetchPending() 호출까지 대기.
    */
   @objc static func notifyShareReceived() {
+    NSLog("[AURA-SHARE-TRACE] notifyShareReceived shared=%@", shared == nil ? "nil" : "set")
     shared?.emitPending()
   }
 
   private func emitPending() {
-    guard hasListeners, let payload = readPendingPayload() else { return }
+    NSLog("[AURA-SHARE-TRACE] emitPending hasListeners=%@", hasListeners ? "YES" : "NO")
+    guard hasListeners, let payload = readPendingPayload() else {
+      NSLog("[AURA-SHARE-TRACE] emitPending skipped (no listener or no payload)")
+      return
+    }
+    NSLog("[AURA-SHARE-TRACE] emitPending sending event kind=%@", payload["kind"] as? String ?? "?")
     sendEvent(withName: "onShareReceived", body: payload)
   }
 
@@ -59,11 +65,34 @@ class AuraShareReceiver: RCTEventEmitter {
     _ resolver: @escaping RCTPromiseResolveBlock,
     rejecter: @escaping RCTPromiseRejectBlock
   ) {
-    resolver(readPendingPayload())
+    let payload = readPendingPayload()
+    NSLog("[AURA-SHARE-TRACE] fetchPending payload=%@", payload == nil ? "nil" : (payload?["kind"] as? String ?? "?"))
+    resolver(payload)
   }
 
   private func readPendingPayload() -> [String: Any]? {
     guard let defaults = UserDefaults(suiteName: appGroupId) else { return nil }
+
+    // TTL 안전망 — 1시간 넘은 payload는 stale로 간주하고 폐기.
+    // share extension은 저장하지만 host app open에 실패할 수 있어 (특히 시뮬에서),
+    // 그러면 다음 cold start마다 oldest payload가 modal을 띄우는 상태가 됨.
+    let ttl: TimeInterval = 3600
+    let now = Date().timeIntervalSince1970
+    let imgTs = defaults.double(forKey: "pendingImageTimestamp")
+    if imgTs > 0 && now - imgTs > ttl {
+      defaults.removeObject(forKey: "pendingImage")
+      defaults.removeObject(forKey: "pendingImageMime")
+      defaults.removeObject(forKey: "pendingImagePath")
+      defaults.removeObject(forKey: "pendingImageTimestamp")
+      defaults.synchronize()
+    }
+    let txtTs = defaults.double(forKey: "pendingTextTimestamp")
+    if txtTs > 0 && now - txtTs > ttl {
+      defaults.removeObject(forKey: "pendingText")
+      defaults.removeObject(forKey: "pendingTextTimestamp")
+      defaults.synchronize()
+    }
+
     if let data = defaults.data(forKey: "pendingImage") {
       let mime = defaults.string(forKey: "pendingImageMime") ?? "image/jpeg"
       let path = defaults.string(forKey: "pendingImagePath")
@@ -72,6 +101,9 @@ class AuraShareReceiver: RCTEventEmitter {
       defaults.removeObject(forKey: "pendingImageMime")
       defaults.removeObject(forKey: "pendingImagePath")
       defaults.removeObject(forKey: "pendingImageTimestamp")
+      // App Group UserDefaults는 process 간 sync에 지연이 있어 명시적 synchronize 필요.
+      // 미호출 시 main app reload마다 같은 payload가 다시 잡혀 modal이 무한 재발생.
+      defaults.synchronize()
       var payload: [String: Any] = [
         "kind": "image",
         "imageBase64": base64,
@@ -86,6 +118,7 @@ class AuraShareReceiver: RCTEventEmitter {
     if let text = defaults.string(forKey: "pendingText") {
       defaults.removeObject(forKey: "pendingText")
       defaults.removeObject(forKey: "pendingTextTimestamp")
+      defaults.synchronize()
       return ["kind": "text", "text": text]
     }
     return nil

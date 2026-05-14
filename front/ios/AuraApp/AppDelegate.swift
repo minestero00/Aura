@@ -52,7 +52,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // Share Extension(AuraCouponShare)이 aura://share로 호출 — pending payload를
     // App Groups에서 읽어 RN으로 emit. listener 미등록 상태(cold start)면 RN startup
     // 시 fetchPending()이 가져간다.
+    NSLog("[AURA-SHARE-TRACE] AppDelegate open url=%@", url.absoluteString)
     if url.scheme == "aura" {
+      NSLog("[AURA-SHARE-TRACE] AppDelegate calling notifyShareReceived")
       AuraShareReceiver.notifyShareReceived()
       return true
     }

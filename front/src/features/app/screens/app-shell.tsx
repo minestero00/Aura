@@ -93,13 +93,19 @@ export function AppShell({ app }: AppShellProps) {
     shareHandlerRef.current = app.handleShareCouponImage;
   });
   useEffect(() => {
+    console.log("[SHARE-TRACE] AppShell mount — calling fetchPendingShare + subscribe");
     void fetchPendingShare().then(payload => {
+      console.log("[SHARE-TRACE] fetchPendingShare resolved", { hasPayload: !!payload, kind: payload?.kind });
       if (payload) void shareHandlerRef.current(payload);
     });
     const unsubscribe = subscribeToShare(payload => {
+      console.log("[SHARE-TRACE] subscribeToShare event", { kind: payload.kind });
       void shareHandlerRef.current(payload);
     });
-    return unsubscribe;
+    return () => {
+      console.log("[SHARE-TRACE] AppShell unmount — unsubscribing");
+      unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

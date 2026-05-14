@@ -59,10 +59,19 @@ platform :ios do
     )
 
     # 3) TestFlight 업로드. internal testing은 Apple 처리 후 자동 활성.
+    # changelog는 env로 override 가능 (CI/스크립트 용도), 미지정 시 interactive prompt.
+    # 빈 입력은 "Latest build"로 fallback (Upload는 changelog 없으면 직전 빌드 메시지 재사용).
+    changelog = ENV["BETA_CHANGELOG"]
+    if changelog.nil? || changelog.strip.empty?
+      changelog = UI.input("📝 TestFlight changelog (이번 빌드에서 추가/수정된 내용을 한 줄 이상으로):")
+    end
+    changelog = "Latest build" if changelog.nil? || changelog.strip.empty?
+    UI.message("📝 changelog: #{changelog.lines.first&.strip}…")
+
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true,
-      changelog: ENV["BETA_CHANGELOG"] || "Latest build"
+      changelog: changelog
     )
   end
 

@@ -665,33 +665,36 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
   const theme = useAuraTheme();
   const [code, setCode] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
-  const [isRevealing, setIsRevealing] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
-  // 화면 unmount/close 시 평문 code/이미지를 메모리에서 즉시 폐기.
+  // detail 진입 = reveal 의도로 간주. mount 즉시 reveal 호출 → 사용자가 별도 버튼
+  // 탭 없이 바로 저장된 이미지/바코드가 풀스크린에 표시된다.
+  // unmount 시 평문 code/이미지 메모리에서 즉시 폐기는 그대로 유지.
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getCurrentAccessToken();
+        if (!token) throw new Error("not signed in");
+        const result = await revealCouponCode(token, coupon.id);
+        if (cancelled) return;
+        setCode(result.code);
+        setImageBase64(result.imageBase64);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
+      } finally {
+        if (!cancelled) setIsRevealing(false);
+      }
+    })();
     return () => {
+      cancelled = true;
       setCode(null);
       setImageBase64(null);
     };
-  }, []);
-
-  async function reveal() {
-    setIsRevealing(true);
-    setError(null);
-    try {
-      const token = await getCurrentAccessToken();
-      if (!token) throw new Error("not signed in");
-      const result = await revealCouponCode(token, coupon.id);
-      setCode(result.code);
-      setImageBase64(result.imageBase64);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : copy.wallet.errorLoad);
-    } finally {
-      setIsRevealing(false);
-    }
-  }
+  }, [coupon.id]);
 
   async function markUsed() {
     setIsBusy(true);
@@ -738,46 +741,31 @@ function CouponDetailModal({ coupon, styles, copy, onClose, onChanged }: CouponD
     <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={onClose}>
       <View style={localStyles.viewerRoot}>
         {/* 이미지 풀스크린 — 점원에게 보여주는 화면. 검은 배경 + 가운데 이미지만. */}
-        {code ? (
-          imageBase64 ? (
-            <ScrollView
-              style={localStyles.viewerScroll}
-              contentContainerStyle={localStyles.viewerScrollContent}
-              maximumZoomScale={6}
-              minimumZoomScale={1}
-              pinchGestureEnabled
-              bouncesZoom
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              centerContent
-            >
-              <Image
-                source={{ uri: imageBase64 }}
-                style={localStyles.viewerImage}
-                resizeMode="contain"
-              />
-            </ScrollView>
-          ) : (
-            <View style={localStyles.viewerCentered}>
-              <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} size={320} />
-            </View>
-          )
+        {imageBase64 ? (
+          <ScrollView
+            style={localStyles.viewerScroll}
+            contentContainerStyle={localStyles.viewerScrollContent}
+            maximumZoomScale={6}
+            minimumZoomScale={1}
+            pinchGestureEnabled
+            bouncesZoom
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            centerContent
+          >
+            <Image
+              source={{ uri: imageBase64 }}
+              style={localStyles.viewerImage}
+              resizeMode="contain"
+            />
+          </ScrollView>
+        ) : code ? (
+          <View style={localStyles.viewerCentered}>
+            <CouponCodeRenderer code={code} codeFormat={coupon.codeFormat} size={320} />
+          </View>
         ) : (
           <View style={localStyles.viewerCentered}>
-            <Text style={[styles.helperText, { color: "#FFFFFF", textAlign: "center" }]}>
-              {copy.wallet.detailCodeRevealHint}
-            </Text>
-            <Pressable
-              onPress={() => void reveal()}
-              style={[styles.primaryButton, { marginTop: 16, minWidth: 200 }]}
-              disabled={isRevealing}
-            >
-              {isRevealing ? (
-                <ActivityIndicator color={theme.colors.accentText} />
-              ) : (
-                <Text style={styles.primaryButtonText}>{copy.wallet.detailCodeShow}</Text>
-              )}
-            </Pressable>
+            <ActivityIndicator color="#FFFFFF" size="large" />
           </View>
         )}
 
@@ -1002,10 +990,11 @@ const localStyles = StyleSheet.create({
     justifyContent: "center"
   },
   viewerImage: {
+    // 화면 꽉 채우기. resizeMode="contain"이라 이미지 비율은 그대로, 빈 공간은
+    // 검은 배경(viewerRoot)으로 자연스럽게 채워진다. aspectRatio 강제 금지 — 쿠폰별
+    // 비율이 천차만별이라 잘리거나 가운데에 작게 떠 보임.
     width: "100%",
-    aspectRatio: 0.65,
-    maxHeight: "100%",
-    backgroundColor: "#FFFFFF"
+    height: "100%"
   },
   viewerCentered: {
     flex: 1,

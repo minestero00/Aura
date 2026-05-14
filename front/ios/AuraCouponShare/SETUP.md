@@ -73,8 +73,8 @@ Share Extension에서 main app과 데이터를 공유하려면 둘 다 같은 Ap
 
 Main app에서 share 데이터를 RN으로 전달하는 native module입니다.
 
-1. `front/ios/AuraApp/AuraShareReceiver.swift` 및 `AuraShareReceiver.m` 파일이 이미 작성되어 있음
-2. Xcode에서 `AuraApp` group 우클릭 → "Add Files to AuraApp..." → 두 파일 선택
+1. `front/ios/AuraShareReceiver.swift` 및 `AuraShareReceiver.m` 파일이 이미 작성되어 있음 (project root — pbxproj group path가 `front/ios/` 자체이므로 root에 둠. `AuraApp/` 하위 아님)
+2. Xcode에서 project root group(파란 AuraApp 프로젝트 아이콘) 우클릭 → "Add Files to AuraApp..." → 두 파일 선택
 3. **중요**: "Add to targets" 체크박스에서 **`AuraApp`만 체크** (AuraCouponShare 체크 해제)
 
 ---
@@ -114,8 +114,8 @@ npx react-native run-ios
 
 ```
 front/ios/AuraCouponShare/
-front/ios/AuraApp/AuraShareReceiver.swift
-front/ios/AuraApp/AuraShareReceiver.m
+front/ios/AuraShareReceiver.swift
+front/ios/AuraShareReceiver.m
 front/ios/AuraApp/AppDelegate.swift  (URL scheme handling)
 front/ios/AuraApp/Info.plist          (aura:// URL Type)
 front/ios/AuraApp.xcodeproj/project.pbxproj  (Xcode가 자동 수정)

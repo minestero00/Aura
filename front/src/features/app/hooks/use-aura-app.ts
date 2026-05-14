@@ -249,14 +249,23 @@ export function useAuraApp(): UseAuraAppResult {
   // WalletExtractModal에 후보 prefill. Native OCR이 없으면 candidate=null로 modal만 표시
   // (사용자가 폼 직접 입력).
   async function handleShareCouponImage(payload: SharePayload) {
-    if (payload.kind !== "image" || !payload.imagePath) return;
+    console.log("[SHARE-TRACE] handleShareCouponImage enter", { kind: payload.kind, hasPath: !!payload.imagePath, hasBase64: !!payload.imageBase64, ts: Date.now() });
+    if (payload.kind !== "image" || !payload.imagePath) {
+      console.log("[SHARE-TRACE] early return — wrong kind or no imagePath");
+      return;
+    }
     const session = state.authState?.session;
-    if (!session) return;
+    if (!session) {
+      console.log("[SHARE-TRACE] early return — no session");
+      return;
+    }
+    console.log("[SHARE-TRACE] setIsWalletExtractOpen(true)");
     state.setIsWalletExtractOpen(true);
     state.setIsWalletExtractLoading(true);
     state.setWalletExtractCandidate(null);
     try {
       const ocr = await extractTextFromImage(payload.imagePath);
+      console.log("[SHARE-TRACE] OCR done", { hasText: !!ocr?.fullText, len: ocr?.fullText?.length });
       if (!ocr || ocr.fullText.trim().length === 0) {
         state.setWalletExtractCandidate(null);
         return;
@@ -265,8 +274,10 @@ export function useAuraApp(): UseAuraAppResult {
         accessToken => extractCouponFromImageText(accessToken, ocr.fullText, state.language),
         session
       );
+      console.log("[SHARE-TRACE] extract done", { hasResult: !!result });
       state.setWalletExtractCandidate(result ?? null);
-    } catch {
+    } catch (e) {
+      console.log("[SHARE-TRACE] OCR/extract threw", String(e));
       state.setWalletExtractCandidate(null);
     } finally {
       state.setIsWalletExtractLoading(false);
@@ -288,6 +299,7 @@ export function useAuraApp(): UseAuraAppResult {
     }
   }
   function handleCloseWalletExtract() {
+    console.log("[SHARE-TRACE] handleCloseWalletExtract called", { stack: new Error().stack?.split("\n").slice(0, 5).join(" | ") });
     state.setIsWalletExtractOpen(false);
     state.setWalletExtractCandidate(null);
   }
