@@ -8,6 +8,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url("../../node_modules/@react-native-async-storage/async-storage/android/local_repo") }
+        maven { url("../../node_modules/@notifee/react-native/android/libs") }
         // react-native-seoul/kakao-login이 요구하는 Kakao SDK는 Kakao 자체
         // maven repo에서만 제공. first-time Android 빌드에서 dependency
         // resolution 실패하던 원인.
