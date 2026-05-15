@@ -86,8 +86,7 @@ export function buildShellStyles(theme: AuraTheme) {
       fontWeight: "800",
       lineHeight: 22
     },
-    // 5탭 화면 안 SafeAreaView/ScrollView는 transparent — AppShell의 background가 비침.
-    safeArea: { flex: 1, backgroundColor: "transparent" },
+    safeArea: { flex: 1, backgroundColor: colors.background },
     safeAreaSolid: { flex: 1, backgroundColor: colors.background },
     settingsScreen: { flex: 1 },
     // BottomNav가 absolute로 화면 하단을 덮으므로 콘텐츠 끝이 가려지지
@@ -285,11 +284,11 @@ export function buildShellStyles(theme: AuraTheme) {
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#1a1456" : "#5746E8",
-      shadowOpacity: theme.isDark ? 0.32 : 0.18,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 12 },
-      elevation: 4
+      shadowColor: theme.isDark ? "#1a1456" : "#0F1226",
+      shadowOpacity: theme.isDark ? 0.32 : 0.05,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2
     },
     sectionCard: {
       padding: 22,
@@ -297,11 +296,11 @@ export function buildShellStyles(theme: AuraTheme) {
       backgroundColor: colors.elevated,
       borderWidth: 1,
       borderColor: colors.line,
-      shadowColor: theme.isDark ? "#1a1456" : "#5746E8",
-      shadowOpacity: theme.isDark ? 0.28 : 0.14,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 3
+      shadowColor: theme.isDark ? "#1a1456" : "#0F1226",
+      shadowOpacity: theme.isDark ? 0.28 : 0.04,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 1
     },
     sectionTitle: { color: colors.textPrimary, fontSize: 19, fontWeight: "800", marginBottom: 12 },
     inputLabel: { color: colors.textPrimary, fontSize: 14, fontWeight: "700", marginBottom: 8 },

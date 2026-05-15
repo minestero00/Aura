@@ -67,6 +67,8 @@ export interface AuraTheme {
     dangerText: string;
     urgent: string;
     urgentSoft: string;
+    success: string;
+    warningSoft: string;
     overlay: string;
   };
 }
@@ -74,15 +76,12 @@ export interface AuraTheme {
 const lightTheme: AuraTheme = {
   isDark: false,
   colors: {
-    // Aurora-tinted off-white — 새벽 분위기. mockup 느낌의 순수 #F7F8FB 대신
-    // 살짝 보라/시안 끝이 도는 #F0EFF8로 브랜드 톤을 배경에 스며들게.
-    background: "#F0EFF8",
-    backgroundSecondary: "#E9E6F4",
+    // 흰 베이스 — 중요 요소에만 보라/시안 accent.
+    background: "#FFFFFF",
+    backgroundSecondary: "#F0EEF8",
     surface: "#FFFFFF",
-    surfaceMuted: "#F4F3FB",
-    // 카드(elevated)는 살짝 보라 끝이 도는 off-white로 — 그라디언트
-    // 배경(보라/시안) 위에 떠 있을 때 순백보다 자연스럽게 호흡한다.
-    elevated: "#FCFBFF",
+    surfaceMuted: "#F5F5FA",
+    elevated: "#FFFFFF",
     textPrimary: "#0F1226",
     textSecondary: "#4A4E66",
     textMuted: "#8B8FA4",
@@ -95,6 +94,8 @@ const lightTheme: AuraTheme = {
     dangerText: "#FF3B5C",
     urgent: "#FF3B5C",
     urgentSoft: "#FFEAEE",
+    success: "#1FCB7A",
+    warningSoft: "#FFF4DC",
     overlay: "rgba(15, 18, 38, 0.45)"
   }
 };
@@ -119,6 +120,8 @@ const darkTheme: AuraTheme = {
     dangerText: "#FF8FA3",
     urgent: "#FF8FA3",
     urgentSoft: "#3A1A26",
+    success: "#4ADE80",
+    warningSoft: "#3A2D0A",
     overlay: "rgba(0, 0, 0, 0.6)"
   }
 };

@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from "./lib/http/error-handler.js";
 import { requestIdMiddleware } from "./lib/http/request-id.js";
 import { requestLogger } from "./lib/http/request-logger.js";
 import { apiRouter } from "./routes/index.js";
+import { webhookRouter } from "./routes/webhooks.js";
 
 function buildCorsOptions(): cors.CorsOptions {
   const allowed = new Set(config.corsAllowedOrigins);
@@ -47,6 +48,8 @@ export function createApp() {
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cors(buildCorsOptions()));
   app.use(requestLogger);
+  // Stripe webhook은 raw body가 필요 — express.json() 앞에 마운트.
+  app.use("/api/v1/webhooks", webhookRouter);
   app.use(express.json({ limit: "1mb" }));
 
   const minuteLimiter = rateLimit({

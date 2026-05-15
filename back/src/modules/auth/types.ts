@@ -7,4 +7,5 @@ export interface AuthenticatedUser {
   email: string | null;
   phone: string | null;
   planTier: "free" | "pro" | "admin";
+  accountType: "personal" | "business";
 }

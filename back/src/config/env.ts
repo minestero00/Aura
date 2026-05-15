@@ -65,5 +65,13 @@ export const config = {
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID || "",
   // OpenAI Whisper — 음성 STT (back/src/modules/voice). Anthropic이 STT 미제공이라 분리 provider.
   // 비용 $0.006/분. 일별 cap은 usage_events에 voice_transcribe feature로 기록.
-  openaiApiKey: process.env.OPENAI_API_KEY || ""
+  openaiApiKey: process.env.OPENAI_API_KEY || "",
+  // Stripe — 해외 카드 결제. 미설정 시 결제 API는 stub(no-op).
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+  stripePriceMonthly: process.env.STRIPE_PRICE_MONTHLY || "",
+  stripePriceYearly: process.env.STRIPE_PRICE_YEARLY || "",
+  // 토스페이먼츠 — 국내 카드/계좌 결제. 미설정 시 결제 API는 stub(no-op).
+  tossSecretKey: process.env.TOSS_SECRET_KEY || "",
+  tossClientKey: process.env.TOSS_CLIENT_KEY || ""
 };

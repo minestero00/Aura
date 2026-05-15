@@ -27,6 +27,10 @@ export type DirectionsLeg =
       numStops: number;
       durationSec: number;
       polyline: string | null;
+      /** 실제 출발 시각 UNIX seconds (Google Directions departure_time). 출발 카운트다운용. */
+      departureTimeUnix: number | null;
+      /** 실제 도착 시각 UNIX seconds (Google Directions arrival_time). 도착 카운트다운용. */
+      arrivalTimeUnix: number | null;
     };
 
 export interface DirectionsOption {

@@ -20,10 +20,10 @@ export function ScreenEyebrow({ label }: ScreenEyebrowProps) {
     <View style={styles.eyebrowRow}>
       <Image
         source={AURA_ICON}
-        style={[styles.eyebrowIcon, { tintColor: "#FFFFFF" }]}
+        style={[styles.eyebrowIcon, { tintColor: theme.colors.accent }]}
         resizeMode="contain"
       />
-      <Text style={styles.eyebrowOnGradientInline}>{label}</Text>
+      <Text style={styles.eyebrow}>{label}</Text>
     </View>
   );
 }

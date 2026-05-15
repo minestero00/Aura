@@ -78,8 +78,8 @@ export function TodoScreen({
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
           <ScreenEyebrow label={copy.todo.eyebrow} />
-          <Text style={styles.titleOnGradient}>{copy.todo.title}</Text>
-          <Text style={styles.subtitleOnGradient}>{copy.todo.subtitle}</Text>
+          <Text style={styles.title}>{copy.todo.title}</Text>
+          <Text style={styles.subtitle}>{copy.todo.subtitle}</Text>
         </View>
 
         {!isDeviceCalendarPermissionGranted ? (

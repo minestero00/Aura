@@ -1,14 +1,27 @@
+import notifee, { AndroidImportance, TriggerType } from "@notifee/react-native";
 import { Platform } from "react-native";
-import PushNotificationIOS from "@react-native-community/push-notification-ios";
+import type { DirectionsLeg } from "./types";
 
-const ARRIVAL_NOTIFICATION_PREFIX = "aura-transit-arrival";
+const CHANNEL_ARRIVAL = "aura.transit.arrival";
+const CHANNEL_DEPARTURE = "aura.transit.departure";
+const ARRIVAL_PREFIX = "aura-transit-arrival";
+const DEPARTURE_PREFIX = "aura-transit-depart";
+const DEPARTURE_ALERT_MINUTES = [5, 2] as const;
 
-/**
- * 위치 기반 정류장 도착 알림. iOS local notification — fireDate 미설정 →
- * 즉시 표시. id에 tripId+legIndex가 포함돼 동일 leg 중복 발사를 방지.
- *
- * Android 대응은 추후(현재 daily-brief notification도 iOS-only).
- */
+async function ensureChannels() {
+  if (Platform.OS !== "android") return;
+  await notifee.createChannel({
+    id: CHANNEL_ARRIVAL,
+    name: "도착 알림",
+    importance: AndroidImportance.HIGH
+  });
+  await notifee.createChannel({
+    id: CHANNEL_DEPARTURE,
+    name: "출발 알림",
+    importance: AndroidImportance.HIGH
+  });
+}
+
 export async function presentTransitArrivalNotification(input: {
   tripId: string;
   legIndex: number;
@@ -16,80 +29,132 @@ export async function presentTransitArrivalNotification(input: {
   language: "ko" | "en";
   type?: "transit-arrival" | "destination";
 }) {
-  if (Platform.OS !== "ios") return;
+  const settings = await notifee.getNotificationSettings();
+  if (settings.authorizationStatus < 1) return;
 
-  const granted = await new Promise<boolean>(resolve => {
-    PushNotificationIOS.checkPermissions(permissions => {
-      resolve(Boolean(permissions.alert || permissions.badge || permissions.sound));
-    });
-  });
-  if (!granted) {
-    // 권한 없을 때 silent 무시 — banner UI에서 hint로 안내.
-    return;
-  }
-
+  await ensureChannels();
   const type = input.type ?? "transit-arrival";
-  const id = `${ARRIVAL_NOTIFICATION_PREFIX}-${input.tripId}-${input.legIndex}`;
+  const id = `${ARRIVAL_PREFIX}-${input.tripId}-${input.legIndex}`;
   const copy =
     input.language === "ko"
       ? type === "destination"
-        ? {
-            title: "AURA 도착 알림",
-            body: `${input.stopName}에 거의 도착했어요. 조심히 도착하셨나요?`
-          }
+        ? { title: "AURA 도착 알림", body: `${input.stopName}에 거의 도착했어요. 조심히 도착하셨나요?` }
         : { title: "AURA 도착 알림", body: `${input.stopName} 근처에 도착했습니다.` }
       : type === "destination"
-        ? {
-            title: "AURA arrival",
-            body: `Approaching ${input.stopName}. Did you arrive safely?`
-          }
+        ? { title: "AURA arrival", body: `Approaching ${input.stopName}. Did you arrive safely?` }
         : { title: "AURA arrival", body: `Approaching ${input.stopName}.` };
 
-  PushNotificationIOS.addNotificationRequest({
+  await notifee.displayNotification({
     id,
     title: copy.title,
     body: copy.body,
-    fireDate: new Date(Date.now() + 500),
-    userInfo: { type, tripId: input.tripId, legIndex: input.legIndex }
+    android: {
+      channelId: CHANNEL_ARRIVAL,
+      importance: AndroidImportance.HIGH,
+      pressAction: { id: "default" }
+    },
+    ios: { sound: "default" },
+    data: { type, tripId: input.tripId, legIndex: String(input.legIndex) }
   });
 }
 
-/** trip 종료 시 해당 trip의 모든 도착 알림을 cleanup. */
-export function cancelTransitArrivalNotifications(tripId: string, legCount: number) {
-  if (Platform.OS !== "ios") return;
-  const ids = Array.from(
-    { length: legCount },
-    (_, i) => `${ARRIVAL_NOTIFICATION_PREFIX}-${tripId}-${i}`
+export async function cancelTransitArrivalNotifications(
+  tripId: string,
+  legCount: number
+): Promise<void> {
+  const ids = Array.from({ length: legCount }, (_, i) => `${ARRIVAL_PREFIX}-${tripId}-${i}`);
+  await Promise.all(ids.map(id => notifee.cancelNotification(id)));
+}
+
+// ─── 출발 예약 알림 ───────────────────────────────────────────────────────────
+
+export async function scheduleDepartureAlerts(input: {
+  tripId: string;
+  legs: DirectionsLeg[];
+  language: "ko" | "en";
+}): Promise<void> {
+  await ensureChannels();
+  const now = Date.now();
+
+  for (const [legIndex, leg] of input.legs.entries()) {
+    if (leg.mode !== "transit" || leg.departureTimeUnix == null) continue;
+    const depMs = leg.departureTimeUnix * 1000;
+    const lineLabel =
+      leg.lineShort ?? leg.lineName ?? (input.language === "ko" ? "대중교통" : "transit");
+    const headsignPart = leg.headsign
+      ? input.language === "ko"
+        ? `${leg.headsign} `
+        : `→ ${leg.headsign} `
+      : "";
+
+    for (const minutesBefore of DEPARTURE_ALERT_MINUTES) {
+      const fireTs = depMs - minutesBefore * 60_000;
+      if (fireTs <= now) continue;
+
+      const body =
+        input.language === "ko"
+          ? `${lineLabel} ${headsignPart}${minutesBefore}분 후 출발합니다`
+          : `${lineLabel} ${headsignPart}departs in ${minutesBefore} min`;
+
+      await notifee.createTriggerNotification(
+        {
+          id: `${DEPARTURE_PREFIX}-${input.tripId}-${legIndex}-${minutesBefore}m`,
+          title: input.language === "ko" ? "AURA 탑승 알림" : "AURA boarding alert",
+          body,
+          android: {
+            channelId: CHANNEL_DEPARTURE,
+            importance: AndroidImportance.HIGH,
+            pressAction: { id: "default" }
+          },
+          ios: { sound: "default" },
+          data: {
+            type: "transit-departure",
+            tripId: input.tripId,
+            legIndex: String(legIndex)
+          }
+        },
+        {
+          type: TriggerType.TIMESTAMP,
+          timestamp: fireTs,
+          alarmManager: { allowWhileIdle: true }
+        }
+      );
+    }
+  }
+}
+
+export async function cancelDepartureAlerts(tripId: string, legCount: number): Promise<void> {
+  const ids: string[] = [];
+  for (let i = 0; i < legCount; i++) {
+    for (const m of DEPARTURE_ALERT_MINUTES) {
+      ids.push(`${DEPARTURE_PREFIX}-${tripId}-${i}-${m}m`);
+    }
+  }
+  await Promise.all(ids.map(id => notifee.cancelTriggerNotification(id)));
+}
+
+export async function cancelLegDepartureAlerts(
+  tripId: string,
+  legIndex: number
+): Promise<void> {
+  await Promise.all(
+    DEPARTURE_ALERT_MINUTES.map(m =>
+      notifee.cancelTriggerNotification(`${DEPARTURE_PREFIX}-${tripId}-${legIndex}-${m}m`)
+    )
   );
-  PushNotificationIOS.removePendingNotificationRequests(ids);
 }
 
-/** transit 알림 권한 요청. ClientActiveTripBanner 첫 mount 시 호출. */
 export async function ensureTransitNotificationPermission(): Promise<boolean> {
-  if (Platform.OS !== "ios") return false;
-  const result = await PushNotificationIOS.requestPermissions({
-    alert: true,
-    badge: true,
-    sound: true
-  });
-  return Boolean(result.alert || result.badge || result.sound);
+  const result = await notifee.requestPermission();
+  return result.authorizationStatus >= 1;
 }
 
 export type TransitNotificationStatus = "granted" | "denied" | "notDetermined";
 
-/** Trip 시작 전 알림 권한 현재 상태 — request하지 않고 query만. UI 체크리스트용. */
 export async function getTransitNotificationStatus(): Promise<TransitNotificationStatus> {
-  if (Platform.OS !== "ios") return "granted"; // Android POST_NOTIFICATIONS는 별도 흐름
-  const permissions = await new Promise<{
-    alert?: boolean;
-    badge?: boolean;
-    sound?: boolean;
-    authorizationStatus?: number;
-  }>(resolve => {
-    PushNotificationIOS.checkPermissions(p => resolve(p));
-  });
-  if (permissions.alert || permissions.badge || permissions.sound) return "granted";
-  // authorizationStatus: 0=NotDetermined, 1=Denied, 2=Authorized, 3=Provisional.
-  if (permissions.authorizationStatus === 0) return "notDetermined";
+  const settings = await notifee.getNotificationSettings();
+  const status = settings.authorizationStatus;
+  if (status >= 1) return "granted";
+  if (status === -1) return "notDetermined";
   return "denied";
 }

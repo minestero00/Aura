@@ -39,8 +39,8 @@ export function NewsScreen({
       <ScrollView contentContainerStyle={styles.scrollContent} style={styles.scrollView}>
         <View style={styles.heroBare}>
           <ScreenEyebrow label={copy.news.eyebrow} />
-          <Text style={styles.titleOnGradient}>{copy.news.title}</Text>
-          <Text style={styles.subtitleOnGradient}>{copy.news.subtitle}</Text>
+          <Text style={styles.title}>{copy.news.title}</Text>
+          <Text style={styles.subtitle}>{copy.news.subtitle}</Text>
         </View>
 
         <View style={styles.sectionCard}>

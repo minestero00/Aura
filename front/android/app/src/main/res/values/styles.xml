@@ -7,6 +7,12 @@
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+        <!-- Edge-to-edge: status bar + navigation bar를 투명하게. -->
+        <!-- WindowCompat.setDecorFitsSystemWindows(false)와 함께 작동. -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Android 10+(API 29)에서 nav bar에 반투명 scrim 자동 추가 방지. -->
+        <item name="android:enforceNavigationBarContrast">false</item>
     </style>
 
 </resources>

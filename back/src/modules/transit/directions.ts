@@ -34,6 +34,10 @@ export type DirectionsLeg =
       numStops: number;
       durationSec: number;
       polyline: string | null;
+      /** Google Directions departure_time.value — UNIX seconds. 실시간 출발 카운트다운용. */
+      departureTimeUnix: number | null;
+      /** Google Directions arrival_time.value — UNIX seconds. 도착 카운트다운용. */
+      arrivalTimeUnix: number | null;
     };
 
 export interface DirectionsOption {
@@ -97,6 +101,8 @@ interface GoogleDirectionsStep {
     departure_stop: { name: string; location: { lat: number; lng: number } };
     arrival_stop: { name: string; location: { lat: number; lng: number } };
     num_stops: number;
+    departure_time?: { value: number };
+    arrival_time?: { value: number };
   };
 }
 
@@ -129,7 +135,9 @@ function normalizeStep(step: GoogleDirectionsStep): DirectionsLeg | null {
       },
       numStops: td.num_stops,
       durationSec: step.duration.value,
-      polyline: step.polyline?.points ?? null
+      polyline: step.polyline?.points ?? null,
+      departureTimeUnix: td.departure_time?.value ?? null,
+      arrivalTimeUnix: td.arrival_time?.value ?? null
     };
   }
   return null;

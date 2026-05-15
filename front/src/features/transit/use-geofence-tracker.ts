@@ -5,9 +5,12 @@ import { advanceActiveTripLeg, clearActiveTrip, loadActiveTrip } from "./client-
 import type { ActiveTripState } from "./client-trip";
 import type { DirectionsLeg } from "./types";
 import {
+  cancelDepartureAlerts,
+  cancelLegDepartureAlerts,
   cancelTransitArrivalNotifications,
   ensureTransitNotificationPermission,
-  presentTransitArrivalNotification
+  presentTransitArrivalNotification,
+  scheduleDepartureAlerts
 } from "./notifications";
 import {
   isBackgroundGeofenceAvailable,
@@ -210,6 +213,8 @@ export function useGeofenceTracker({
       .then(added => setStatus(prev => ({ ...prev, backgroundActive: added > 0 })))
       .catch(() => setStatus(prev => ({ ...prev, backgroundActive: false })));
 
+    scheduleDepartureAlerts({ tripId: trip.id, legs: trip.legs, language });
+
     // 사용자가 Settings에서 권한을 "Always"로 바꾸고 앱으로 돌아오는 시점을
     // 잡아 자동으로 startMonitoring 재시도. 이미 active이면 skip.
     const appStateSub = AppState.addEventListener("change", state => {
@@ -234,6 +239,7 @@ export function useGeofenceTracker({
       const match = event.id.match(/leg-(\d+)/);
       if (!match) return;
       const enteredLegIndex = parseInt(match[1], 10);
+      cancelLegDepartureAlerts(trip.id, enteredLegIndex);
       let current = await loadActiveTrip();
       if (!current) return;
       while (current && current.currentLegIndex <= enteredLegIndex) {
@@ -313,6 +319,7 @@ export function useGeofenceTracker({
           await clearActiveTrip();
           onChangeRef.current(null);
         } else {
+          cancelLegDepartureAlerts(trip!.id, trip!.currentLegIndex);
           if (shouldFireNotification) {
             await presentTransitArrivalNotification({
               tripId: trip!.id,
@@ -366,6 +373,7 @@ export function useGeofenceTracker({
     }
     if (lastTripIdRef.current) {
       cancelTransitArrivalNotifications(lastTripIdRef.current, lastLegCountRef.current);
+      cancelDepartureAlerts(lastTripIdRef.current, lastLegCountRef.current);
       lastTripIdRef.current = null;
       lastLegCountRef.current = 0;
     }

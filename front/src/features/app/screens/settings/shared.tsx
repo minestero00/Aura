@@ -68,7 +68,7 @@ export function SettingsSubpageHeader({
 }: {
   styles: AppStyles;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   onSelectSettingsSection: (section: SettingsSectionKey) => void;
   /** 백 버튼/스와이프 시 돌아갈 섹션. 기본 "menu". */
   parentSection?: SettingsSectionKey;
@@ -83,7 +83,7 @@ export function SettingsSubpageHeader({
         </Pressable>
         <Text style={styles.subpageTitle}>{title}</Text>
       </View>
-      <Text style={styles.subpageSubtitle}>{subtitle}</Text>
+      {subtitle ? <Text style={styles.subpageSubtitle}>{subtitle}</Text> : null}
       {meta}
     </View>
   );

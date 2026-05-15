@@ -350,6 +350,10 @@ export interface AppCopy {
     ocrFailed: string;
     ocrAttachedHint: string;
   };
+  transit?: {
+    title: string;
+    subtitle?: string;
+  };
   ask: {
     eyebrow: string;
     title: string;

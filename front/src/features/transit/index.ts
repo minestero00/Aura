@@ -36,7 +36,10 @@ export type { BackgroundPermissionResult } from "./native-geofence";
 export {
   presentTransitArrivalNotification,
   cancelTransitArrivalNotifications,
-  ensureTransitNotificationPermission
+  ensureTransitNotificationPermission,
+  scheduleDepartureAlerts,
+  cancelDepartureAlerts,
+  cancelLegDepartureAlerts
 } from "./notifications";
 export type {
   TransitMode,

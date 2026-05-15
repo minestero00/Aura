@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useAuraTheme } from "@features/app/styles";
 import { advanceActiveTripLeg, clearActiveTrip } from "../client-trip";
@@ -44,6 +44,8 @@ interface BannerCopy {
   metersShort: string;
   stopsCount: (n: number) => string;
   legProgress: (i: number, total: number) => string;
+  waitingDepart: (min: number, sec: number) => string;
+  riding: (min: number) => string;
 }
 
 const COPY: Record<"ko" | "en", BannerCopy> = {
@@ -70,7 +72,9 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     minutes: "분",
     metersShort: "m",
     stopsCount: (n: number) => `${n}정거장`,
-    legProgress: (i: number, total: number) => `${i + 1} / ${total}`
+    legProgress: (i: number, total: number) => `${i + 1} / ${total}`,
+    waitingDepart: (min: number, sec: number) => `출발까지 ${min}분 ${sec}초`,
+    riding: (min: number) => `도착까지 약 ${min}분`
   },
   en: {
     title: "Trip in progress",
@@ -95,7 +99,9 @@ const COPY: Record<"ko" | "en", BannerCopy> = {
     minutes: "min",
     metersShort: "m",
     stopsCount: (n: number) => `${n} stops`,
-    legProgress: (i: number, total: number) => `${i + 1} / ${total}`
+    legProgress: (i: number, total: number) => `${i + 1} / ${total}`,
+    waitingDepart: (min: number, sec: number) => `Departs in ${min}m ${sec}s`,
+    riding: (min: number) => `Arrives in ~${min}m`
   }
 };
 
@@ -152,6 +158,39 @@ export function ClientActiveTripBanner({
   const geofence = useGeofenceTracker({ trip, language, onChange });
 
   const currentLeg = trip.legs[trip.currentLegIndex];
+
+  // 현재 transit leg의 출발/도착 카운트다운 (1초 단위 갱신).
+  const [departureCountdown, setDepartureCountdown] = useState<string | null>(null);
+  useEffect(() => {
+    if (currentLeg?.mode !== "transit") {
+      setDepartureCountdown(null);
+      return;
+    }
+    const { departureTimeUnix, arrivalTimeUnix } = currentLeg;
+    if (departureTimeUnix == null && arrivalTimeUnix == null) {
+      setDepartureCountdown(null);
+      return;
+    }
+    function tick() {
+      const now = Date.now();
+      const depMs = departureTimeUnix != null ? departureTimeUnix * 1000 : null;
+      const arrMs = arrivalTimeUnix != null ? arrivalTimeUnix * 1000 : null;
+      if (depMs != null && now < depMs) {
+        const remaining = depMs - now;
+        const min = Math.floor(remaining / 60_000);
+        const sec = Math.floor((remaining % 60_000) / 1000);
+        setDepartureCountdown(t.waitingDepart(min, sec));
+      } else if (arrMs != null && now < arrMs) {
+        const min = Math.max(1, Math.ceil((arrMs - now) / 60_000));
+        setDepartureCountdown(t.riding(min));
+      } else {
+        setDepartureCountdown(null);
+      }
+    }
+    tick();
+    const id = setInterval(tick, 1_000);
+    return () => clearInterval(id);
+  }, [trip.currentLegIndex, currentLeg, t]);
   const nextLeg = trip.legs[trip.currentLegIndex + 1];
   const isLastLeg = trip.currentLegIndex >= trip.legs.length - 1;
   const isWalkingLeg = currentLeg?.mode === "walking";
@@ -242,6 +281,9 @@ export function ClientActiveTripBanner({
           <Text style={styles.currentMeta}>
             {t.distanceLabel(geofence.distanceMeters, geofence.targetStopName)}
           </Text>
+        ) : null}
+        {departureCountdown ? (
+          <Text style={[styles.currentMeta, { fontWeight: "600" }]}>{departureCountdown}</Text>
         ) : null}
       </View>
 

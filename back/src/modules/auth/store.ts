@@ -16,6 +16,7 @@ export interface UserRecord {
   avatarUrl: string | null;
   timezone: string;
   planTier: PlanTier;
+  accountType: "personal" | "business";
   gmailConnected: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -32,6 +33,8 @@ export interface UserPreferencesRecord {
   // Phase 3 — 출발 시간 자동 푸시.
   departureAlertsEnabled: boolean;
   departureBufferMinutes: number;
+  // Business Mode Step 1 — 회의 30분 전 브리핑 push.
+  meetingBriefEnabled: boolean;
   updatedAt: Date;
 }
 
@@ -63,6 +66,7 @@ function createDefaultPreferences(userId: string, timezone: string): UserPrefere
     timezone,
     departureAlertsEnabled: true,
     departureBufferMinutes: 5,
+    meetingBriefEnabled: true,
     updatedAt: new Date()
   };
 }
@@ -117,6 +121,7 @@ interface UserCompositeRow {
   avatar_url: string | null;
   timezone: string;
   plan_tier: PlanTier;
+  account_type: "personal" | "business";
   created_at: Date | string;
   updated_at: Date | string;
   gmail_account: string | null;
@@ -130,6 +135,7 @@ interface UserCompositeRow {
 
 const USER_SELECT_SQL = `
   SELECT u.id, u.email, u.phone,
+         p.account_type,
          p.display_name, p.avatar_url, p.timezone, p.plan_tier,
          p.created_at, p.updated_at,
          c.provider_account_id AS gmail_account,
@@ -154,6 +160,7 @@ function rowToUser(row: UserCompositeRow): UserRecord {
     avatarUrl: row.avatar_url,
     timezone: row.timezone,
     planTier: row.plan_tier,
+    accountType: row.account_type ?? "personal",
     gmailConnected: Boolean(row.gmail_account),
     createdAt: toDate(row.created_at),
     updatedAt: toDate(row.updated_at)
@@ -212,9 +219,10 @@ async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
     evening_brief_time: string | null;
     departure_alerts_enabled: boolean | null;
     departure_buffer_minutes: number | null;
+    meeting_brief_enabled: boolean | null;
     updated_at: Date | string;
   }>(
-    "SELECT user_id, news_categories, summary_length, push_enabled, morning_brief_time::text, evening_brief_time::text, departure_alerts_enabled, departure_buffer_minutes, updated_at FROM aura.user_preferences WHERE user_id = $1",
+    "SELECT user_id, news_categories, summary_length, push_enabled, morning_brief_time::text, evening_brief_time::text, departure_alerts_enabled, departure_buffer_minutes, meeting_brief_enabled, updated_at FROM aura.user_preferences WHERE user_id = $1",
     [userId]
   );
   const prefsQueryMs = Date.now() - prefsQueryStart;
@@ -242,6 +250,7 @@ async function loadUserFromDb(userId: string): Promise<UserRecord | null> {
       timezone: user.timezone,
       departureAlertsEnabled: prefRow.departure_alerts_enabled ?? true,
       departureBufferMinutes: prefRow.departure_buffer_minutes ?? 5,
+      meetingBriefEnabled: prefRow.meeting_brief_enabled ?? true,
       updatedAt: toDate(prefRow.updated_at)
     });
   }
@@ -304,7 +313,8 @@ export const authStore = {
       id: input.id,
       email: input.email ?? user?.email ?? null,
       phone: input.phone ?? user?.phone ?? null,
-      planTier: user?.planTier ?? "free"
+      planTier: user?.planTier ?? "free",
+      accountType: user?.accountType ?? "personal"
     };
   },
   findUserById(userId: string) {
@@ -383,8 +393,8 @@ export const authStore = {
       runBackground(
         (async () => {
           await db.query(
-            `INSERT INTO aura.user_preferences (user_id, news_categories, summary_length, morning_brief_time, evening_brief_time, push_enabled, departure_alerts_enabled, departure_buffer_minutes)
-             VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8)
+            `INSERT INTO aura.user_preferences (user_id, news_categories, summary_length, morning_brief_time, evening_brief_time, push_enabled, departure_alerts_enabled, departure_buffer_minutes, meeting_brief_enabled)
+             VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8, $9)
              ON CONFLICT (user_id) DO UPDATE SET
                news_categories = EXCLUDED.news_categories,
                summary_length = EXCLUDED.summary_length,
@@ -393,6 +403,7 @@ export const authStore = {
                push_enabled = EXCLUDED.push_enabled,
                departure_alerts_enabled = EXCLUDED.departure_alerts_enabled,
                departure_buffer_minutes = EXCLUDED.departure_buffer_minutes,
+               meeting_brief_enabled = EXCLUDED.meeting_brief_enabled,
                updated_at = now()`,
             [
               userId,
@@ -402,7 +413,8 @@ export const authStore = {
               updated.eveningBriefTime,
               updated.pushEnabled,
               updated.departureAlertsEnabled,
-              updated.departureBufferMinutes
+              updated.departureBufferMinutes,
+              updated.meetingBriefEnabled
             ]
           );
           if (patch.timezone) {

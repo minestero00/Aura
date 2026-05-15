@@ -8,14 +8,15 @@ interface GoogleCalendarListResponse {
     id?: string;
     summary?: string;
     location?: string;
-    start?: {
-      date?: string;
-      dateTime?: string;
-    };
-    end?: {
-      date?: string;
-      dateTime?: string;
-    };
+    start?: { date?: string; dateTime?: string };
+    end?: { date?: string; dateTime?: string };
+    attendees?: Array<{
+      email?: string;
+      displayName?: string;
+      self?: boolean;
+      responseStatus?: string;
+    }>;
+    organizer?: { email?: string; displayName?: string; self?: boolean };
   }>;
 }
 
@@ -193,4 +194,51 @@ export async function fetchCalendarAgenda(userId: string): Promise<CalendarAgend
   });
 
   return grouped;
+}
+
+export interface CalendarEventBrief {
+  id: string;
+  title: string;
+  startsAt: string;
+  endsAt: string | null;
+  location: string | null;
+  isAllDay: boolean;
+  /** 참석자 목록. 본인(self=true) 제외. 클라이언트 응답에는 노출 금지 — 내부 모듈 전용. */
+  attendees: Array<{ email: string; displayName: string | null }>;
+}
+
+/**
+ * 특정 시간 구간에 시작하는 캘린더 이벤트를 attendee 포함 전체 필드로 반환.
+ * 클라이언트 API 응답에 사용 금지 (attendee email 포함). meeting-brief worker 전용.
+ */
+export async function fetchEventsForMeetingBrief(
+  userId: string,
+  fromMs: number,
+  toMs: number
+): Promise<CalendarEventBrief[]> {
+  const accessToken = await getAuthorizedAccessToken(userId);
+  const items = await fetchCalendarEvents(
+    accessToken,
+    new Date(fromMs).toISOString(),
+    new Date(toMs).toISOString()
+  );
+
+  return items
+    .filter(item => item.id && (item.start?.dateTime || item.start?.date))
+    .map(item => {
+      const startsAt = item.start?.dateTime ?? `${item.start?.date}T00:00:00.000Z`;
+      const endsAt = item.end?.dateTime ?? (item.end?.date ? `${item.end.date}T00:00:00.000Z` : null);
+      const attendees = (item.attendees ?? [])
+        .filter(a => a.email && !a.self)
+        .map(a => ({ email: a.email!, displayName: a.displayName ?? null }));
+      return {
+        id: item.id!,
+        title: item.summary?.trim() || "(untitled)",
+        startsAt,
+        endsAt,
+        location: item.location?.trim() || null,
+        isAllDay: isAllDay(item),
+        attendees
+      };
+    });
 }

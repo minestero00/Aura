@@ -46,7 +46,7 @@ async function mirrorSessionToAppGroup(accessToken: string | null) {
     | { setSharedSession?: (token: string | null, apiBase: string | null) => Promise<void> }
     | undefined;
   if (!bridge?.setSharedSession) return;
-  const apiBase = Platform.OS === "android" ? API_BASE_URL_ANDROID : API_BASE_URL_IOS;
+  const apiBase = API_BASE_URL_IOS;
   try {
     await bridge.setSharedSession(accessToken ?? null, apiBase ?? null);
   } catch {

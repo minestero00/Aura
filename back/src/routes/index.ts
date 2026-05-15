@@ -11,6 +11,8 @@ import { pushRouter } from "../modules/push/index.js";
 import { transitRouter } from "../modules/transit/index.js";
 import { usageRouter } from "../modules/usage/index.js";
 import { voiceRouter } from "../modules/voice/index.js";
+import { subscriptionRouter } from "../modules/subscription/index.js";
+import { meetingsRouter } from "../modules/meetings/index.js";
 import { usersRouter } from "../modules/users/routes.js";
 import { walletRouter } from "../modules/wallet/index.js";
 import { weatherRouter } from "../modules/weather/index.js";
@@ -33,4 +35,7 @@ apiRouter.use("/wallet", walletRouter);
 apiRouter.use("/weather", weatherRouter);
 apiRouter.use("/usage", usageRouter);
 apiRouter.use("/me/health", userHealthRouter);
+// /business/meetings는 /business보다 먼저 — 구체적 경로 우선
+apiRouter.use("/business/meetings", meetingsRouter);
+apiRouter.use("/business", subscriptionRouter);
 apiRouter.use("/", usersRouter);

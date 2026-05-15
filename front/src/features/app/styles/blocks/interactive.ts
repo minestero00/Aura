@@ -277,11 +277,13 @@ export function buildInteractiveStyles(theme: AuraTheme) {
       borderTopLeftRadius: 24,
       borderTopRightRadius: 24,
       backgroundColor: colors.elevated,
-      shadowColor: theme.isDark ? "#000000" : "#5746E8",
-      shadowOpacity: theme.isDark ? 0.34 : 0.18,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: -8 },
-      elevation: 8
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      shadowColor: theme.isDark ? "#000000" : "#0F1226",
+      shadowOpacity: theme.isDark ? 0.34 : 0.06,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: -4 },
+      elevation: 6
     },
     bottomNavRow: {
       flexDirection: "row",

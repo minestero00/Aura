@@ -24,6 +24,8 @@ object NotificationChannelInitializer {
     const val CHANNEL_BRIEFING_DAILY = "aura.briefing.daily"
     const val CHANNEL_BRIEFING_EVENING = "aura.briefing.evening"
     const val CHANNEL_DEPARTURE_ALERT = "aura.departure_alert"
+    const val CHANNEL_TRANSIT_ARRIVAL = "aura.transit.arrival"
+    const val CHANNEL_TRANSIT_DEPARTURE = "aura.transit.departure"
 
     fun ensureAllChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -52,6 +54,18 @@ object NotificationChannelInitializer {
             id = CHANNEL_DEPARTURE_ALERT,
             name = "출발 알림",
             description = "다음 일정 출발 시각 자동 알림"
+        )
+        registerChannel(
+            manager,
+            id = CHANNEL_TRANSIT_ARRIVAL,
+            name = "도착 알림",
+            description = "정류장/목적지 도착 실시간 알림"
+        )
+        registerChannel(
+            manager,
+            id = CHANNEL_TRANSIT_DEPARTURE,
+            name = "탑승 알림",
+            description = "대중교통 출발 5분/2분 전 예약 알림"
         )
     }
 

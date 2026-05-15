@@ -154,7 +154,8 @@ const URGENT_CATEGORIES = new Set([
   "departure_alert",
   "transit_arrival",
   "daily_briefing",
-  "evening_briefing"
+  "evening_briefing",
+  "meeting_briefing"
 ]);
 
 function isUrgentPayload(payload: PushPayload) {
@@ -173,6 +174,8 @@ function resolveAndroidChannelId(category: string | undefined) {
       return "aura.departure_alert";
     case "transit_arrival":
       return "aura.transit.arrival";
+    case "meeting_briefing":
+      return "aura.meeting.brief";
     default:
       return "aura.default";
   }

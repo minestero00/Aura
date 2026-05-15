@@ -16,6 +16,11 @@
          제외 system dialog를 띄울 수 있게. dialog는 OS가 제공, 권한은 단지 호출 자격. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Notifee 출발 예약 알림 (5분/2분 전) — Android 12(API 31-32)에서 정확한 AlarmManager 스케줄링 -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Android 13+(API 33+)에서는 SCHEDULE_EXACT_ALARM 대신 USE_EXACT_ALARM (사용자 동의 불필요) -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
     <!-- Health Connect — 어제 sleep/steps/heart rate 읽기 (daily brief 톤 조절용). -->
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_STEPS" />

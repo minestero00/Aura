@@ -114,26 +114,27 @@ export function buildContentStyles(theme: AuraTheme) {
       backgroundColor: "transparent",
       paddingHorizontal: 12
     },
-    // sub-card — 흰 카드 안에 들어가지만 배경은 그냥 흰색(elevated)으로 두고
-    // 테두리만 살짝 진하게. 채워진 색 대신 outline으로 구분 — 더 깔끔.
+    // AI 브리핑 카드 — accentSoft(연보라) 배경 + 진한 텍스트로 가독성 확보.
     digestCard: {
       marginTop: 18,
       padding: 16,
       borderRadius: 16,
-      backgroundColor: colors.elevated,
-      borderWidth: 1,
-      borderColor: colors.lineStrong
+      backgroundColor: colors.accentSoft,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+      overflow: "hidden"
     },
     compactDigestCard: {
       marginTop: 14,
       padding: 16,
       borderRadius: 16,
-      backgroundColor: colors.elevated,
-      borderWidth: 1,
-      borderColor: colors.lineStrong,
+      backgroundColor: colors.accentSoft,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+      overflow: "hidden",
       gap: 10
     },
-    digestLabel: { color: colors.textMuted, fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
+    digestLabel: { color: colors.accent, fontSize: 12, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
     digestHeadline: { color: colors.textPrimary, fontSize: 16, fontWeight: "800", marginBottom: 10 },
     compactDigestHeadline: { color: colors.textPrimary, fontSize: 15, fontWeight: "800", lineHeight: 22 },
     digestBullet: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, marginBottom: 6 },
