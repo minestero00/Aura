@@ -38,6 +38,10 @@ const VALID_LABELS: ReadonlySet<GmailMessageLabel> = new Set([
   "social"
 ]);
 
+function truncate(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+}
+
 function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "ko"): GmailDigest {
   const senders = Array.from(new Set(messages.map(message => shortSenderName(message.from)))).slice(0, 3);
 
@@ -48,8 +52,8 @@ function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "
           ? `${senders.join(", ")} 메일 ${messages.length}건`
           : "중요한 메일이 없습니다",
       bullets: messages.slice(0, 3).map(message => {
-        const snippet = message.snippet.trim();
-        return `${message.subject}: ${snippet || "미리보기가 없습니다."}`;
+        const subject = truncate(message.subject.trim(), 28);
+        return subject || "메일 1건";
       })
     };
   }
@@ -60,8 +64,7 @@ function buildFallbackDigest(messages: GmailMessageSummary[], language: "en" | "
         ? `${senders.join(", ")} — ${messages.length} emails`
         : "No recent emails found",
     bullets: messages.slice(0, 3).map(message => {
-      const snippet = message.snippet.trim();
-      return `${message.subject} — ${snippet || "No preview available."}`;
+      return truncate(message.subject.trim(), 40) || "1 email";
     })
   };
 }
@@ -81,8 +84,8 @@ export async function summarizeGmailMessages(
     maxTokens: 400,
     system:
       language === "ko"
-        ? "당신은 사용자의 메일을 모바일용으로 한국어 요약하고 자동 분류한다. headline, bullets, labels 세 키를 가진 strict JSON만 반환하라.\n- headline: 30자 이내. 발신자 핵심 이름 2~3개를 쉼표로 잇고 \"메일 N건\" 형태. 이메일 주소(`<...>`)는 절대 포함하지 마라. 예: \"Google, TestFlight, SoundCloud 메일 8건\".\n- bullets: 가장 중요한 내용만 2~3개의 짧은 bullet (일정, 요청, 회신 필요 여부 우선). 모든 문장 자연스러운 한국어 한글.\n- labels: 입력된 모든 메일에 대해 [{id, label}] 배열. label은 정확히 다음 4가지 중 하나: \"needs_reply\"(즉답이 필요한 개인 요청/질문), \"info\"(정보성 알림/뉴스레터/일정), \"promo\"(광고/프로모션), \"social\"(SNS 알림/커뮤니티)."
-        : "You summarize a user's emails for a mobile assistant and auto-classify each. Return strict JSON with keys headline, bullets, and labels.\n- headline: under 40 chars. Join 2~3 short sender names with commas and add \"— N emails\". Never include email addresses (`<...>`). Example: \"Google, TestFlight, SoundCloud — 8 emails\".\n- bullets: 2~3 short bullets focusing on urgency and commitments.\n- labels: array of {id, label} for every input message. label must be exactly one of \"needs_reply\" (personal questions/requests needing a reply), \"info\" (informational/newsletter/agenda), \"promo\" (marketing/ads), \"social\" (social network notifications).",
+        ? "당신은 사용자의 메일을 모바일용으로 한국어 요약하고 자동 분류한다. headline, bullets, labels 세 키를 가진 strict JSON만 반환하라.\n- headline: 30자 이내. 발신자 핵심 이름 2~3개를 쉼표로 잇고 \"메일 N건\" 형태. 이메일 주소(`<...>`)는 절대 포함하지 마라. 예: \"Google, TestFlight, SoundCloud 메일 8건\".\n- bullets: 가장 중요한 내용만 2~3개. 각 bullet은 반드시 20자 이내 짧은 한국어 문장. snippet을 그대로 복사하지 말고 핵심 행동/상황만 추출. 예: \"비밀번호 재설정 필요\", \"오늘 오후 2시 미팅\", \"결제 완료\".\n- labels: 입력된 모든 메일에 대해 [{id, label}] 배열. label은 정확히 다음 4가지 중 하나: \"needs_reply\"(즉답이 필요한 개인 요청/질문), \"info\"(정보성 알림/뉴스레터/일정), \"promo\"(광고/프로모션), \"social\"(SNS 알림/커뮤니티)."
+        : "You summarize a user's emails for a mobile assistant and auto-classify each. Return strict JSON with keys headline, bullets, and labels.\n- headline: under 40 chars. Join 2~3 short sender names with commas and add \"— N emails\". Never include email addresses (`<...>`). Example: \"Google, TestFlight, SoundCloud — 8 emails\".\n- bullets: 2~3 bullets, each under 40 chars. Extract key action/event only — never copy raw snippet text. Examples: \"Password reset needed\", \"Meeting at 2pm today\", \"Payment confirmed\".\n- labels: array of {id, label} for every input message. label must be exactly one of \"needs_reply\" (personal questions/requests needing a reply), \"info\" (informational/newsletter/agenda), \"promo\" (marketing/ads), \"social\" (social network notifications).",
     payload: messages.map(message => ({
       responseLanguage: language,
       id: message.id,
@@ -134,7 +137,7 @@ export async function summarizeGmailMessages(
 
   return {
     headline: parsed.headline,
-    bullets: parsed.bullets.slice(0, 3),
+    bullets: parsed.bullets.slice(0, 3).map(b => truncate(String(b), 40)),
     labels: safeLabels
   };
 }
