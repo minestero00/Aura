@@ -13,3 +13,7 @@ Image/testImage/Aura_iPhone17Pro_Alpha.mov
 *.mov
 back/aura-aiassistant-firebase-adminsdk-fbsvc-03b08b2f91.json
 dumb-design/
+Image/screenshots
+keystore.properties
+*.keystore
+/slack-bot/aura-bot-dev.2026-05-15.private-key.pem

@@ -1,0 +1,87 @@
+import { NextRequest, NextResponse } from "next/server";
+import { exchangeCodeForUser, getInstallationAccount } from "@/lib/slack-bot/github";
+import { getBotDb } from "@/lib/slack-bot/db";
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl;
+  const installationId = searchParams.get("installation_id");
+  const code = searchParams.get("code");
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000/aura";
+
+  if (!installationId) {
+    return NextResponse.redirect(`${appUrl}/slack?error=oauth_failed`);
+  }
+
+  // 사용자 신원 확인 (code가 있을 때만)
+  let githubUserId = "";
+  if (code) {
+    try {
+      const user = await exchangeCodeForUser(code);
+      githubUserId = user.id;
+    } catch {
+      // 사용자 인증 실패해도 설치 진행
+    }
+  }
+
+  // installation의 org/account 이름 조회
+  let githubOrg = "";
+  try {
+    const account = await getInstallationAccount(Number(installationId));
+    githubOrg = account.login;
+  } catch {
+    // fallback
+  }
+
+  const db = getBotDb();
+  const { data: existing } = await db
+    .from("bot_installations")
+    .select("id")
+    .eq("github_installation_id", installationId)
+    .maybeSingle();
+
+  let rowId: string;
+  if (existing) {
+    await db
+      .from("bot_installations")
+      .update({
+        ...(githubUserId ? { github_user_id: githubUserId } : {}),
+        ...(githubOrg ? { github_org: githubOrg } : {}),
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existing.id);
+    rowId = existing.id;
+  } else {
+    const { data: created } = await db
+      .from("bot_installations")
+      .insert({
+        github_installation_id: installationId,
+        github_user_id: githubUserId,
+        github_org: githubOrg,
+        github_token: "",
+        slack_team_id: "",
+        slack_team_name: "",
+        slack_bot_token: "",
+        slack_channel_id: ""
+      })
+      .select("id")
+      .single();
+    rowId = created!.id;
+  }
+
+  const res = NextResponse.redirect(`${appUrl}/slack/setup?step=2`);
+  res.cookies.set("bot_session", rowId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24
+  });
+  res.cookies.set("github_installation_id", installationId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60
+  });
+
+  return res;
+}

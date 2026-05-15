@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* AURA Design Tokens — web mirror of aura-app-design-system/assets/tokens.css */
+:root {
+  /* Brand */
+  --aurora:       #6B5BFF;
+  --aurora-600:   #5746E8;
+  --aurora-soft:  #ECE9FF;
+  --aurora-50:    #F4F2FF;
+
+  /* Surface scale */
+  --bg:           #F0EFF8;   /* screen base */
+  --surface:      #FFFFFF;
+  --elevated:     #FCFBFF;
+  --surface-muted:#F4F3FB;
+
+  /* Text scale */
+  --text:         #0F1226;
+  --text-2:       #4A4E66;
+  --text-muted:   #8B8FA4;
+
+  /* Line */
+  --line:         #EFEFF4;
+  --line-strong:  #E2E3EC;
+
+  /* Semantic */
+  --success:      #1FCB7A;
+  --warning:      #FFAA1D;
+  --warning-soft: #FFF4DC;
+  --error:        #FF3B5C;
+  --error-soft:   #FFEAEE;
+  --urgent:       #FF3B5C;
+  --urgent-soft:  #FFEAEE;
+
+  /* Radius */
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-full: 9999px;
+
+  /* Shadow */
+  --shadow-card: 0 1px 3px 0 rgba(15,18,38,.06), 0 1px 2px -1px rgba(15,18,38,.04);
+  --shadow-float: 0 4px 16px -4px rgba(107,91,255,.18), 0 1px 4px rgba(15,18,38,.08);
+}
+
+@theme inline {
+  --color-aurora:       var(--aurora);
+  --color-aurora-soft:  var(--aurora-soft);
+  --color-bg:           var(--bg);
+  --color-surface:      var(--surface);
+  --color-elevated:     var(--elevated);
+  --color-surface-muted: var(--surface-muted);
+  --color-text:         var(--text);
+  --color-text-2:       var(--text-2);
+  --color-text-muted:   var(--text-muted);
+  --color-line:         var(--line);
+  --color-line-strong:  var(--line-strong);
+  --color-success:      var(--success);
+  --color-warning:      var(--warning);
+  --color-error:        var(--error);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+
+/* Skeleton pulse */
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.skeleton { animation: pulse 1.6s ease-in-out infinite; background: var(--surface-muted); border-radius: var(--r-md); }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { width: 18px; height: 18px; border: 2px solid var(--line-strong); border-top-color: var(--aurora); border-radius: 50%; animation: spin .7s linear infinite; }
+
+/* Recording pulse */
+@keyframes rec-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(.85); } }
+.rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); animation: rec-pulse 1.2s ease-in-out infinite; }

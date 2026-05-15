@@ -8,6 +8,7 @@ import { evaluateAllUsersDepartures } from "./modules/departure/service.js";
 import { evaluateAllUsersMeetingBriefs } from "./modules/meeting-brief/index.js";
 import { walletService } from "./modules/wallet/index.js";
 import { runTossBillingCycle } from "./modules/subscription/index.js";
+import { getInstallationsDueNow, getManualTriggers, safeDigest } from "./modules/slack-bot/digest.js";
 
 const DEPARTURE_EVALUATE_INTERVAL_MS = 5 * 60 * 1000;
 let departureTimer: NodeJS.Timeout | null = null;
@@ -64,6 +65,77 @@ function stopTossBillingLoop() {
   if (tossBillingTimer) {
     clearInterval(tossBillingTimer);
     tossBillingTimer = null;
+  }
+}
+
+// Slack Bot — 30분마다 digest_time 체크 + manual_trigger 처리
+const SLACK_DIGEST_INTERVAL_MS = 30 * 60 * 1000;
+let slackDigestTimer: NodeJS.Timeout | null = null;
+let slackDigestInFlight = false;
+
+function getDelayToNextHalfHour(now: Date): number {
+  const elapsedInSlot = (now.getMinutes() % 30) * 60000 + now.getSeconds() * 1000 + now.getMilliseconds();
+  return SLACK_DIGEST_INTERVAL_MS - elapsedInSlot;
+}
+
+async function runSlackDigestCheck() {
+  if (slackDigestInFlight) return;
+  slackDigestInFlight = true;
+  try {
+    const now = new Date();
+    const [scheduled, manual] = await Promise.all([
+      getInstallationsDueNow(now),
+      getManualTriggers()
+    ]);
+    // 중복 제거 (manual이 scheduled에 이미 있을 수 있음)
+    const manualIds = new Set(manual.map(i => i.id));
+    const all = [...scheduled.filter(i => !manualIds.has(i.id)), ...manual];
+
+    for (const inst of all) {
+      const isManual = manualIds.has(inst.id);
+      const result = await safeDigest(inst, isManual);
+      if (result.status !== "skipped") {
+        console.log(JSON.stringify({
+          level: "info",
+          service: "aura-worker",
+          module: "slack-bot",
+          message: "digest done",
+          team: inst.slack_team_id,
+          status: result.status,
+          tokensUsed: result.tokensUsed,
+          manual: isManual
+        }));
+      }
+    }
+  } catch (error) {
+    console.log(JSON.stringify({
+      level: "warn",
+      service: "aura-worker",
+      module: "slack-bot",
+      message: "digest check failed",
+      error: error instanceof Error ? error.message : String(error)
+    }));
+  } finally {
+    slackDigestInFlight = false;
+  }
+}
+
+function startSlackDigestLoop() {
+  if (slackDigestTimer) return;
+  // 다음 :00 또는 :30까지 대기 후 시작 (drift 방지)
+  const delay = getDelayToNextHalfHour(new Date());
+  setTimeout(() => {
+    void runSlackDigestCheck();
+    slackDigestTimer = setInterval(() => {
+      void runSlackDigestCheck();
+    }, SLACK_DIGEST_INTERVAL_MS);
+  }, delay);
+}
+
+function stopSlackDigestLoop() {
+  if (slackDigestTimer) {
+    clearInterval(slackDigestTimer);
+    slackDigestTimer = null;
   }
 }
 
@@ -192,6 +264,7 @@ async function bootstrapWorker() {
   startMeetingBriefLoop();
   startWalletSweep();
   startTossBillingLoop();
+  startSlackDigestLoop();
 
   async function shutdown(signal: string) {
     console.log(
@@ -207,6 +280,7 @@ async function bootstrapWorker() {
     stopMeetingBriefLoop();
     stopWalletSweep();
     stopTossBillingLoop();
+    stopSlackDigestLoop();
     await Promise.all([
       jobsService.close(),
       authStore.close(),

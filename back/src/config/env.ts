@@ -73,5 +73,8 @@ export const config = {
   stripePriceYearly: process.env.STRIPE_PRICE_YEARLY || "",
   // 토스페이먼츠 — 국내 카드/계좌 결제. 미설정 시 결제 API는 stub(no-op).
   tossSecretKey: process.env.TOSS_SECRET_KEY || "",
-  tossClientKey: process.env.TOSS_CLIENT_KEY || ""
+  tossClientKey: process.env.TOSS_CLIENT_KEY || "",
+  // GitHub App — slack-bot 모듈의 digest worker에서 installation token 발급에 사용
+  githubAppId: process.env.GITHUB_APP_ID || "",
+  githubAppPrivateKey: (process.env.GITHUB_APP_PRIVATE_KEY || "").replace(/\\n/g, "\n")
 };
