@@ -34,11 +34,16 @@ export async function GET(req: NextRequest) {
   }
 
   const db = getBotDb();
-  const { data: existing } = await db
+  const { data: existing, error: selectError } = await db
     .from("bot_installations")
     .select("id")
     .eq("github_installation_id", installationId)
     .maybeSingle();
+
+  if (selectError) {
+    console.error("[github/callback] select error:", selectError);
+    return NextResponse.redirect(`${appUrl}/slack?error=db_error`);
+  }
 
   let rowId: string;
   if (existing) {
@@ -52,7 +57,7 @@ export async function GET(req: NextRequest) {
       .eq("id", existing.id);
     rowId = existing.id;
   } else {
-    const { data: created } = await db
+    const { data: created, error: insertError } = await db
       .from("bot_installations")
       .insert({
         github_installation_id: installationId,
@@ -66,7 +71,11 @@ export async function GET(req: NextRequest) {
       })
       .select("id")
       .single();
-    rowId = created!.id;
+    if (insertError || !created) {
+      console.error("[github/callback] insert error:", insertError);
+      return NextResponse.redirect(`${appUrl}/slack?error=db_error`);
+    }
+    rowId = created.id;
   }
 
   const res = NextResponse.redirect(`${appUrl}/slack/setup?step=2`);

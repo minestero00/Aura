@@ -1,10 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
 // bot 스키마 접근은 service_role key 필요 (RLS 우회)
+// aura 스키마는 PostgREST에 별도 노출 필요: ALTER ROLE authenticator SET pgrst.db_schemas TO 'public,aura'
 export function getBotDb() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { db: { schema: "aura" } }
   );
 }
 
