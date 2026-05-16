@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import { createAppAuth } from "@octokit/auth-app";
 import { WebClient } from "@slack/web-api";
+import type { Block, KnownBlock } from "@slack/web-api";
 import { decryptSecret } from "../../lib/security/encryption.js";
 import { createPgPool } from "../../lib/db/pool.js";
 import type { Pool } from "pg";
@@ -270,8 +271,8 @@ function mentionOf(login: string, mappings: UserMapping[]): string {
   return m?.slack_user_id ? `<@${m.slack_user_id}>` : `*${login || "unknown"}*`;
 }
 
-function buildRepoBlocks(repo: RepoDigest, mappings: UserMapping[]): object[] {
-  const blocks: object[] = [];
+function buildRepoBlocks(repo: RepoDigest, mappings: UserMapping[]): (Block | KnownBlock)[] {
+  const blocks: (Block | KnownBlock)[] = [];
 
   // 레포 헤더
   blocks.push({
@@ -339,7 +340,7 @@ async function sendToSlack(
   const slack = new WebClient(token);
   const activeRepos = repoDigests.filter(r => r.commits.length > 0 || r.prs.length > 0);
 
-  const blocks: object[] = [
+  const blocks: (Block | KnownBlock)[] = [
     { type: "header", text: { type: "plain_text", text: `📋 ${date} 개발 현황` } },
     { type: "divider" }
   ];
