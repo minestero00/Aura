@@ -39,6 +39,22 @@ export async function getInstallationAccount(installationId: number): Promise<{ 
   };
 }
 
+export async function getOrgMembers(
+  installationId: number,
+  org: string
+): Promise<{ login: string; avatar_url: string }[]> {
+  try {
+    const octokit = getAppOctokit(installationId);
+    const members = await octokit.paginate(octokit.orgs.listMembers, {
+      org,
+      per_page: 100
+    });
+    return members.map(m => ({ login: m.login, avatar_url: m.avatar_url }));
+  } catch {
+    return [];
+  }
+}
+
 export async function exchangeCodeForUser(code: string): Promise<{ id: string; login: string }> {
   const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",

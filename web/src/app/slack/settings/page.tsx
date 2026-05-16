@@ -36,6 +36,10 @@ interface DigestLog {
   pr_count: number | null;
 }
 
+interface GithubMember { login: string; avatar_url: string }
+interface SlackUser { id: string; name: string; display_name: string }
+interface MappingEntry { slack_user_id: string; slack_display_name: string }
+
 interface Settings {
   github_org: string;
   slack_team_name: string;
@@ -69,6 +73,12 @@ function SettingsContent() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  const [githubMembers, setGithubMembers] = useState<GithubMember[]>([]);
+  const [slackUsers, setSlackUsers] = useState<SlackUser[]>([]);
+  const [mappings, setMappings] = useState<Record<string, MappingEntry>>({});
+  const [savingMappings, setSavingMappings] = useState(false);
+  const [savedMappings, setSavedMappings] = useState(false);
+
   // 편집 상태
   const [digestTime, setDigestTime] = useState("09:00");
   const [timezone, setTimezone] = useState("Asia/Seoul");
@@ -79,8 +89,15 @@ function SettingsContent() {
   useEffect(() => {
     Promise.all([
       fetch("/api/slack-bot/settings").then(r => r.json()),
-      fetch("/api/slack-bot/logs").then(r => r.json())
-    ]).then(([s, l]: [Settings, DigestLog[]]) => {
+      fetch("/api/slack-bot/logs").then(r => r.json()),
+      fetch("/api/slack-bot/mappings").then(r => r.json()),
+      fetch("/api/slack-bot/slack-users").then(r => r.json())
+    ]).then(([s, l, m, u]: [
+      Settings,
+      DigestLog[],
+      { github_members: GithubMember[]; mappings: { github_login: string; slack_user_id: string; slack_display_name: string }[] },
+      SlackUser[]
+    ]) => {
       setSettings(s);
       setLogs(l);
       setDigestTime(s.digest_time);
@@ -88,6 +105,13 @@ function SettingsContent() {
       setDigestDays(s.digest_days);
       setIncludeDiffs(s.include_diffs);
       setCustomPrompt(s.custom_prompt ?? "");
+      setGithubMembers(m.github_members ?? []);
+      setSlackUsers(u ?? []);
+      const map: Record<string, MappingEntry> = {};
+      (m.mappings ?? []).forEach(mp => {
+        map[mp.github_login] = { slack_user_id: mp.slack_user_id, slack_display_name: mp.slack_display_name };
+      });
+      setMappings(map);
     }).catch(() => setError("설정을 불러오지 못했습니다."))
       .finally(() => setLoading(false));
   }, []);
@@ -119,6 +143,24 @@ function SettingsContent() {
     await fetch("/api/slack-bot/trigger", { method: "POST" });
     setTriggering(false);
   }, []);
+
+  const saveMappings = useCallback(async () => {
+    setSavingMappings(true);
+    await fetch("/api/slack-bot/mappings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mappings: Object.entries(mappings).map(([github_login, { slack_user_id, slack_display_name }]) => ({
+          github_login,
+          slack_user_id,
+          slack_display_name
+        }))
+      })
+    });
+    setSavedMappings(true);
+    setTimeout(() => setSavedMappings(false), 3000);
+    setSavingMappings(false);
+  }, [mappings]);
 
   const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
@@ -248,6 +290,93 @@ function SettingsContent() {
             ))}
           </div>
         </div>
+
+        {/* 멤버 매핑 */}
+        {githubMembers.length > 0 && (
+          <div
+            className="rounded-[16px] p-4 space-y-3"
+            style={{ background: "var(--surface)", border: "1px solid var(--line)", boxShadow: "var(--shadow-card)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[13px] font-semibold" style={{ color: "var(--text)" }}>멤버 매핑</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                  GitHub 멤버 ↔ Slack 사용자 연결 · 요약 메시지에 @멘션으로 반영
+                </p>
+              </div>
+              <button
+                onClick={() => void saveMappings()}
+                disabled={savingMappings}
+                className="px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-opacity disabled:opacity-50"
+                style={{ background: "var(--aurora-soft)", color: "var(--aurora)" }}
+              >
+                {savingMappings ? "저장 중..." : savedMappings ? "저장됨 ✓" : "저장"}
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {githubMembers.map(member => {
+                const current = mappings[member.login];
+                return (
+                  <div key={member.login} className="flex items-center gap-3 py-1.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={member.avatar_url}
+                      width={24}
+                      height={24}
+                      alt={member.login}
+                      className="rounded-full flex-none"
+                    />
+                    <span
+                      className="text-[13px] font-medium flex-1 truncate"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {member.login}
+                    </span>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--text-muted)", flexShrink: 0 }}>
+                      <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <select
+                      value={current?.slack_user_id ?? ""}
+                      onChange={e => {
+                        const selectedId = e.target.value;
+                        const slackUser = slackUsers.find(u => u.id === selectedId);
+                        setMappings(prev => ({
+                          ...prev,
+                          [member.login]: {
+                            slack_user_id: selectedId,
+                            slack_display_name: slackUser?.display_name ?? slackUser?.name ?? ""
+                          }
+                        }));
+                      }}
+                      className="px-2 py-1.5 rounded-[8px] text-[12px] outline-none"
+                      style={{
+                        background: "var(--surface-muted)",
+                        border: "1px solid var(--line)",
+                        color: "var(--text)",
+                        maxWidth: 160,
+                        minWidth: 120
+                      }}
+                    >
+                      <option value="">매핑 없음</option>
+                      {slackUsers.map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.display_name || u.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+
+            {slackUsers.length === 0 && (
+              <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>
+                Slack이 연결되지 않았거나 멤버 목록을 불러올 수 없습니다.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* 스케줄 설정 */}
         <div
