@@ -16,4 +16,4 @@ dumb-design/
 Image/screenshots
 keystore.properties
 *.keystore
-/slack-bot/aura-bot-dev.2026-05-15.private-key.pem
+docs/slack-bot/aura-bot-dev.2026-05-15.private-key.pem
