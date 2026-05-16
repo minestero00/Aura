@@ -22,7 +22,7 @@ _Ai assistant application for all users_
 
 - App
   - [Android](https://github.com/e-commerce-dumb/Aura/releases)
-  - Ios : testflight
+  - iOS : testflight
 - [Web](https://dumb.io.kr/aura)
   - [AURA buisness](https://dumb.io.kr/aura/buisness)
   - [slack bot](https://dumb.io.kr/aura/slack) : github organization commit cron bot

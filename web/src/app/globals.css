@@ -67,8 +67,9 @@
 *::before,
 *::after { box-sizing: border-box; }
 
+html { background: var(--bg); }
 body {
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
   font-family: var(--font-geist-sans, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
@@ -78,6 +79,214 @@ body {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+
+/* ── Public marketing hover utilities ─────────────────────────────── */
+
+/* Card lift on hover */
+.pub-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.pub-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(107,91,255,.13), 0 2px 8px rgba(15,18,38,.06);
+  border-color: #DDD9FF !important;
+}
+
+/* Subtle lift (less aggressive) */
+.pub-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pub-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(107,91,255,.12);
+}
+
+/* Button hover */
+.pub-btn {
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+.pub-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.07);
+  box-shadow: 0 6px 20px rgba(15,18,38,.2);
+}
+.pub-btn-aurora:hover {
+  box-shadow: 0 6px 24px rgba(107,91,255,.45) !important;
+}
+
+/* Nav link sweep underline */
+.pub-nav-link {
+  position: relative;
+  transition: color 0.18s ease;
+}
+.pub-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  right: 50%;
+  height: 2px;
+  background: var(--aurora);
+  border-radius: 2px;
+  transition: left 0.2s ease, right 0.2s ease;
+}
+.pub-nav-link:hover::after,
+.pub-nav-link.active::after {
+  left: 0;
+  right: 0;
+}
+
+/* Integration / stat cards */
+.pub-chip {
+  transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.pub-chip:hover {
+  background: #F4F2FF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(107,91,255,.12);
+}
+
+/* Value section rows */
+.pub-value-row {
+  transition: background 0.2s ease;
+}
+.pub-value-row:hover {
+  background: #F8F8FA !important;
+}
+
+/* Step cards */
+.pub-step {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.pub-step:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(107,91,255,.14);
+  border-color: #C8C0FF !important;
+}
+
+/* Icon bounce */
+.pub-icon-wrap {
+  transition: transform 0.2s ease;
+}
+.pub-card:hover .pub-icon-wrap,
+.pub-step:hover .pub-icon-wrap {
+  transform: scale(1.1) rotate(-3deg);
+}
+
+/* Glow text on hover */
+.pub-glow-hover {
+  transition: text-shadow 0.2s ease;
+}
+.pub-glow-hover:hover {
+  text-shadow: 0 0 20px rgba(107,91,255,.35);
+}
+
+/* Fade-up animation for sections */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pub-fade-up {
+  animation: fadeUp 0.5s ease both;
+}
+
+/* Mobile nav */
+.pub-nav-links { display: flex; }
+.pub-nav-mobile-btn { display: none; }
+.pub-nav-mobile-menu { display: none; }
+@media (max-width: 768px) {
+  .pub-nav-links { display: none; }
+  .pub-nav-mobile-btn { display: flex !important; }
+  .pub-nav-mobile-menu.open { display: flex; }
+  .pub-card:hover { transform: none; }
+  .pub-step:hover { transform: none; }
+}
+
+/* ── View Transitions (page-to-page) ───────────────────────────────── */
+/* Pure opacity cross-fade. Navbar lives in a shared layout so it never
+   remounts — no shake possible. Ambient backdrop also persists. */
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Persist navbar + ambient backdrop across page transitions */
+.aura-public-nav { view-transition-name: aura-public-nav; }
+
+@supports (view-transition-name: root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
+    animation: vt-fade-out 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.14s;
+  }
+
+  /* Navbar: never animates between pages */
+  ::view-transition-group(aura-public-nav) { animation-duration: 0s; }
+  ::view-transition-old(aura-public-nav),
+  ::view-transition-new(aura-public-nav) { animation: none; }
+}
+
+/* ── Scroll reveal (FadeIn component) ──────────────────────────────── */
+.fi-wrap {
+  /* initial state set by JS; graceful fallback = visible */
+  will-change: opacity, transform;
+  /* Smooth out compositing on Safari/iOS */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Smooth-scroll for in-page anchors so the reveal looks intentional */
+html {
+  scroll-behavior: smooth;
+  /* Fullpage-style: gently pull to nearest section boundary while scrolling.
+     `proximity` = soft (free scroll, snap only when near). */
+  scroll-snap-type: y proximity;
+  /* Leave room for sticky navbar so snapped sections aren't hidden behind it */
+  scroll-padding-top: 62px;
+}
+/* Only marketing sections opt in to snap points — app pages scroll normally */
+.aura-public-shell section,
+.aura-public-shell > footer {
+  scroll-snap-align: start;
+}
+/* Exclude tiny strips (e.g. business divider) from being snap targets */
+.aura-public-shell .lp-strip,
+.aura-public-shell section.no-snap {
+  scroll-snap-align: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+}
+/* Mobile: lighter snap so touch scroll stays responsive */
+@media (max-width: 768px) {
+  html { scroll-snap-type: none; }
+}
+/* Reduced-motion: skip animations entirely */
+@media (prefers-reduced-motion: reduce) {
+  .fi-wrap {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
 
 /* Skeleton pulse */
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
@@ -90,3 +299,144 @@ body {
 /* Recording pulse */
 @keyframes rec-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(.85); } }
 .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--error); animation: rec-pulse 1.2s ease-in-out infinite; }
+
+/* ── Ambient backdrop (page-fixed mesh) ────────────────────────────── */
+.amb-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.85;
+  will-change: transform;
+}
+.amb-orb-1 {
+  top: -15%;
+  left: -10%;
+  width: 65vw;
+  height: 65vw;
+  max-width: 820px;
+  max-height: 820px;
+  background: radial-gradient(circle, rgba(107,91,255,0.55) 0%, rgba(107,91,255,0.15) 40%, transparent 70%);
+  animation: amb-drift-1 16s ease-in-out infinite;
+}
+.amb-orb-2 {
+  top: 25%;
+  right: -15%;
+  width: 58vw;
+  height: 58vw;
+  max-width: 720px;
+  max-height: 720px;
+  background: radial-gradient(circle, rgba(52,210,255,0.45) 0%, rgba(52,210,255,0.12) 40%, transparent 70%);
+  animation: amb-drift-2 20s ease-in-out infinite;
+}
+.amb-orb-3 {
+  bottom: -25%;
+  left: 15%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  background: radial-gradient(circle, rgba(139,107,255,0.30) 0%, rgba(52,210,255,0.10) 40%, transparent 70%);
+  animation: amb-drift-3 24s ease-in-out infinite;
+}
+@keyframes amb-drift-1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(120px, 80px) scale(1.15); }
+  66%  { transform: translate(-60px, 140px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes amb-drift-2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(-100px, 100px) scale(0.9); }
+  66%  { transform: translate(80px, -60px) scale(1.12); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+@keyframes amb-drift-3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(100px, -100px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+/* Subtle film grain over the mesh — keeps gradients from banding */
+.amb-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+}
+@media (prefers-reduced-motion: reduce) {
+  .amb-orb { animation: none; }
+}
+@media (max-width: 768px) {
+  .amb-orb { animation-duration: 40s; }
+  .amb-orb-3 { display: none; }
+}
+
+/* Marketing shell — own stacking context so the fixed orbs sit cleanly
+   behind every page child (z-index: -1 within the shell). */
+.aura-public-shell { position: relative; isolation: isolate; }
+
+/* ── Premium polish (marketing) ────────────────────────────────────── */
+
+/* Float — gentle hover for hero mockups */
+@keyframes pub-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.pub-float {
+  animation: pub-float 5.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform;
+}
+
+/* Shine sweep — for primary CTAs on hover */
+@keyframes pub-shine-sweep {
+  from { transform: translateX(-150%) skewX(-22deg); }
+  to   { transform: translateX(420%) skewX(-22deg); }
+}
+.pub-shine { position: relative; overflow: hidden; isolation: isolate; }
+.pub-shine::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  transform: translateX(-150%) skewX(-22deg);
+  pointer-events: none;
+  z-index: 1;
+}
+.pub-shine:hover::after {
+  animation: pub-shine-sweep 0.7s ease forwards;
+}
+
+/* Ambient orb utility — drop-in soft gradient blob */
+.pub-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+  opacity: 0.55;
+}
+
+/* Premium card — refined border + lift */
+.pub-card-pro {
+  position: relative;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+  background: #fff;
+  border: 1px solid #E8E6F0;
+}
+.pub-card-pro:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 42px rgba(107,91,255,.13), 0 2px 8px rgba(15,18,38,.05);
+  border-color: #D0C8FF;
+}
+
+/* Tighter gradient text glow */
+.pub-gradient-text {
+  background: linear-gradient(90deg, #6B5BFF 0%, #34D2FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 768px) {
+  .pub-float { animation: none; }
+}
