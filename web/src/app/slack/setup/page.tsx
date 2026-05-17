@@ -64,8 +64,8 @@ function SetupContent() {
     setLoading(true);
 
     Promise.all([
-      fetch("/api/slack-bot/repos").then(r => r.json()),
-      fetch("/api/slack-bot/orgs").then(r => r.json())
+      fetch("/aura/api/slack-bot/repos").then(r => r.json()),
+      fetch("/aura/api/slack-bot/orgs").then(r => r.json())
     ])
       .then(([repoData, orgData]: [Repo[], { login: string }[]]) => {
         setRepos(repoData);
@@ -93,7 +93,7 @@ function SetupContent() {
     if (selectedRepos.length === 0) return;
     setSaving(true);
     const selected = repos.filter(r => selectedRepos.includes(r.full_name));
-    await fetch("/api/slack-bot/setup", {
+    await fetch("/aura/api/slack-bot/setup", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

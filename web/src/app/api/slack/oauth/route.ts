@@ -10,14 +10,26 @@ export async function GET(req: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000/aura";
 
   if (!code || !installationId) {
-    return NextResponse.redirect(`${appUrl}/slack?error=slack_oauth_failed`);
+    const reason = !code ? "no_code" : "no_session";
+    return NextResponse.redirect(`${appUrl}/slack?error=slack_oauth_failed&detail=${reason}`);
+  }
+
+  // Catch the common "empty env on Vercel" footgun before we hit Slack
+  if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET || !process.env.NEXT_PUBLIC_APP_URL) {
+    const missing = [
+      !process.env.SLACK_CLIENT_ID && "SLACK_CLIENT_ID",
+      !process.env.SLACK_CLIENT_SECRET && "SLACK_CLIENT_SECRET",
+      !process.env.NEXT_PUBLIC_APP_URL && "NEXT_PUBLIC_APP_URL",
+    ].filter(Boolean).join(",");
+    console.error("[slack/oauth] missing env:", missing);
+    return NextResponse.redirect(`${appUrl}/slack?error=slack_oauth_failed&detail=missing_env:${missing}`);
   }
 
   // code → bot token 교환
   const body = new URLSearchParams({
     code,
-    client_id: process.env.SLACK_CLIENT_ID!,
-    client_secret: process.env.SLACK_CLIENT_SECRET!,
+    client_id: process.env.SLACK_CLIENT_ID,
+    client_secret: process.env.SLACK_CLIENT_SECRET,
     redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/api/slack/oauth`
   });
 
@@ -35,7 +47,9 @@ export async function GET(req: NextRequest) {
   };
 
   if (!data.ok || !data.access_token) {
-    return NextResponse.redirect(`${appUrl}/slack?error=slack_token_failed`);
+    console.error("[slack/oauth] token exchange failed:", data);
+    const slackErr = encodeURIComponent(data.error ?? "unknown");
+    return NextResponse.redirect(`${appUrl}/slack?error=slack_token_failed&detail=${slackErr}`);
   }
 
   const db = getBotDb();

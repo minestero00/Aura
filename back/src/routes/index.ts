@@ -16,6 +16,7 @@ import { meetingsRouter } from "../modules/meetings/index.js";
 import { usersRouter } from "../modules/users/routes.js";
 import { walletRouter } from "../modules/wallet/index.js";
 import { weatherRouter } from "../modules/weather/index.js";
+import { slackBotRouter } from "../modules/slack-bot/routes.js";
 import { healthRouter } from "./health.js";
 
 export const apiRouter = Router();
@@ -38,4 +39,5 @@ apiRouter.use("/me/health", userHealthRouter);
 // /business/meetings는 /business보다 먼저 — 구체적 경로 우선
 apiRouter.use("/business/meetings", meetingsRouter);
 apiRouter.use("/business", subscriptionRouter);
+apiRouter.use("/slack-bot", slackBotRouter);
 apiRouter.use("/", usersRouter);

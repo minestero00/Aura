@@ -68,7 +68,7 @@ interface RepoDigest {
 export async function getInstallationsDueNow(now: Date): Promise<Installation[]> {
   const pool = getPool();
   const { rows } = await pool.query<Installation>(
-    `SELECT * FROM bot_installations WHERE is_active = true`
+    `SELECT * FROM aura.bot_installations WHERE is_active = true`
   );
   return rows.filter(inst => isDueNow(inst, now));
 }
@@ -76,11 +76,11 @@ export async function getInstallationsDueNow(now: Date): Promise<Installation[]>
 export async function getManualTriggers(): Promise<Installation[]> {
   const pool = getPool();
   const { rows } = await pool.query<Installation>(
-    `SELECT * FROM bot_installations WHERE is_active = true AND manual_trigger = true`
+    `SELECT * FROM aura.bot_installations WHERE is_active = true AND manual_trigger = true`
   );
   if (rows.length > 0) {
     await pool.query(
-      `UPDATE bot_installations SET manual_trigger = false WHERE id = ANY($1)`,
+      `UPDATE aura.bot_installations SET manual_trigger = false WHERE id = ANY($1)`,
       [rows.map(r => r.id)]
     );
   }
@@ -129,7 +129,7 @@ function getYesterdayRange(timezone: string): { since: string; until: string } {
 
 async function loadMappings(pool: Pool, installationId: string): Promise<UserMapping[]> {
   const { rows } = await pool.query<UserMapping>(
-    `SELECT github_login, slack_user_id, slack_display_name FROM user_mappings WHERE installation_id = $1`,
+    `SELECT github_login, slack_user_id, slack_display_name FROM aura.user_mappings WHERE installation_id = $1`,
     [installationId]
   );
   return rows;
@@ -388,7 +388,7 @@ export async function safeDigest(
 
   if (!force) {
     const { rows } = await pool.query(
-      `SELECT id FROM bot_digest_logs WHERE installation_id = $1 AND digest_date = $2 AND status = 'success'`,
+      `SELECT id FROM aura.bot_digest_logs WHERE installation_id = $1 AND digest_date = $2 AND status = 'success'`,
       [inst.id, dateKey]
     );
     if (rows.length > 0) return { status: "skipped" };
@@ -417,7 +417,7 @@ export async function safeDigest(
     const activeRepos = repoDigests.filter(r => r.commits.length > 0 || r.prs.length > 0);
     if (activeRepos.length === 0) {
       await pool.query(
-        `INSERT INTO bot_digest_logs (installation_id, digest_date, status) VALUES ($1, $2, 'skipped') ON CONFLICT (installation_id, digest_date) DO NOTHING`,
+        `INSERT INTO aura.bot_digest_logs (installation_id, digest_date, status) VALUES ($1, $2, 'skipped') ON CONFLICT (installation_id, digest_date) DO NOTHING`,
         [inst.id, dateKey]
       );
       return { status: "skipped" };
@@ -432,7 +432,7 @@ export async function safeDigest(
     });
 
     await pool.query(
-      `INSERT INTO bot_digest_logs (installation_id, digest_date, status, commit_count, pr_count, tokens_used)
+      `INSERT INTO aura.bot_digest_logs (installation_id, digest_date, status, commit_count, pr_count, tokens_used)
        VALUES ($1, $2, 'success', $3, $4, $5)
        ON CONFLICT (installation_id, digest_date) DO UPDATE SET status='success', commit_count=$3, pr_count=$4, tokens_used=$5`,
       [
@@ -443,14 +443,14 @@ export async function safeDigest(
       ]
     );
     await pool.query(
-      `UPDATE bot_installations SET last_digest_at = NOW() WHERE id = $1`,
+      `UPDATE aura.bot_installations SET last_digest_at = NOW() WHERE id = $1`,
       [inst.id]
     );
 
     return { status: "success", tokensUsed };
   } catch (err) {
     await pool.query(
-      `INSERT INTO bot_digest_logs (installation_id, digest_date, status, error_message)
+      `INSERT INTO aura.bot_digest_logs (installation_id, digest_date, status, error_message)
        VALUES ($1, $2, 'failed', $3)
        ON CONFLICT (installation_id, digest_date) DO UPDATE SET status='failed', error_message=$3`,
       [inst.id, dateKey, err instanceof Error ? err.message : String(err)]

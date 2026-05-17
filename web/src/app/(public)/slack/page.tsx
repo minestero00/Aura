@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import FadeIn from "@/components/FadeIn";
 import LineIcon, { type LineIconName } from "@/components/LineIcon";
 import BrandIcon from "@/components/BrandIcon";
+import { getBotDb } from "@/lib/slack-bot/db";
+import { getInstallationAccount } from "@/lib/slack-bot/github";
 
 export const metadata: Metadata = {
   title: "Slack Bot — AURA",
@@ -91,11 +93,34 @@ const PREVIEW_MSGS = [
 export default async function SlackLandingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; detail?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, detail } = await searchParams;
   const cookieStore = await cookies();
-  const hasSession = !!cookieStore.get("bot_session")?.value;
+  const sessionId = cookieStore.get("bot_session")?.value;
+
+  // Cookie alone isn't enough: the GitHub App could have been uninstalled
+  // since the cookie was set. Verify the installation is still live on
+  // GitHub's side — if not, treat the session as gone so the user sees the
+  // install button again instead of a stale "설치 완료" badge.
+  let hasSession = false;
+  if (sessionId) {
+    const { data } = await getBotDb()
+      .from("bot_installations")
+      .select("github_installation_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+    const installId = data?.github_installation_id;
+    if (installId && /^\d+$/.test(installId)) {
+      try {
+        await getInstallationAccount(Number(installId));
+        hasSession = true;
+      } catch {
+        // 404 / 401 from GitHub = installation gone or unauthorized → no session
+        hasSession = false;
+      }
+    }
+  }
 
   return (
     <div style={{ color: "#0F1226", minHeight: "100vh" }}>
@@ -188,8 +213,9 @@ export default async function SlackLandingPage({
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: 8,
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: 4,
                     padding: "12px 16px",
                     borderRadius: 12,
                     background: "#FFEAEE",
@@ -199,7 +225,10 @@ export default async function SlackLandingPage({
                     marginBottom: 20,
                   }}
                 >
-                  연결에 실패했습니다. 다시 시도해주세요.
+                  <span>연결에 실패했습니다. 다시 시도해주세요.</span>
+                  <span style={{ fontSize: 11, opacity: 0.85, fontFamily: "monospace" }}>
+                    [{error}{detail ? ` · ${detail}` : ""}]
+                  </span>
                 </div>
               </FadeIn>
             )}

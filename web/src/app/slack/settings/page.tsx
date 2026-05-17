@@ -87,11 +87,23 @@ function SettingsContent() {
   const [customPrompt, setCustomPrompt] = useState("");
 
   useEffect(() => {
+    const fetchJson = async (url: string) => {
+      const r = await fetch(url);
+      const body = await r.json().catch(() => null);
+      if (!r.ok) {
+        const name = url.split("/").pop();
+        // surface slack_error / message / error keys so we can see Slack's real complaint
+        const detail = [body?.error, body?.slack_error, body?.message].filter(Boolean).join(" · ");
+        throw new Error(`${name}: HTTP ${r.status}${detail ? ` ${detail}` : ""}`);
+      }
+      return body;
+    };
+
     Promise.all([
-      fetch("/api/slack-bot/settings").then(r => r.json()),
-      fetch("/api/slack-bot/logs").then(r => r.json()),
-      fetch("/api/slack-bot/mappings").then(r => r.json()),
-      fetch("/api/slack-bot/slack-users").then(r => r.json())
+      fetchJson("/aura/api/slack-bot/settings"),
+      fetchJson("/aura/api/slack-bot/logs"),
+      fetchJson("/aura/api/slack-bot/mappings"),
+      fetchJson("/aura/api/slack-bot/slack-users"),
     ]).then(([s, l, m, u]: [
       Settings,
       DigestLog[],
@@ -99,21 +111,23 @@ function SettingsContent() {
       SlackUser[]
     ]) => {
       setSettings(s);
-      setLogs(l);
+      setLogs(Array.isArray(l) ? l : []);
       setDigestTime(s.digest_time);
       setTimezone(s.timezone);
-      setDigestDays(s.digest_days);
-      setIncludeDiffs(s.include_diffs);
+      setDigestDays(s.digest_days ?? ["mon","tue","wed","thu","fri"]);
+      setIncludeDiffs(Boolean(s.include_diffs));
       setCustomPrompt(s.custom_prompt ?? "");
-      setGithubMembers(m.github_members ?? []);
-      setSlackUsers(u ?? []);
+      setGithubMembers(m?.github_members ?? []);
+      setSlackUsers(Array.isArray(u) ? u : []);
       const map: Record<string, MappingEntry> = {};
-      (m.mappings ?? []).forEach(mp => {
+      (m?.mappings ?? []).forEach(mp => {
         map[mp.github_login] = { slack_user_id: mp.slack_user_id, slack_display_name: mp.slack_display_name };
       });
       setMappings(map);
-    }).catch(() => setError("설정을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
+    }).catch(err => {
+      console.error("[settings] load failed:", err);
+      setError(`설정을 불러오지 못했습니다. (${err.message})`);
+    }).finally(() => setLoading(false));
   }, []);
 
   const toggleDay = useCallback((day: string) => {
@@ -126,7 +140,7 @@ function SettingsContent() {
     setSaving(true);
     setSaved(false);
     try {
-      await fetch("/api/slack-bot/settings", {
+      await fetch("/aura/api/slack-bot/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ digest_time: digestTime, timezone, digest_days: digestDays, include_diffs: includeDiffs, custom_prompt: customPrompt || null })
@@ -140,13 +154,13 @@ function SettingsContent() {
 
   const triggerNow = useCallback(async () => {
     setTriggering(true);
-    await fetch("/api/slack-bot/trigger", { method: "POST" });
+    await fetch("/aura/api/slack-bot/trigger", { method: "POST" });
     setTriggering(false);
   }, []);
 
   const saveMappings = useCallback(async () => {
     setSavingMappings(true);
-    await fetch("/api/slack-bot/mappings", {
+    await fetch("/aura/api/slack-bot/mappings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -519,7 +533,7 @@ function SettingsContent() {
             style={{ color: "var(--error)", background: "var(--error-soft)" }}
             onClick={() => {
               if (confirm("AURA Bot을 제거하시겠습니까? 설정과 기록이 모두 삭제됩니다.")) {
-                void fetch("/api/slack-bot/uninstall", { method: "DELETE" })
+                void fetch("/aura/api/slack-bot/uninstall", { method: "DELETE" })
                   .then(() => { window.location.href = "/slack"; });
               }
             }}
