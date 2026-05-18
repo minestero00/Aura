@@ -344,6 +344,68 @@ export default async function SlackLandingPage({
                   <p style={{ fontSize: 13, color: "#8B8FA4" }}>
                     별도 회원가입 없음 · GitHub 계정으로 바로 시작 · 완전 무료
                   </p>
+
+                  {/* 이미 설치한 사용자용 sign-in (다른 브라우저/시크릿/쿠키 만료 복구) */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                      marginTop: 16,
+                      paddingTop: 16,
+                      borderTop: "1px solid #EFEFF4",
+                      width: "100%",
+                    }}
+                  >
+                    <p style={{ fontSize: 12, color: "#8B8FA4", margin: 0 }}>
+                      이미 설치하셨나요?
+                    </p>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <a
+                        href="/aura/api/github/login"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#0F1226",
+                          background: "#fff",
+                          border: "1px solid #DDD9FF",
+                          textDecoration: "none",
+                          padding: "8px 14px",
+                          borderRadius: 10,
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/>
+                        </svg>
+                        GitHub로 로그인
+                      </a>
+                      <a
+                        href="/aura/api/slack/signin"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "#0F1226",
+                          background: "#fff",
+                          border: "1px solid #DDD9FF",
+                          textDecoration: "none",
+                          padding: "8px 14px",
+                          borderRadius: 10,
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 54 54" fill="#611F69">
+                          <path d="M19.712.133a19.712 19.712 0 0 0-19.71 19.712 19.712 19.712 0 0 0 19.71 19.711h19.712V19.845A19.712 19.712 0 0 0 19.712.133zm0 32.11a12.398 12.398 0 0 1-12.397-12.397A12.398 12.398 0 0 1 19.71 7.447a12.398 12.398 0 0 1 12.398 12.399v12.397z" />
+                          <path d="M34.285.133a19.712 19.712 0 0 0-19.712 19.712v19.711h19.712A19.712 19.712 0 0 0 54 20.289V.133zm0 32.11a12.398 12.398 0 0 1-12.397-12.397V7.447h12.397a12.398 12.398 0 0 1 12.398 12.399 12.398 12.398 0 0 1-12.398 12.397z"/>
+                        </svg>
+                        Slack으로 로그인
+                      </a>
+                    </div>
+                  </div>
                 </div>
               )}
             </FadeIn>

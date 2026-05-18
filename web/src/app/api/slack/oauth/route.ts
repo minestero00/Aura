@@ -2,16 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { encrypt, decrypt } from "@/lib/slack-bot/crypto";
 import { getBotDb } from "@/lib/slack-bot/db";
 
+// bot_session 쿠키 수명: 24h → 30d
+const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const code = searchParams.get("code");
+  const state = searchParams.get("state");
+  const isSignin = state === "signin";
   const installationId = req.cookies.get("bot_session")?.value;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000/aura";
 
-  if (!code || !installationId) {
-    const reason = !code ? "no_code" : "no_session";
-    return NextResponse.redirect(`${appUrl}/slack?error=slack_oauth_failed&detail=${reason}`);
+  if (!code) {
+    return NextResponse.redirect(`${appUrl}/slack?error=slack_oauth_failed&detail=no_code`);
+  }
+  // Sign-in 모드가 아니면 기존처럼 세션 쿠키 필수 (install 완료용)
+  if (!isSignin && !installationId) {
+    return NextResponse.redirect(`${appUrl}/slack?error=slack_oauth_failed&detail=no_session`);
   }
 
   // Catch the common "empty env on Vercel" footgun before we hit Slack
@@ -53,6 +61,32 @@ export async function GET(req: NextRequest) {
   }
 
   const db = getBotDb();
+
+  // ─── Sign-in 모드: team_id로 기존 installation 찾아서 세션 복원만 ────────
+  if (isSignin) {
+    const teamId = data.team?.id;
+    if (!teamId) {
+      return NextResponse.redirect(`${appUrl}/slack?error=signin_failed&detail=no_team_id`);
+    }
+    const { data: rows } = await db
+      .from("bot_installations")
+      .select("id")
+      .eq("slack_team_id", teamId)
+      .limit(1);
+    if (!rows || rows.length === 0) {
+      return NextResponse.redirect(`${appUrl}/slack?error=installation_not_registered&detail=team:${teamId}`);
+    }
+    const res = NextResponse.redirect(`${appUrl}/slack/settings`);
+    res.cookies.set("bot_session", rows[0].id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: SESSION_MAX_AGE
+    });
+    return res;
+  }
+
+  // ─── Install 모드 (기존): 현재 세션의 row를 Slack 정보로 update ──────────
   await db.from("bot_installations").update({
     slack_team_id: data.team!.id,
     slack_team_name: data.team!.name,
@@ -67,7 +101,15 @@ export async function GET(req: NextRequest) {
     await sendWelcomeMessage(data.access_token, data.incoming_webhook.channel_id);
   }
 
-  return NextResponse.redirect(`${appUrl}/slack/settings?installed=true`);
+  // 기존 세션 쿠키 만료 연장 (24h → 30d)
+  const res = NextResponse.redirect(`${appUrl}/slack/settings?installed=true`);
+  res.cookies.set("bot_session", installationId!, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: SESSION_MAX_AGE
+  });
+  return res;
 }
 
 async function sendWelcomeMessage(token: string, channelId: string) {

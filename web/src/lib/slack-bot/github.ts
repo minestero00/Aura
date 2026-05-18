@@ -55,7 +55,7 @@ export async function getOrgMembers(
   }
 }
 
-export async function exchangeCodeForUser(code: string): Promise<{ id: string; login: string }> {
+export async function exchangeCodeForUser(code: string): Promise<{ id: string; login: string; token: string }> {
   const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
@@ -65,10 +65,24 @@ export async function exchangeCodeForUser(code: string): Promise<{ id: string; l
       code
     })
   });
-  const tokenData = (await tokenRes.json()) as { access_token?: string };
-  if (!tokenData.access_token) throw new Error("token_exchange_failed");
+  const tokenData = (await tokenRes.json()) as { access_token?: string; error?: string };
+  if (!tokenData.access_token) throw new Error(`token_exchange_failed:${tokenData.error ?? "unknown"}`);
 
   const userOctokit = new Octokit({ auth: tokenData.access_token });
   const { data } = await userOctokit.users.getAuthenticated();
-  return { id: String(data.id), login: data.login };
+  return { id: String(data.id), login: data.login, token: tokenData.access_token };
+}
+
+/**
+ * 사용자 토큰으로 그 user가 접근 가능한 이 GitHub App의 모든 installation 목록.
+ * Sign-in flow에서 사용 — DB의 bot_installations와 join해서 세션 복원에 사용.
+ */
+export async function listUserInstallations(userToken: string): Promise<{ id: number; account_login: string; account_type: string }[]> {
+  const oct = new Octokit({ auth: userToken });
+  const installs = await oct.paginate(oct.apps.listInstallationsForAuthenticatedUser, { per_page: 100 });
+  return installs.map(i => ({
+    id: i.id,
+    account_login: (i.account as { login?: string })?.login ?? "unknown",
+    account_type: (i.account as { type?: string })?.type ?? "Organization"
+  }));
 }
