@@ -9,8 +9,10 @@ export async function GET(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000/aura";
 
-  if (!installationId) {
-    return NextResponse.redirect(`${appUrl}/slack?error=oauth_failed`);
+  // installation_id는 GitHub이 발급하는 양의 정수. 외부에서 임의 입력 가능하므로 엄격히 검증.
+  const installationIdNum = installationId ? Number(installationId) : NaN;
+  if (!installationId || !Number.isInteger(installationIdNum) || installationIdNum <= 0) {
+    return NextResponse.redirect(`${appUrl}/slack?error=invalid_installation_id`);
   }
 
   // 사용자 신원 확인 (code가 있을 때만)
@@ -27,7 +29,7 @@ export async function GET(req: NextRequest) {
   // installation의 org/account 이름 조회
   let githubOrg = "";
   try {
-    const account = await getInstallationAccount(Number(installationId));
+    const account = await getInstallationAccount(installationIdNum);
     githubOrg = account.login;
   } catch {
     // fallback

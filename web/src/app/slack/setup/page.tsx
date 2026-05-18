@@ -46,9 +46,11 @@ export default function SetupPage() {
 
 function SetupContent() {
   const searchParams = useSearchParams();
-  const initialStep = parseInt(searchParams.get("step") ?? "1") as Step;
+  const rawStep = parseInt(searchParams.get("step") ?? "1", 10);
+  const initialStep: Step = (rawStep === 1 || rawStep === 2 || rawStep === 3) ? rawStep : 1;
 
   const [step, setStep] = useState<Step>(initialStep);
+  const [loadError, setLoadError] = useState<string>("");
   const [installationOrg, setInstallationOrg] = useState("");
   const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
@@ -62,16 +64,36 @@ function SetupContent() {
   useEffect(() => {
     if (step !== 2) return;
     setLoading(true);
+    setLoadError("");
+
+    const fetchJson = async <T,>(url: string): Promise<T> => {
+      const r = await fetch(url);
+      if (r.status === 401 || r.status === 403) {
+        throw new Error("SESSION_EXPIRED");
+      }
+      if (!r.ok) {
+        throw new Error(`${url.split("/").pop()}: HTTP ${r.status}`);
+      }
+      return r.json();
+    };
 
     Promise.all([
-      fetch("/aura/api/slack-bot/repos").then(r => r.json()),
-      fetch("/aura/api/slack-bot/orgs").then(r => r.json())
+      fetchJson<Repo[]>("/aura/api/slack-bot/repos"),
+      fetchJson<{ login: string }[]>("/aura/api/slack-bot/orgs")
     ])
-      .then(([repoData, orgData]: [Repo[], { login: string }[]]) => {
-        setRepos(repoData);
+      .then(([repoData, orgData]) => {
+        setRepos(Array.isArray(repoData) ? repoData : []);
         setInstallationOrg(orgData[0]?.login ?? "");
       })
-      .catch(() => {})
+      .catch((err: Error) => {
+        if (err.message === "SESSION_EXPIRED") {
+          // 세션 만료 — step 1로 되돌려 GitHub App 재설치 유도
+          setStep(1);
+          setLoadError("세션이 만료되었습니다. GitHub App을 다시 설치해주세요.");
+        } else {
+          setLoadError(`레포 목록을 불러오지 못했습니다. (${err.message})`);
+        }
+      })
       .finally(() => setLoading(false));
   }, [step]);
 
@@ -91,21 +113,41 @@ function SetupContent() {
 
   const saveStep2 = useCallback(async () => {
     if (selectedRepos.length === 0) return;
+    if (selectedRepos.length > 20) {
+      alert("최대 20개까지만 선택할 수 있습니다.");
+      return;
+    }
+    if (digestDays.length === 0) {
+      alert("최소 한 개 이상의 요일을 선택해주세요.");
+      return;
+    }
     setSaving(true);
-    const selected = repos.filter(r => selectedRepos.includes(r.full_name));
-    await fetch("/aura/api/slack-bot/setup", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        github_org: installationOrg,
-        repos: selected.map(r => ({ name: r.name, full_name: r.full_name, private: r.private })),
-        digest_time: digestTime,
-        timezone,
-        digest_days: digestDays
-      })
-    });
-    setSaving(false);
-    setStep(3);
+    try {
+      const selected = repos.filter(r => selectedRepos.includes(r.full_name));
+      const r = await fetch("/aura/api/slack-bot/setup", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          github_org: installationOrg,
+          repos: selected.map(r => ({ name: r.name, full_name: r.full_name, private: r.private })),
+          digest_time: digestTime,
+          timezone,
+          digest_days: digestDays
+        })
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => null);
+        const msg = body?.error ?? body?.message ?? `HTTP ${r.status}`;
+        alert(`설정 저장에 실패했습니다: ${msg}`);
+        return;
+      }
+      setStep(3);
+    } catch (e) {
+      console.error("[setup] save failed:", e);
+      alert("네트워크 오류로 저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setSaving(false);
+    }
   }, [selectedRepos, repos, installationOrg, digestTime, timezone, digestDays]);
 
   const slackOauthUrl =
@@ -197,6 +239,16 @@ function SetupContent() {
               <p className="text-[12px] text-center" style={{ color: "var(--text-muted)" }}>
                 GitHub App을 설치하면 선택한 레포의 읽기 권한만 부여됩니다
               </p>
+            </div>
+          )}
+
+          {/* 에러 배너 */}
+          {loadError && (
+            <div
+              className="p-3 rounded-[10px] text-[12px]"
+              style={{ background: "var(--error-soft)", color: "var(--error)", border: "1px solid var(--error)" }}
+            >
+              {loadError}
             </div>
           )}
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import AuraLogo from "@/components/AuraLogo";
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
@@ -63,6 +64,7 @@ export default function SettingsPage() {
 
 function SettingsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const justInstalled = searchParams.get("installed") === "true";
 
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -154,8 +156,19 @@ function SettingsContent() {
 
   const triggerNow = useCallback(async () => {
     setTriggering(true);
-    await fetch("/aura/api/slack-bot/trigger", { method: "POST" });
-    setTriggering(false);
+    try {
+      const r = await fetch("/aura/api/slack-bot/trigger", { method: "POST" });
+      if (!r.ok) {
+        const body = await r.json().catch(() => null);
+        const msg = body?.error ?? body?.message ?? `HTTP ${r.status}`;
+        alert(`요약 실행에 실패했습니다: ${msg}`);
+      }
+    } catch (e) {
+      alert(`요약 실행 중 네트워크 오류가 발생했습니다.`);
+      console.error("[trigger] failed:", e);
+    } finally {
+      setTriggering(false);
+    }
   }, []);
 
   const saveMappings = useCallback(async () => {
@@ -288,9 +301,9 @@ function SettingsContent() {
         >
           <div className="flex items-center justify-between">
             <p className="text-[13px] font-semibold" style={{ color: "var(--text)" }}>모니터링 레포</p>
-            <a href="/slack/setup?step=2" className="text-[12px] font-medium" style={{ color: "var(--aurora)" }}>
+            <Link href="/slack/setup?step=2" className="text-[12px] font-medium" style={{ color: "var(--aurora)" }}>
               변경 →
-            </a>
+            </Link>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {settings.repos.map(r => (
@@ -532,10 +545,20 @@ function SettingsContent() {
             className="text-[13px] font-medium px-4 py-2 rounded-[10px] transition-colors"
             style={{ color: "var(--error)", background: "var(--error-soft)" }}
             onClick={() => {
-              if (confirm("AURA Bot을 제거하시겠습니까? 설정과 기록이 모두 삭제됩니다.")) {
-                void fetch("/aura/api/slack-bot/uninstall", { method: "DELETE" })
-                  .then(() => { window.location.href = "/slack"; });
+              const orgName = settings.github_org;
+              const typed = prompt(`AURA Bot을 제거하시겠습니까?\n설정과 기록이 모두 삭제됩니다.\n\n확인하려면 organization 이름을 정확히 입력하세요: ${orgName}`);
+              if (typed !== orgName) {
+                if (typed !== null) alert("입력이 일치하지 않아 제거를 취소했습니다.");
+                return;
               }
+              void (async () => {
+                const r = await fetch("/aura/api/slack-bot/uninstall", { method: "DELETE" });
+                if (!r.ok) {
+                  alert(`봇 제거에 실패했습니다 (HTTP ${r.status})`);
+                  return;
+                }
+                router.push("/slack");
+              })();
             }}
           >
             봇 제거
