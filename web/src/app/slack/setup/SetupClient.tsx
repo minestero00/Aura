@@ -163,7 +163,7 @@ function SetupContent({ presetOrg, installed }: { presetOrg: string; installed: 
   const slackOauthUrl =
     `https://slack.com/oauth/v2/authorize` +
     `?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID}` +
-    `&scope=chat%3Awrite%2Ccommands%2Cincoming-webhook` +
+    `&scope=chat%3Awrite%2Cchat%3Awrite.public%2Ccommands%2Cincoming-webhook%2Cusers%3Aread` +
     `&redirect_uri=${encodeURIComponent((process.env.NEXT_PUBLIC_APP_URL ?? "") + "/api/slack/oauth")}`;
 
   return (
