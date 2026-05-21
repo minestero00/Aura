@@ -221,8 +221,14 @@ function SettingsContent() {
         style={{ borderBottom: "1px solid var(--line)", background: "var(--surface)" }}
       >
         <div className="flex items-center gap-2.5">
-          <AuraLogo size={24} />
-          <span className="text-[14px] font-semibold" style={{ color: "var(--text)" }}>AURA Bot</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+            style={{ textDecoration: "none" }}
+          >
+            <AuraLogo size={24} />
+            <span className="text-[14px] font-semibold" style={{ color: "var(--text)" }}>AURA Bot</span>
+          </Link>
           <span
             className="text-[11px] font-medium px-2 py-0.5 rounded-full"
             style={{ background: "var(--aurora-soft)", color: "var(--aurora)" }}

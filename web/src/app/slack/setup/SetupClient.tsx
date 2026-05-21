@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import AuraLogo from "@/components/AuraLogo";
 
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
@@ -172,10 +173,14 @@ function SetupContent({ presetOrg, installed }: { presetOrg: string; installed: 
     >
       <div className="w-full max-w-lg space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          style={{ textDecoration: "none" }}
+        >
           <AuraLogo size={28} />
           <p className="text-[14px] font-semibold" style={{ color: "var(--text)" }}>AURA Bot 설정</p>
-        </div>
+        </Link>
 
         {/* Step indicator */}
         <div className="flex items-center gap-2">
