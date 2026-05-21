@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getBotDb } from "@/lib/slack-bot/db";
 
@@ -33,7 +33,24 @@ export async function POST(req: NextRequest) {
   const userId = params.get("user_id") ?? "";
 
   // Slack 3초 제한 — 즉시 응답 후 백그라운드 처리
-  void handleCommand(text, teamId, responseUrl, userId);
+  // serverless에서 응답 후에도 작업이 끝나도록 after()로 등록
+  after(async () => {
+    try {
+      await handleCommand(text, teamId, responseUrl, userId);
+    } catch (e) {
+      console.error("[slack/commands] handleCommand failed:", e);
+      if (responseUrl) {
+        await fetch(responseUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            response_type: "ephemeral",
+            text: "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+          })
+        }).catch(() => {});
+      }
+    }
+  });
 
   return NextResponse.json({
     response_type: "ephemeral",
