@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getBotDb } from "@/lib/slack-bot/db";
+import { decrypt } from "@/lib/slack-bot/crypto";
+import { buildSettingsModal } from "@/lib/slack-bot/modal";
+import { notifyOps } from "@/lib/slack-bot/ops";
 
 function verifySlackSignature(body: string, req: NextRequest): boolean {
   const timestamp = req.headers.get("x-slack-request-timestamp") ?? "";
@@ -31,14 +34,20 @@ export async function POST(req: NextRequest) {
   const teamId = params.get("team_id") ?? "";
   const responseUrl = params.get("response_url") ?? "";
   const userId = params.get("user_id") ?? "";
+  const triggerId = params.get("trigger_id") ?? "";
 
   // Slack 3초 제한 — 즉시 응답 후 백그라운드 처리
   // serverless에서 응답 후에도 작업이 끝나도록 after()로 등록
   after(async () => {
     try {
-      await handleCommand(text, teamId, responseUrl, userId);
+      await handleCommand(text, teamId, responseUrl, userId, triggerId);
     } catch (e) {
       console.error("[slack/commands] handleCommand failed:", e);
+      void notifyOps("slash command handler failed", {
+        text,
+        teamId,
+        error: (e as Error)?.message,
+      });
       if (responseUrl) {
         await fetch(responseUrl, {
           method: "POST",
@@ -62,7 +71,8 @@ async function handleCommand(
   text: string,
   teamId: string,
   responseUrl: string,
-  userId: string
+  userId: string,
+  triggerId: string,
 ) {
   switch (text) {
     case "brief":
@@ -71,7 +81,7 @@ async function handleCommand(
       break;
     case "setting":
     case "settings":
-      await sendSettingsLink(responseUrl);
+      await openSettingsModal(teamId, triggerId, responseUrl);
       break;
     case "repos":
       await handleRepos(teamId, responseUrl);
@@ -119,25 +129,78 @@ async function handleBrief(teamId: string, responseUrl: string) {
   });
 }
 
-async function sendSettingsLink(responseUrl: string) {
-  await sendToResponseUrl(responseUrl, {
-    response_type: "ephemeral",
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: "*AURA Bot 설정*\n아래 링크에서 레포, 알림 시간, 요일을 변경할 수 있습니다."
-        },
-        accessory: {
-          type: "button",
-          text: { type: "plain_text", text: "설정 열기" },
-          url: `${process.env.NEXT_PUBLIC_APP_URL}/slack/settings`,
-          style: "primary"
-        }
-      }
-    ]
+async function openSettingsModal(
+  teamId: string,
+  triggerId: string,
+  responseUrl: string,
+) {
+  const db = getBotDb();
+  const { data: inst } = await db
+    .from("bot_installations")
+    .select("id, slack_bot_token, digest_time, timezone, digest_days, include_diffs, summary_lang, custom_prompt")
+    .eq("slack_team_id", teamId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!inst?.slack_bot_token) {
+    await sendToResponseUrl(responseUrl, {
+      response_type: "ephemeral",
+      text:
+        "AURA Bot이 설정되지 않았습니다. <" +
+        process.env.NEXT_PUBLIC_APP_URL +
+        "/slack|설치 페이지>에서 시작해주세요.",
+    });
+    return;
+  }
+
+  if (!triggerId) {
+    await sendToResponseUrl(responseUrl, {
+      response_type: "ephemeral",
+      text: "trigger_id를 받지 못했습니다. 다시 시도해주세요.",
+    });
+    return;
+  }
+
+  let token: string;
+  try {
+    token = decrypt(inst.slack_bot_token);
+  } catch (e) {
+    console.error("[slack/commands] decrypt failed:", e);
+    void notifyOps("bot token decrypt failed", { teamId });
+    await sendToResponseUrl(responseUrl, {
+      response_type: "ephemeral",
+      text: "토큰 복호화에 실패했습니다. 재설치가 필요합니다.",
+    });
+    return;
+  }
+
+  const view = buildSettingsModal({
+    installationId: inst.id,
+    digestTime: inst.digest_time ?? "09:00",
+    timezone: inst.timezone ?? "Asia/Seoul",
+    digestDays: inst.digest_days ?? ["mon", "tue", "wed", "thu", "fri"],
+    includeDiffs: inst.include_diffs ?? false,
+    summaryLang: inst.summary_lang ?? "ko",
+    customPrompt: inst.custom_prompt ?? "",
   });
+
+  const res = await fetch("https://slack.com/api/views.open", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ trigger_id: triggerId, view }),
+  });
+  const json = (await res.json()) as { ok: boolean; error?: string };
+  if (!json.ok) {
+    console.error("[slack/commands] views.open failed:", json.error);
+    void notifyOps("views.open failed", { teamId, error: json.error });
+    await sendToResponseUrl(responseUrl, {
+      response_type: "ephemeral",
+      text: `설정 창을 열지 못했습니다 (${json.error}).`,
+    });
+  }
 }
 
 async function handleRepos(teamId: string, responseUrl: string) {

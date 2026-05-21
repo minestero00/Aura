@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { encrypt, decrypt } from "@/lib/slack-bot/crypto";
 import { getBotDb } from "@/lib/slack-bot/db";
+import { notifyOps } from "@/lib/slack-bot/ops";
 
 // bot_session 쿠키 수명: 24h → 30d
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -56,6 +57,10 @@ export async function GET(req: NextRequest) {
 
   if (!data.ok || !data.access_token) {
     console.error("[slack/oauth] token exchange failed:", data);
+    void notifyOps("slack oauth token exchange failed", {
+      error: data.error,
+      team: data.team?.name,
+    });
     const slackErr = encodeURIComponent(data.error ?? "unknown");
     return NextResponse.redirect(`${appUrl}/slack?error=slack_token_failed&detail=${slackErr}`);
   }

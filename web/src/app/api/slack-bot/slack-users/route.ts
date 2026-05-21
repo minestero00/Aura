@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { WebClient } from "@slack/web-api";
 import { getBotDb } from "@/lib/slack-bot/db";
 import { decrypt } from "@/lib/slack-bot/crypto";
+import { notifyOps } from "@/lib/slack-bot/ops";
 
 export async function GET(req: NextRequest) {
   const id = req.cookies.get("bot_session")?.value;
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     const e = err as Error;
     console.error("[slack-users] decrypt failed:", e.message);
+    void notifyOps("slack-users decrypt failed", { installationId: id, error: e.message });
     return NextResponse.json(
       { error: "decrypt_failed", message: e.message },
       { status: 500 },
@@ -50,6 +52,7 @@ export async function GET(req: NextRequest) {
     const e = err as { data?: { error?: string }; message?: string };
     const slackErr = e?.data?.error ?? e?.message ?? "unknown";
     console.error("[slack-users] Slack API failed:", slackErr);
+    void notifyOps("slack-users API failed", { slackErr, installationId: id });
     return NextResponse.json(
       { error: "slack_api_failed", slack_error: slackErr },
       { status: 500 },
