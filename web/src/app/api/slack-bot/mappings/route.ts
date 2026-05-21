@@ -1,21 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBotDb } from "@/lib/slack-bot/db";
 import { getOrgMembers } from "@/lib/slack-bot/github";
-
-async function getInstallation(req: NextRequest) {
-  const id = req.cookies.get("bot_session")?.value;
-  if (!id) return null;
-  const db = getBotDb();
-  const { data } = await db
-    .from("bot_installations")
-    .select("id, github_installation_id, github_org")
-    .eq("id", id)
-    .maybeSingle();
-  return data;
-}
+import { getInstallationFromSession } from "@/lib/slack-bot/session";
 
 export async function GET(req: NextRequest) {
-  const inst = await getInstallation(req);
+  const inst = await getInstallationFromSession(req);
   if (!inst) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = getBotDb();
@@ -31,7 +20,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const inst = await getInstallation(req);
+  const inst = await getInstallationFromSession(req);
   if (!inst) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const { mappings } = (await req.json()) as {

@@ -15,6 +15,26 @@ export const metadata: Metadata = {
 
 const GITHUB_APP_INSTALL_URL = `https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG}/installations/new`;
 
+function errorMessage(code: string): string {
+  switch (code) {
+    case "no_session":
+      return "로그인 정보가 없습니다. GitHub로 로그인하거나 App을 설치해주세요.";
+    case "installation_gone":
+      return "GitHub App이 제거되었습니다. 다시 설치해주세요.";
+    case "installation_not_registered":
+      return "이 GitHub App 설치는 AURA에 아직 등록되지 않았습니다. 먼저 설치를 완료해주세요.";
+    case "no_installation_for_user":
+      return "GitHub 계정에 AURA App 설치가 없습니다. 설치 후 다시 시도해주세요.";
+    case "signin_failed":
+      return "로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요.";
+    case "invalid_installation_id":
+    case "db_error":
+      return "내부 오류로 연결에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    default:
+      return "연결에 실패했습니다. 다시 시도해주세요.";
+  }
+}
+
 type StepIconSpec = { brand: "github" | "slack" } | { line: LineIconName };
 
 const STEPS: { num: string; title: string; desc: string; icon: StepIconSpec }[] = [
@@ -225,7 +245,7 @@ export default async function SlackLandingPage({
                     marginBottom: 20,
                   }}
                 >
-                  <span>연결에 실패했습니다. 다시 시도해주세요.</span>
+                  <span>{errorMessage(error)}</span>
                   <span style={{ fontSize: 11, opacity: 0.85, fontFamily: "monospace" }}>
                     [{error}{detail ? ` · ${detail}` : ""}]
                   </span>

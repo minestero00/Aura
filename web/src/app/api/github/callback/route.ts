@@ -139,12 +139,11 @@ export async function GET(req: NextRequest) {
     sameSite: "lax",
     maxAge: SESSION_MAX_AGE
   });
-  res.cookies.set("github_installation_id", installationId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60
-  });
+  // 과거에 1시간 TTL로 github_installation_id 쿠키를 별도로 심었으나, 만료 시
+  // setup 페이지가 "세션 만료" 오류로 재설치를 강요하는 잘못된 UX의 원인이었다.
+  // 이제 installation_id는 bot_session → bot_installations 행에서 도출하므로
+  // 쿠키 의존을 제거한다 (혹시 남아있는 옛 쿠키는 명시적으로 비움).
+  res.cookies.delete("github_installation_id");
 
   return res;
 }
