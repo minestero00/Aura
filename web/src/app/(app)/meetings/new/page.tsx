@@ -2,7 +2,54 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
+import { useToast } from "@/components/Toast";
+
+// localStorage에 저장하는 작성 중 draft. 브라우저 닫혀도 다음 접속 시 복구.
+// 단, 사용자가 직접 시작한 단일 draft만 보관 — 이전 draft은 새 draft 시작 시 폐기.
+const DRAFT_KEY = "aura:meetings:new:draft:v1";
+const DRAFT_AUTOSAVE_INTERVAL_MS = 15_000;
+
+interface DraftPayload {
+  title: string;
+  templateId: string;
+  body: string;
+  transcript: string[];
+  elapsed: number;
+  eventId: string | null;
+  savedAt: number;
+}
+
+function loadDraft(): DraftPayload | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DraftPayload;
+    // 7일 지난 draft는 무시 — 너무 오래된 건 회의 내용 의미 없음.
+    if (Date.now() - parsed.savedAt > 7 * 24 * 60 * 60_000) {
+      window.localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(payload: Omit<DraftPayload, "savedAt">) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...payload, savedAt: Date.now() }));
+  } catch {
+    // QuotaExceededError 등 — silent
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* */ }
+}
 
 const TEMPLATES = [
   { id: "general",    label: "일반 회의",   desc: "목적·논의·결정·액션아이템" },
@@ -25,6 +72,7 @@ type Step = "setup" | "recording";
 export default function NewMeetingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toast = useToast();
   const eventId = searchParams.get("eventId");
 
   const [step, setStep] = useState<Step>("setup");
@@ -36,10 +84,21 @@ export default function NewMeetingPage() {
   const [elapsed, setElapsed] = useState(0);
   const [saving, setSaving] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [showDraftRestore, setShowDraftRestore] = useState<DraftPayload | null>(null);
 
   const startRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
+  const savedAfterCreateRef = useRef(false);
+
+  // 진입 시 localStorage 검사 — 이전 draft 있으면 복구 prompt
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft && (draft.body !== TEMPLATE_BODY[draft.templateId] || draft.transcript.length > 0)) {
+      // 빈 템플릿 그대로면 무시 (의미 있는 작업 X)
+      setShowDraftRestore(draft);
+    }
+  }, []);
 
   // Load event details if eventId provided
   useEffect(() => {
@@ -67,6 +126,29 @@ export default function NewMeetingPage() {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [transcript]);
 
+  // recording 단계에서 주기적으로 localStorage에 백업 — 브라우저 닫힘 대비
+  useEffect(() => {
+    if (step !== "recording") return;
+    const flush = () => saveDraft({ title, templateId, body, transcript, elapsed, eventId: eventId ?? null });
+    flush();  // 즉시 1회
+    const id = setInterval(flush, DRAFT_AUTOSAVE_INTERVAL_MS);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, title, body, transcript, templateId]);
+
+  // 브라우저 닫힘 / 새로고침 경고 — recording 중이거나 의미 있는 노트 작성 후
+  useEffect(() => {
+    if (step !== "recording") return;
+    if (savedAfterCreateRef.current) return;  // 이미 저장 후 navigating
+    const handler = (e: BeforeUnloadEvent) => {
+      // 모던 브라우저는 returnValue만 보고 사용자에게 confirm 다이얼로그 노출
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [step]);
+
   const fmtElapsed = (s: number) => {
     const m = Math.floor(s / 60).toString().padStart(2, "0");
     const sec = (s % 60).toString().padStart(2, "0");
@@ -86,6 +168,23 @@ export default function NewMeetingPage() {
 
   const toggleRecording = () => setRecording(r => !r);
 
+  const restoreDraft = (draft: DraftPayload) => {
+    setTitle(draft.title);
+    setTemplateId(draft.templateId);
+    setBody(draft.body);
+    setTranscript(draft.transcript);
+    setElapsed(draft.elapsed);
+    setStep("recording");
+    setRecording(false);  // 복구 시 기본 정지 상태 — 사용자가 재개 결정
+    setShowDraftRestore(null);
+    toast.push({ level: "info", text: "이전 작업을 복구했습니다." });
+  };
+
+  const discardDraft = () => {
+    clearDraft();
+    setShowDraftRestore(null);
+  };
+
   const handleFinish = async () => {
     setSaving(true);
     try {
@@ -96,10 +195,39 @@ export default function NewMeetingPage() {
         templateId,
         eventId: eventId ?? undefined
       });
+      // 저장 성공 → draft 폐기 + beforeunload 가드 해제 + detail로 이동
+      savedAfterCreateRef.current = true;
+      clearDraft();
       router.push(`/meetings/${note.id}?summarize=1`);
     } catch (e) {
       console.error(e);
       setSaving(false);
+      if (e instanceof ApiRequestError) {
+        if (e.status === 403) {
+          toast.push({
+            level: "error",
+            text: "Business 구독이 필요합니다.",
+            actionLabel: "구독 페이지",
+            onAction: () => router.push("/pricing"),
+          });
+        } else if (e.status === 400) {
+          toast.push({ level: "error", text: "내용이 너무 깁니다. (제목 ≤300자, 본문 ≤50,000자)" });
+        } else {
+          toast.push({
+            level: "error",
+            text: "저장 실패. 작성 중인 내용은 자동 복구됩니다. 다시 시도해주세요.",
+            actionLabel: "재시도",
+            onAction: () => void handleFinish(),
+          });
+        }
+      } else {
+        toast.push({
+          level: "error",
+          text: "네트워크 오류. 작성 내용은 자동 보관됩니다.",
+          actionLabel: "재시도",
+          onAction: () => void handleFinish(),
+        });
+      }
     }
   };
 
@@ -107,6 +235,39 @@ export default function NewMeetingPage() {
     return (
       <div className="h-full overflow-auto flex items-start justify-center pt-8 px-4">
         <div className="w-full max-w-lg space-y-5">
+          {showDraftRestore && (
+            <div
+              className="rounded-[12px] p-4 flex items-start gap-3"
+              style={{ background: "var(--aurora-soft)", border: "1px solid var(--aurora)" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ color: "var(--aurora)", flexShrink: 0, marginTop: 2 }}>
+                <path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.6 4.6l2.1 2.1M13.3 13.3l2.1 2.1M4.6 15.4l2.1-2.1M13.3 6.7l2.1-2.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold mb-0.5" style={{ color: "var(--text)" }}>이전 작업이 남아 있습니다</p>
+                <p className="text-[12px] mb-3" style={{ color: "var(--text-2)" }}>
+                  &quot;{showDraftRestore.title}&quot; · {Math.floor(showDraftRestore.elapsed / 60)}분 {showDraftRestore.elapsed % 60}초 작성됨
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => restoreDraft(showDraftRestore)}
+                    className="px-3 py-1.5 rounded-full text-[12px] font-semibold text-white"
+                    style={{ background: "var(--aurora)" }}
+                  >
+                    이어 작성
+                  </button>
+                  <button
+                    onClick={discardDraft}
+                    className="px-3 py-1.5 rounded-full text-[12px] font-medium"
+                    style={{ background: "var(--surface)", color: "var(--text-muted)", border: "1px solid var(--line)" }}
+                  >
+                    삭제하고 새로 시작
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Title */}
           <div>
             <h1 className="text-[18px] font-bold mb-0.5" style={{ color: "var(--text)" }}>새 회의 시작</h1>

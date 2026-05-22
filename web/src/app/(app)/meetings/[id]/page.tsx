@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { use } from "react";
+import Link from "next/link";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 interface MeetingNote {
   id: string;
@@ -27,17 +29,23 @@ function fmtDateTime(iso: string) {
 export default function MeetingNotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const toast = useToast();
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState("");
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const { data: note, mutate } = useSWR<MeetingNote>(
+  const { data: note, error, isLoading, mutate } = useSWR<MeetingNote>(
     `/business/meetings/${id}`,
     (p: string) => api.get<MeetingNote>(p),
     {
-      onSuccess: n => { if (!editing) setBody(n.body); }
+      onSuccess: n => { if (!editing) setBody(n.body); },
+      shouldRetryOnError: (err: unknown) => {
+        // 404/403은 재시도 무의미 — 사용자에게 명시적 에러 노출
+        if (err instanceof ApiRequestError && (err.status === 404 || err.status === 403)) return false;
+        return true;
+      },
     }
   );
 
@@ -47,6 +55,19 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
       await api.patch(`/business/meetings/${id}`, { body });
       await mutate();
       setEditing(false);
+      toast.push({ level: "success", text: "회의록을 저장했습니다." });
+    } catch (e) {
+      if (e instanceof ApiRequestError) {
+        if (e.status === 404) {
+          toast.push({ level: "error", text: "이 회의록은 삭제되었습니다.", actionLabel: "목록으로", onAction: () => router.push("/meetings") });
+        } else if (e.status === 400) {
+          toast.push({ level: "error", text: "내용이 너무 깁니다 (50,000자 한도)." });
+        } else {
+          toast.push({ level: "error", text: "저장 실패. 잠시 후 다시 시도해주세요.", actionLabel: "재시도", onAction: () => void handleSave() });
+        }
+      } else {
+        toast.push({ level: "error", text: "네트워크 오류. 인터넷 연결을 확인해주세요.", actionLabel: "재시도", onAction: () => void handleSave() });
+      }
     } finally {
       setSaving(false);
     }
@@ -58,22 +79,90 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
       const result = await api.post<{ shareToken: string }>(`/business/meetings/${id}/share`);
       await mutate();
       const url = `${window.location.origin}/share/${result.shareToken}`;
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+        toast.push({ level: "success", text: "공유 링크를 클립보드에 복사했습니다." });
+      } catch {
+        // 클립보드 권한 거부 — prompt 폴백
+        window.prompt("이 링크를 복사하세요:", url);
+      }
+    } catch (e) {
+      toast.push({
+        level: "error",
+        text: e instanceof ApiRequestError && e.status === 404
+          ? "이 회의록은 삭제되었습니다."
+          : "공유 링크 생성 실패. 다시 시도해주세요.",
+      });
     } finally {
       setSharing(false);
     }
   };
 
   const handleExport = async (fmt: "md" | "docx") => {
-    window.open(`${process.env.NEXT_PUBLIC_API_URL}/business/meetings/${id}/export?format=${fmt}`, "_blank");
+    if (fmt === "docx") {
+      toast.push({ level: "info", text: ".docx 내보내기는 준비 중입니다. .md를 이용해주세요." });
+      return;
+    }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+      toast.push({ level: "error", text: "API URL이 설정되지 않았습니다." });
+      return;
+    }
+    window.open(`${apiUrl}/business/meetings/${id}/export?format=${fmt}`, "_blank");
   };
 
-  if (!note) {
+  // 로딩 / 에러 / 404 분기 — 기존 spinner 무한 대체
+  if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="spinner" />
+      </div>
+    );
+  }
+
+  if (error || !note) {
+    const isNotFound = error instanceof ApiRequestError && (error.status === 404 || error.status === 403);
+    return (
+      <div className="h-full flex items-center justify-center px-6">
+        <div className="text-center max-w-sm">
+          <div
+            className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+            style={{ background: "var(--surface-muted)" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="var(--text-muted)" strokeWidth="1.5" />
+              <path d="M10 6v5M10 13.5v.5" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <h2 className="text-[15px] font-bold mb-1" style={{ color: "var(--text)" }}>
+            {isNotFound ? "회의록을 찾을 수 없습니다" : "회의록을 불러올 수 없습니다"}
+          </h2>
+          <p className="text-[12px] mb-5" style={{ color: "var(--text-muted)" }}>
+            {isNotFound
+              ? "삭제되었거나 접근 권한이 없는 회의록입니다."
+              : "네트워크 오류 또는 일시적인 문제일 수 있습니다."}
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            {!isNotFound && (
+              <button
+                onClick={() => void mutate()}
+                className="px-4 py-2 rounded-full text-[12px] font-semibold"
+                style={{ background: "var(--surface-muted)", color: "var(--text-2)" }}
+              >
+                다시 시도
+              </button>
+            )}
+            <Link
+              href="/meetings"
+              className="px-4 py-2 rounded-full text-[12px] font-semibold text-white"
+              style={{ background: "var(--aurora)" }}
+            >
+              목록으로
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
