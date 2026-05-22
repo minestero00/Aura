@@ -416,6 +416,30 @@ export async function safeDigest(
 
     const activeRepos = repoDigests.filter(r => r.commits.length > 0 || r.prs.length > 0);
     if (activeRepos.length === 0) {
+      // 수동 트리거(`/aura brief`)일 땐 "내용 없음"이라도 사용자에게 피드백을 줘야 함.
+      // 스케줄된 daily digest는 매일 같은 메시지가 가면 채널이 시끄러워지므로 조용히 skip.
+      if (force) {
+        const slack = new WebClient(slackToken);
+        await slack.chat.postMessage({
+          channel: inst.slack_channel_id,
+          text: `📋 ${dateStr} 개발 현황 — 요약할 내용이 없습니다.`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*📋 ${dateStr} 개발 현황*\n어제 모니터링 중인 ${inst.repos.length}개 레포에서 커밋·Merged PR이 없었습니다.`,
+              },
+            },
+            {
+              type: "context",
+              elements: [
+                { type: "mrkdwn", text: `${inst.repos.length}개 레포 · AURA Bot` },
+              ],
+            },
+          ],
+        });
+      }
       await pool.query(
         `INSERT INTO aura.bot_digest_logs (installation_id, digest_date, status) VALUES ($1, $2, 'skipped') ON CONFLICT (installation_id, digest_date) DO NOTHING`,
         [inst.id, dateKey]
