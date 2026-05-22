@@ -32,8 +32,11 @@ const updateSchema = z.object({
 
 // GET /business/meetings — 목록
 meetingsRouter.get("/", requireAuth, async (req, res) => {
-  const limit = Math.min(Number(req.query["limit"] ?? 20), 50);
-  const offset = Number(req.query["offset"] ?? 0);
+  // 파싱 hardening — NaN / 음수 / 너무 큰 값 모두 안전한 기본값으로 클램프.
+  const rawLimit = Number(req.query["limit"]);
+  const rawOffset = Number(req.query["offset"]);
+  const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(50, Math.floor(rawLimit))) : 20;
+  const offset = Number.isFinite(rawOffset) ? Math.max(0, Math.floor(rawOffset)) : 0;
   const notes = await listMeetingNotes(req.authUser!.id, limit, offset);
   res.json(notes.map(n => ({
     id: n.id,
@@ -94,6 +97,26 @@ meetingsRouter.patch("/:id", requireAuth, async (req, res) => {
   if (!parsed.success) {
     res.status(400).json({ error: "invalid_input", issues: parsed.error.issues });
     return;
+  }
+
+  // 동시 편집 감지 — frontend가 If-Match에 자기가 받은 updated_at을 ISO로 보냄.
+  // DB의 현재 updated_at과 다르면 다른 곳에서 먼저 저장됐다는 뜻 → 412 + 현재 버전 반환.
+  // 헤더 미제공 시 기존 last-write-wins (backward compat).
+  const ifMatch = (req.header("if-match") ?? "").trim();
+  if (ifMatch) {
+    const current = await getMeetingNoteById(req.params["id"] as string, req.authUser!.id);
+    if (!current) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+    if (current.updatedAt.toISOString() !== ifMatch) {
+      res.status(412).json({
+        error: "precondition_failed",
+        message: "Note was modified elsewhere.",
+        current,
+      });
+      return;
+    }
   }
 
   const updated = await updateMeetingNote(req.params["id"] as string, req.authUser!.id, {

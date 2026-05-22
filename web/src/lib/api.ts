@@ -5,10 +5,13 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v
 export class ApiRequestError extends Error {
   status: number;
   code: string;
-  constructor(status: number, body: { error: string; message?: string }) {
+  /** 백엔드가 응답 body에 추가로 보낸 데이터 (예: 412의 `current` 회의록). */
+  data: Record<string, unknown>;
+  constructor(status: number, body: { error: string; message?: string } & Record<string, unknown>) {
     super(body.message ?? body.error);
     this.status = status;
     this.code = body.error;
+    this.data = body;
   }
 }
 
@@ -57,9 +60,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+// 일부 endpoint에서는 If-Match 같은 커스텀 헤더가 필요 → 명시적으로 받는 오버로드.
 export const api = {
-  get:    <T>(path: string)                  => request<T>(path),
-  post:   <T>(path: string, body?: unknown)  => request<T>(path, { method: "POST",  body: body ? JSON.stringify(body) : undefined }),
-  patch:  <T>(path: string, body?: unknown)  => request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(path: string)                  => request<T>(path, { method: "DELETE" })
+  get:    <T>(path: string, headers?: Record<string, string>)                 => request<T>(path, { headers }),
+  post:   <T>(path: string, body?: unknown, headers?: Record<string, string>) => request<T>(path, { method: "POST",  body: body ? JSON.stringify(body) : undefined, headers }),
+  patch:  <T>(path: string, body?: unknown, headers?: Record<string, string>) => request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined, headers }),
+  delete: <T>(path: string, headers?: Record<string, string>)                 => request<T>(path, { method: "DELETE", headers })
 };

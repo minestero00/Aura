@@ -17,6 +17,7 @@ interface MeetingNote {
   templateId: string | null;
   shareToken: string | null;
   createdAt: string;
+  updatedAt: string;  // ISO — If-Match 동시 편집 감지 용도
 }
 
 function fmtDateTime(iso: string) {
@@ -49,16 +50,32 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
     }
   );
 
-  const handleSave = async () => {
+  const handleSave = async (opts: { overrideConflict?: boolean } = {}) => {
+    if (!note) return;
     setSaving(true);
     try {
-      await api.patch(`/business/meetings/${id}`, { body });
+      // 동시 편집 감지: If-Match에 마지막으로 본 updated_at 전송.
+      // overrideConflict=true면 강제 덮어쓰기 (헤더 안 보냄 → 백엔드 기존 last-write-wins).
+      const headers = opts.overrideConflict ? undefined : { "If-Match": note.updatedAt };
+      await api.patch(`/business/meetings/${id}`, { body }, headers);
       await mutate();
       setEditing(false);
       toast.push({ level: "success", text: "회의록을 저장했습니다." });
     } catch (e) {
       if (e instanceof ApiRequestError) {
-        if (e.status === 404) {
+        if (e.status === 412) {
+          // 다른 곳에서 먼저 저장됨 — 사용자에게 선택 제시
+          const current = e.data["current"] as MeetingNote | undefined;
+          toast.push({
+            level: "error",
+            text: "다른 곳에서 이 회의록을 먼저 수정했습니다. 내 변경 사항을 강제 저장하시겠어요?",
+            actionLabel: "내 버전으로 덮어쓰기",
+            onAction: () => void handleSave({ overrideConflict: true }),
+          });
+          // 동시에 SWR 캐시 새로 받은 버전으로 갱신 — 사용자가 비교 가능
+          if (current) await mutate(current as MeetingNote, false);
+          else await mutate();
+        } else if (e.status === 404) {
           toast.push({ level: "error", text: "이 회의록은 삭제되었습니다.", actionLabel: "목록으로", onAction: () => router.push("/meetings") });
         } else if (e.status === 400) {
           toast.push({ level: "error", text: "내용이 너무 깁니다 (50,000자 한도)." });
