@@ -1,16 +1,16 @@
 -- Portable mirror of 0017_subscriptions.sql
 -- Target: PostgreSQL 14+ / Supabase / Neon
--- Differences from main: none (pure PG syntax)
+-- aura.users 테이블은 없음 — Supabase auth.users + aura.user_profiles 패턴.
 
 BEGIN;
 
-ALTER TABLE aura.users
+ALTER TABLE aura.user_profiles
   ADD COLUMN IF NOT EXISTS account_type text NOT NULL DEFAULT 'personal'
     CHECK (account_type IN ('personal', 'business'));
 
 CREATE TABLE IF NOT EXISTS aura.subscriptions (
   id                     varchar(36) PRIMARY KEY,
-  user_id                uuid        NOT NULL REFERENCES aura.users(id) ON DELETE CASCADE,
+  user_id                uuid        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   plan                   text        NOT NULL CHECK (plan IN ('business_monthly', 'business_yearly')),
   status                 text        NOT NULL CHECK (status IN ('trial', 'active', 'past_due', 'cancelled', 'expired')),
   trial_ends_at          timestamptz,

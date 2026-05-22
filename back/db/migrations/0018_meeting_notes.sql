@@ -1,7 +1,8 @@
 -- 0018: meeting_notes — Business 회의록 저장 테이블
+-- user_id FK는 Supabase auth.users (aura.users 테이블 없음 — 인증 분리).
 CREATE TABLE IF NOT EXISTS aura.meeting_notes (
   id           varchar(36)  PRIMARY KEY,
-  user_id      uuid         NOT NULL REFERENCES aura.users(id) ON DELETE CASCADE,
+  user_id      uuid         NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   title        text         NOT NULL DEFAULT '',
   body         text         NOT NULL DEFAULT '',
   raw_transcript text,

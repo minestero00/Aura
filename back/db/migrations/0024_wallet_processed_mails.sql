@@ -2,13 +2,11 @@
 -- 메일 자동 추출 cron이 같은 메시지를 두 번 처리하지 않도록.
 -- 보관 기간: 30일 (가장 오래된 newer_than:3d 윈도우보다 길게).
 --
--- 컬럼 타입 주의:
--- - user_id varchar(36) — aura.users 테이블이 production에 없음 (auth.users 분리됨).
---   FK 없이 plain varchar. 같은 컨벤션을 aura.coupons.user_id가 사용 중.
--- - coupon_id uuid — aura.coupons.id는 uuid. FK는 유지 (coupons 삭제 시 정리).
+-- user_id는 aura.* 다른 테이블 (meeting_notes, user_profiles 등)과 동일하게 uuid +
+-- FK auth.users(id). aura.users 테이블은 존재하지 않음 — Supabase auth.users 사용.
 
 CREATE TABLE IF NOT EXISTS aura.wallet_processed_mails (
-  user_id      varchar(36)  NOT NULL,
+  user_id      uuid         NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   message_id   text         NOT NULL,
   status       text         NOT NULL CHECK (status IN ('extracted', 'no_match', 'low_confidence', 'duplicate', 'error')),
   coupon_id    uuid         REFERENCES aura.coupons(id) ON DELETE SET NULL,
