@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { use } from "react";
 import Link from "next/link";
 import useSWR from "swr";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, ApiRequestError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
@@ -30,6 +30,7 @@ function fmtDateTime(iso: string) {
 export default function MeetingNotePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState("");
@@ -38,6 +39,8 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
   const [copied, setCopied] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [revoking, setRevoking] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
+  const autoSummarizedRef = useRef(false);
 
   const { data: note, error, isLoading, mutate } = useSWR<MeetingNote>(
     `/business/meetings/${id}`,
@@ -124,6 +127,52 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
       window.prompt("이 링크를 복사하세요:", url);
     }
   };
+
+  const handleSummarize = async () => {
+    if (summarizing || !note) return;
+    setSummarizing(true);
+    try {
+      const res = await api.post<{ ok: boolean; note: MeetingNote }>(
+        `/business/meetings/${id}/summarize`,
+      );
+      // 응답 note로 즉시 캐시 갱신 + body state 동기화 (편집 중이 아니라면)
+      await mutate(res.note, false);
+      if (!editing) setBody(res.note.body);
+      toast.push({ level: "success", text: "AI 요약을 본문 위에 추가했습니다." });
+    } catch (e) {
+      if (e instanceof ApiRequestError) {
+        if (e.status === 429) {
+          toast.push({ level: "error", text: "오늘 AI 요약 한도에 도달했습니다. 내일 다시 시도해주세요." });
+        } else if (e.status === 400) {
+          toast.push({ level: "error", text: "요약할 내용이 부족합니다. 본문이나 자막을 추가하세요." });
+        } else if (e.status === 502) {
+          toast.push({ level: "error", text: "AI가 응답을 생성하지 못했습니다. 잠시 후 다시 시도해주세요." });
+        } else if (e.status === 404) {
+          toast.push({ level: "error", text: "이 회의록은 삭제되었습니다.", actionLabel: "목록으로", onAction: () => router.push("/meetings") });
+        } else {
+          toast.push({ level: "error", text: "요약 생성 실패. 다시 시도해주세요." });
+        }
+      } else {
+        toast.push({ level: "error", text: "네트워크 오류. 인터넷 연결을 확인해주세요." });
+      }
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
+  // ?summarize=1 query로 진입한 경우 자동 1회 실행 (저장 직후 redirect).
+  useEffect(() => {
+    if (!note) return;
+    if (searchParams.get("summarize") !== "1") return;
+    if (autoSummarizedRef.current) return;
+    autoSummarizedRef.current = true;
+    // URL에서 query 제거 (재방문 시 또 호출되지 않도록)
+    const url = new URL(window.location.href);
+    url.searchParams.delete("summarize");
+    window.history.replaceState({}, "", url.toString());
+    void handleSummarize();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note?.id]);
 
   const revokeShare = async () => {
     if (!confirm("공유를 중지하면 기존 링크가 즉시 무효화됩니다. 계속하시겠습니까?")) return;
@@ -251,6 +300,26 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
             </>
           ) : (
             <>
+              <button
+                onClick={() => void handleSummarize()}
+                disabled={summarizing}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors disabled:opacity-60"
+                style={{ background: "var(--aurora-soft)", color: "var(--aurora)" }}
+              >
+                {summarizing ? (
+                  <>
+                    <span className="spinner" style={{ width: 11, height: 11 }} />
+                    요약 중…
+                  </>
+                ) : (
+                  <>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M6 1l1.2 3.3L10.5 5.5l-3 1.6-.5 3.4-1.5-2.8-3.2.8 1.7-2.7-1.5-2.7 3.2.5L6 1Z" fill="currentColor" opacity=".85"/>
+                    </svg>
+                    AI 요약
+                  </>
+                )}
+              </button>
               <button
                 onClick={() => setEditing(true)}
                 className="px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"

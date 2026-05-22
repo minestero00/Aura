@@ -13,6 +13,8 @@ import {
   deleteMeetingNote
 } from "./repository.js";
 import { renderMeetingNoteToDocx } from "./docx-converter.js";
+import { summarizeMeetingNote } from "./summarize.js";
+import { AppError } from "../../lib/errors/app-error.js";
 
 export const meetingsRouter = Router();
 
@@ -148,6 +150,67 @@ meetingsRouter.post("/:id/share", requireAuth, async (req, res) => {
   }
 
   res.json({ shareToken: token });
+});
+
+// POST /business/meetings/:id/summarize — Anthropic으로 본문 요약 + action items 추출.
+// 결과는 새 body 앞에 prepend (사용자 원본은 아래 보존).
+// idempotent X — 매 호출마다 비용 발생. 짧은 시간 내 중복 호출 차단은 usage 가드가 담당.
+meetingsRouter.post("/:id/summarize", requireAuth, async (req, res) => {
+  const note = await getMeetingNoteById(req.params["id"] as string, req.authUser!.id);
+  if (!note) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  if (!note.body && !note.rawTranscript) {
+    res.status(400).json({ error: "empty_content", message: "본문이나 자막이 있어야 요약할 수 있습니다." });
+    return;
+  }
+
+  try {
+    const { markdown, result, tokensUsed } = await summarizeMeetingNote(req.authUser!.id, note);
+
+    if (!markdown) {
+      // Anthropic가 빈 결과 또는 실패 — usage는 차감 안 됨 (recordModelUsage best-effort).
+      res.status(502).json({ error: "summarize_empty", message: "요약을 생성하지 못했습니다." });
+      return;
+    }
+
+    // 기존 body 위에 AI 요약 prepend. divider로 구분.
+    const existingBody = note.body.trim();
+    const newBody = existingBody
+      ? `${markdown}\n\n---\n\n## 원본 노트\n\n${existingBody}`
+      : markdown;
+
+    const updated = await updateMeetingNote(req.params["id"] as string, req.authUser!.id, {
+      body: newBody,
+      status: "done",
+    });
+    if (!updated) {
+      res.status(404).json({ error: "not_found" });
+      return;
+    }
+
+    res.json({
+      ok: true,
+      note: updated,
+      summary: result,
+      tokensUsed,
+    });
+  } catch (err) {
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: err.code, message: err.message, details: err.details });
+      return;
+    }
+    console.log(JSON.stringify({
+      level: "warn",
+      service: "aura-back",
+      module: "meetings",
+      message: "summarize failed",
+      noteId: note.id,
+      error: err instanceof Error ? err.message : String(err),
+    }));
+    res.status(500).json({ error: "summarize_failed" });
+  }
 });
 
 // DELETE /business/meetings/:id/share — 공유 토큰 회수.

@@ -19,7 +19,8 @@ export type UsageFeature =
   | "transit_directions"
   | "transit_places"
   | "voice_transcribe"
-  | "wallet_extract";
+  | "wallet_extract"
+  | "meeting_summarize";
 
 interface QuotaRow {
   id: string;
