@@ -7,6 +7,7 @@ import { jobsService } from "./modules/jobs/service.js";
 import { evaluateAllUsersDepartures } from "./modules/departure/service.js";
 import { evaluateAllUsersMeetingBriefs } from "./modules/meeting-brief/index.js";
 import { walletService } from "./modules/wallet/index.js";
+import { extractCouponsForAllUsers } from "./modules/wallet/mail-extract.js";
 import { runTossBillingCycle } from "./modules/subscription/index.js";
 import { getInstallationsDueNow, getManualTriggers, safeDigest } from "./modules/slack-bot/digest.js";
 
@@ -139,6 +140,49 @@ function stopSlackDigestLoop() {
   }
 }
 
+// Phase J.2 — 메일 자동 쿠폰 추출 cron.
+// 6시간 간격 (Gmail rate limit + LLM 비용 균형). looksLikeCoupon 통과한 메일만 LLM call.
+// 사용자별 처리 결과는 wallet_processed_mails에 기록 — 다음 cycle 중복 처리 차단.
+const WALLET_MAIL_EXTRACT_INTERVAL_MS = Number(process.env.WALLET_MAIL_EXTRACT_INTERVAL_MS || 6 * 60 * 60 * 1000);
+let walletMailExtractTimer: NodeJS.Timeout | null = null;
+let walletMailExtractInFlight = false;
+
+async function runWalletMailExtract() {
+  if (walletMailExtractInFlight) return;
+  walletMailExtractInFlight = true;
+  try {
+    await extractCouponsForAllUsers();
+  } catch (error) {
+    console.log(JSON.stringify({
+      level: "warn",
+      service: "aura-worker",
+      module: "wallet/mail-extract",
+      message: "extractCouponsForAllUsers threw",
+      error: error instanceof Error ? error.message : String(error),
+    }));
+  } finally {
+    walletMailExtractInFlight = false;
+  }
+}
+
+function startWalletMailExtractLoop() {
+  if (walletMailExtractTimer) return;
+  // 부팅 직후 즉시 1회 실행하지 않음 — 부팅 시 다른 init과 부담 분산. 첫 cycle은 1분 후.
+  walletMailExtractTimer = setTimeout(() => {
+    void runWalletMailExtract();
+    walletMailExtractTimer = setInterval(() => {
+      void runWalletMailExtract();
+    }, WALLET_MAIL_EXTRACT_INTERVAL_MS);
+  }, 60_000);
+}
+
+function stopWalletMailExtractLoop() {
+  if (walletMailExtractTimer) {
+    clearInterval(walletMailExtractTimer);
+    walletMailExtractTimer = null;
+  }
+}
+
 // Phase J — 쿠폰 status 전이(active → expiring_soon → expired) + used+90일 hard delete.
 // 6시간 간격 (idempotent — 멱등이므로 중복 실행 안전). 시작 시 즉시 1회.
 const WALLET_SWEEP_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -263,6 +307,7 @@ async function bootstrapWorker() {
   startDepartureLoop();
   startMeetingBriefLoop();
   startWalletSweep();
+  startWalletMailExtractLoop();
   startTossBillingLoop();
   startSlackDigestLoop();
 
@@ -279,6 +324,7 @@ async function bootstrapWorker() {
     stopDepartureLoop();
     stopMeetingBriefLoop();
     stopWalletSweep();
+    stopWalletMailExtractLoop();
     stopTossBillingLoop();
     stopSlackDigestLoop();
     await Promise.all([

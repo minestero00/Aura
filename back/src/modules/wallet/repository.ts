@@ -284,5 +284,50 @@ export const walletRepository = {
       [cutoffIso]
     );
     return result.rowCount ?? 0;
+  },
+
+  // ===== J.2 — wallet_processed_mails (메일 자동 추출 idempotency) =====
+
+  /** 이미 처리한 message id 집합 반환 — cron에서 skip 가드용. */
+  async getProcessedMailIds(userId: string, messageIds: string[]): Promise<Set<string>> {
+    const p = getPool();
+    if (!p || messageIds.length === 0) return new Set();
+    const result = await p.query<{ message_id: string }>(
+      `SELECT message_id FROM aura.wallet_processed_mails
+       WHERE user_id = $1 AND message_id = ANY($2)`,
+      [userId, messageIds]
+    );
+    return new Set(result.rows.map(r => r.message_id));
+  },
+
+  /** 메일 처리 결과 기록 — idempotent (PRIMARY KEY 충돌 시 갱신). */
+  async recordProcessedMail(input: {
+    userId: string;
+    messageId: string;
+    status: "extracted" | "no_match" | "low_confidence" | "duplicate" | "error";
+    couponId: string | null;
+  }): Promise<void> {
+    const p = getPool();
+    if (!p) return;
+    await p.query(
+      `INSERT INTO aura.wallet_processed_mails (user_id, message_id, status, coupon_id, processed_at)
+       VALUES ($1, $2, $3, $4, now())
+       ON CONFLICT (user_id, message_id) DO UPDATE
+         SET status = EXCLUDED.status,
+             coupon_id = EXCLUDED.coupon_id,
+             processed_at = now()`,
+      [input.userId, input.messageId, input.status, input.couponId]
+    );
+  },
+
+  /** 30일 지난 처리 기록 정리 (newer_than:3d 윈도우보다 길게 보관). */
+  async purgeOldProcessedMails(cutoffIso: string): Promise<number> {
+    const p = getPool();
+    if (!p) return 0;
+    const result = await p.query(
+      `DELETE FROM aura.wallet_processed_mails WHERE processed_at <= $1`,
+      [cutoffIso]
+    );
+    return result.rowCount ?? 0;
   }
 };
