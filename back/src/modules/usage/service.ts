@@ -120,7 +120,11 @@ function getLimits() {
     dailyEmailSummary: Number(process.env.USAGE_DAILY_EMAIL_SUMMARY || 40),
     dailyOverview: Number(process.env.USAGE_DAILY_OVERVIEW || 30),
     dailyChat: Number(process.env.USAGE_DAILY_CHAT || 100),
-    dailyManualRefresh: Number(process.env.USAGE_DAILY_MANUAL_REFRESH || 10)
+    dailyManualRefresh: Number(process.env.USAGE_DAILY_MANUAL_REFRESH || 10),
+    // voice_transcribe — Whisper STT 청크. 10s 청크 기준 360개 = 1시간 회의 가능.
+    dailyVoiceTranscribe: Number(process.env.USAGE_DAILY_VOICE_TRANSCRIBE || 360),
+    // meeting_summarize — Sonnet 호출. 사용자당 일 5회면 회의 5건 요약.
+    dailyMeetingSummarize: Number(process.env.USAGE_DAILY_MEETING_SUMMARIZE || 5),
   };
 }
 
@@ -137,6 +141,14 @@ function getDailyLimit(feature: UsageFeature) {
 
   if (feature === "email_summary") {
     return limits.dailyEmailSummary;
+  }
+
+  if (feature === "voice_transcribe") {
+    return limits.dailyVoiceTranscribe;
+  }
+
+  if (feature === "meeting_summarize") {
+    return limits.dailyMeetingSummarize;
   }
 
   return limits.dailyOverview;

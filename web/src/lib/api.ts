@@ -67,3 +67,23 @@ export const api = {
   patch:  <T>(path: string, body?: unknown, headers?: Record<string, string>) => request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined, headers }),
   delete: <T>(path: string, headers?: Record<string, string>)                 => request<T>(path, { method: "DELETE", headers })
 };
+
+/**
+ * FormData(multipart/upload) 전용. JSON 헬퍼와 별개 — Content-Type을 browser가
+ * boundary와 함께 자동 설정해야 하므로 우리는 절대 지정 X.
+ */
+export async function postFormData<T>(path: string, formData: FormData): Promise<T> {
+  const token = await (await import("./supabase")).supabase.auth.getSession().then(r => r.data.session?.access_token ?? null);
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({ error: "unknown" }))) as { error: string; message?: string } & Record<string, unknown>;
+    throw new ApiRequestError(res.status, body);
+  }
+  return res.json() as Promise<T>;
+}

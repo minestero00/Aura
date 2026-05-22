@@ -2,8 +2,24 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { api, ApiRequestError } from "@/lib/api";
+import { api, ApiRequestError, postFormData } from "@/lib/api";
 import { useToast } from "@/components/Toast";
+
+// MediaRecorder 청크 단위. 10s마다 ondataavailable → Whisper에 업로드.
+// 청크 사이 단어가 끊길 수 있음 — Whisper는 청크별로 독립 transcribe (accepted limitation).
+const STT_CHUNK_MS = 10_000;
+// MIME 우선순위 (브라우저별 지원 차이). MediaRecorder.isTypeSupported로 첫 번째 지원되는 것 선택.
+const PREFERRED_MIME_TYPES = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/mpeg"];
+
+function pickMimeType(): string | null {
+  if (typeof MediaRecorder === "undefined") return null;
+  for (const mt of PREFERRED_MIME_TYPES) {
+    if (MediaRecorder.isTypeSupported(mt)) return mt;
+  }
+  return null;  // 브라우저가 어느 것도 지원 안 함 — Safari 매우 구버전 등
+}
+
+type SttStatus = "idle" | "active" | "permission_denied" | "unsupported" | "quota_exhausted" | "error";
 
 // localStorage에 저장하는 작성 중 draft. 브라우저 닫혀도 다음 접속 시 복구.
 // 단, 사용자가 직접 시작한 단일 draft만 보관 — 이전 draft은 새 draft 시작 시 폐기.
@@ -85,11 +101,15 @@ export default function NewMeetingPage() {
   const [saving, setSaving] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [showDraftRestore, setShowDraftRestore] = useState<DraftPayload | null>(null);
+  const [sttStatus, setSttStatus] = useState<SttStatus>("idle");
 
   const startRef = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const savedAfterCreateRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const mimeRef = useRef<string | null>(null);
 
   // 진입 시 localStorage 검사 — 이전 draft 있으면 복구 prompt
   useEffect(() => {
@@ -160,13 +180,96 @@ export default function NewMeetingPage() {
     setBody(TEMPLATE_BODY[id] ?? "");
   };
 
+  // MediaRecorder + Whisper 청크 업로드 시작.
+  // 권한 거부 / 미지원 브라우저 / quota 초과 시 sttStatus만 갱신, 노트 입력은 계속 가능.
+  const startSttPipeline = useCallback(async () => {
+    if (recorderRef.current) return;  // 이미 동작 중
+    const mime = pickMimeType();
+    if (!mime) {
+      setSttStatus("unsupported");
+      toast.push({ level: "info", text: "이 브라우저는 자막을 지원하지 않습니다. 노트만 사용해주세요." });
+      return;
+    }
+    mimeRef.current = mime;
+
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setSttStatus("permission_denied");
+      toast.push({ level: "error", text: "마이크 권한이 거부되었습니다. 노트는 계속 입력할 수 있습니다." });
+      return;
+    }
+    streamRef.current = stream;
+
+    const recorder = new MediaRecorder(stream, { mimeType: mime });
+    recorder.ondataavailable = async ev => {
+      if (!ev.data || ev.data.size === 0) return;
+      const fd = new FormData();
+      fd.append("audio", ev.data, `chunk.${mime.includes("webm") ? "webm" : "mp4"}`);
+      try {
+        const { text } = await postFormData<{ ok: boolean; text: string }>("/voice/transcribe", fd);
+        const trimmed = text?.trim();
+        if (trimmed) setTranscript(prev => [...prev, trimmed]);
+      } catch (err) {
+        if (err instanceof ApiRequestError && err.status === 429) {
+          setSttStatus("quota_exhausted");
+          // 한도 초과 시 더 이상 업로드 안 함 — 녹음 자체는 사용자 의지대로
+          try { recorder.stop(); } catch { /* */ }
+          toast.push({ level: "error", text: "오늘 자막 한도에 도달했습니다. 녹음은 계속 가능하지만 자막은 더 이상 생성되지 않습니다." });
+        } else {
+          // 단발 실패 — 다음 청크에서 자동 복구. status 변경 X.
+          console.error("[voice] chunk transcribe failed:", err);
+        }
+      }
+    };
+    recorder.start(STT_CHUNK_MS);
+    recorderRef.current = recorder;
+    setSttStatus("active");
+  }, [toast]);
+
+  const stopSttPipeline = useCallback(() => {
+    if (recorderRef.current) {
+      try { recorderRef.current.stop(); } catch { /* */ }
+      recorderRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+  }, []);
+
+  // 컴포넌트 unmount 시 stream/recorder 정리 — 마이크 indicator OFF
+  useEffect(() => {
+    return () => stopSttPipeline();
+  }, [stopSttPipeline]);
+
   const startRecording = useCallback(() => {
     setStep("recording");
     setRecording(true);
-    // STT 구현 예정: getDisplayMedia + Whisper API 스트리밍
-  }, []);
+    void startSttPipeline();
+  }, [startSttPipeline]);
 
-  const toggleRecording = () => setRecording(r => !r);
+  const toggleRecording = () => {
+    setRecording(prev => {
+      const next = !prev;
+      const rec = recorderRef.current;
+      if (next) {
+        // pause→resume 또는 (draft 복구 후) 처음 시작
+        if (rec && rec.state === "paused") {
+          try { rec.resume(); } catch { /* */ }
+        } else if (!rec) {
+          void startSttPipeline();
+        }
+      } else {
+        // 일시정지 (mic stream은 유지 — UX 빠른 재개)
+        if (rec && rec.state === "recording") {
+          try { rec.pause(); } catch { /* */ }
+        }
+      }
+      return next;
+    });
+  };
 
   const restoreDraft = (draft: DraftPayload) => {
     setTitle(draft.title);
@@ -175,9 +278,9 @@ export default function NewMeetingPage() {
     setTranscript(draft.transcript);
     setElapsed(draft.elapsed);
     setStep("recording");
-    setRecording(false);  // 복구 시 기본 정지 상태 — 사용자가 재개 결정
+    setRecording(false);  // 복구 시 기본 정지 상태 — 사용자가 재개 결정 (STT pipeline은 아직 시작 X)
     setShowDraftRestore(null);
-    toast.push({ level: "info", text: "이전 작업을 복구했습니다." });
+    toast.push({ level: "info", text: "이전 작업을 복구했습니다. 녹음 재개 시 자막도 다시 시작됩니다." });
   };
 
   const discardDraft = () => {
@@ -195,8 +298,9 @@ export default function NewMeetingPage() {
         templateId,
         eventId: eventId ?? undefined
       });
-      // 저장 성공 → draft 폐기 + beforeunload 가드 해제 + detail로 이동
+      // 저장 성공 → STT 정리 + draft 폐기 + beforeunload 가드 해제 + detail로 이동
       savedAfterCreateRef.current = true;
+      stopSttPipeline();
       clearDraft();
       router.push(`/meetings/${note.id}?summarize=1`);
     } catch (e) {
@@ -438,8 +542,25 @@ export default function NewMeetingPage() {
                 </svg>
               </div>
               <p className="text-[12px] font-semibold" style={{ color: "var(--text-2)" }}>실시간 자막</p>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-auto" style={{ background: "var(--surface-muted)", color: "var(--text-muted)" }}>
-                Whisper STT — 구현 예정
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded-full ml-auto"
+                style={{
+                  background:
+                    sttStatus === "active" ? "rgba(31,203,122,.12)"
+                      : sttStatus === "permission_denied" || sttStatus === "quota_exhausted" || sttStatus === "error" ? "var(--error-soft)"
+                        : "var(--surface-muted)",
+                  color:
+                    sttStatus === "active" ? "var(--success)"
+                      : sttStatus === "permission_denied" || sttStatus === "quota_exhausted" || sttStatus === "error" ? "var(--error)"
+                        : "var(--text-muted)",
+                }}
+              >
+                {sttStatus === "active" ? "Whisper · 활성"
+                  : sttStatus === "permission_denied" ? "마이크 권한 거부"
+                    : sttStatus === "unsupported" ? "브라우저 미지원"
+                      : sttStatus === "quota_exhausted" ? "오늘 한도 초과"
+                        : sttStatus === "error" ? "일시 중단"
+                          : "Whisper STT"}
               </span>
             </div>
             <div
