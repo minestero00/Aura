@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getBotDb } from "@/lib/slack-bot/db";
+import { decrypt } from "@/lib/slack-bot/crypto";
 import { notifyOps } from "@/lib/slack-bot/ops";
 
 function verifySlackSignature(body: string, req: NextRequest): boolean {
@@ -20,6 +21,7 @@ function verifySlackSignature(body: string, req: NextRequest): boolean {
 
 interface ViewSubmission {
   type: "view_submission";
+  user: { id: string };
   view: {
     callback_id: string;
     private_metadata: string;
@@ -101,8 +103,25 @@ async function handleSettingsSubmit(payload: ViewSubmission) {
     });
   }
 
+  const db = getBotDb();
+  let botToken: string | null = null;
+  let channelId: string | null = null;
   try {
-    const db = getBotDb();
+    const { data: inst, error: selErr } = await db
+      .from("bot_installations")
+      .select("slack_bot_token, slack_channel_id")
+      .eq("id", installationId)
+      .maybeSingle();
+    if (selErr) throw new Error(selErr.message);
+    if (inst?.slack_bot_token) {
+      try {
+        botToken = decrypt(inst.slack_bot_token);
+      } catch {
+        botToken = null;
+      }
+    }
+    channelId = inst?.slack_channel_id ?? null;
+
     const { error } = await db
       .from("bot_installations")
       .update({
@@ -125,6 +144,37 @@ async function handleSettingsSubmit(payload: ViewSubmission) {
     return NextResponse.json({
       response_action: "errors",
       errors: { digest_time: "저장 실패. 잠시 후 다시 시도해주세요." },
+    });
+  }
+
+  // 저장 성공 시 디지스트 채널에 ephemeral 메시지 — 본인만 보이고, 다른 멤버를 방해하지 않음.
+  // (bot은 이미 그 채널에 있으므로 chat:write만으로 ok, im:write 같은 추가 scope 불필요)
+  // Slack 3초 응답 제한 안에 끝나야 하므로 after()로 비동기 처리.
+  const userId = payload.user.id;
+  if (botToken && channelId && userId) {
+    const daysKo: Record<string, string> = { mon: "월", tue: "화", wed: "수", thu: "목", fri: "금", sat: "토", sun: "일" };
+    const dayStr = digestDays.map(d => daysKo[d] ?? d).join("·");
+    after(async () => {
+      try {
+        const res = await fetch("https://slack.com/api/chat.postEphemeral", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            Authorization: `Bearer ${botToken}`,
+          },
+          body: JSON.stringify({
+            channel: channelId,
+            user: userId,
+            text: `✅ AURA Bot 설정이 저장되었습니다. (${digestTime} ${timezone} · ${dayStr})`,
+          }),
+        });
+        const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+        if (!json?.ok) {
+          console.error("[interactions] save confirm ephemeral failed:", json?.error);
+        }
+      } catch (err) {
+        console.error("[interactions] save confirm ephemeral threw:", err);
+      }
     });
   }
 
