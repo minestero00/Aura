@@ -25,6 +25,12 @@ function buildCorsOptions(): cors.CorsOptions {
         return;
       }
 
+      // dumb.io.kr 메인/서브도메인은 production에서도 기본 허용 (env 누락 안전망)
+      if (/^https:\/\/([a-z0-9-]+\.)*dumb\.io\.kr$/.test(origin)) {
+        callback(null, true);
+        return;
+      }
+
       if (!isProduction && /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?$/.test(origin)) {
         callback(null, true);
         return;
