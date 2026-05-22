@@ -36,6 +36,8 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
   const [saving, setSaving] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [revoking, setRevoking] = useState(false);
 
   const { data: note, error, isLoading, mutate } = useSWR<MeetingNote>(
     `/business/meetings/${id}`,
@@ -90,21 +92,15 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const handleShare = async () => {
+  // 공유 모달 열기: 토큰이 없으면 발급 후 표시. 있으면 그대로 표시.
+  const handleOpenShare = async () => {
     setSharing(true);
     try {
-      const result = await api.post<{ shareToken: string }>(`/business/meetings/${id}/share`);
-      await mutate();
-      const url = `${window.location.origin}/share/${result.shareToken}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-        toast.push({ level: "success", text: "공유 링크를 클립보드에 복사했습니다." });
-      } catch {
-        // 클립보드 권한 거부 — prompt 폴백
-        window.prompt("이 링크를 복사하세요:", url);
+      if (!note?.shareToken) {
+        await api.post<{ shareToken: string }>(`/business/meetings/${id}/share`);
+        await mutate();
       }
+      setShareModalOpen(true);
     } catch (e) {
       toast.push({
         level: "error",
@@ -117,11 +113,39 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const handleExport = async (fmt: "md" | "docx") => {
-    if (fmt === "docx") {
-      toast.push({ level: "info", text: ".docx 내보내기는 준비 중입니다. .md를 이용해주세요." });
-      return;
+  const copyShareUrl = async (token: string) => {
+    const url = `${window.location.origin}/share/${token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+      toast.push({ level: "success", text: "공유 링크를 클립보드에 복사했습니다." });
+    } catch {
+      window.prompt("이 링크를 복사하세요:", url);
     }
+  };
+
+  const revokeShare = async () => {
+    if (!confirm("공유를 중지하면 기존 링크가 즉시 무효화됩니다. 계속하시겠습니까?")) return;
+    setRevoking(true);
+    try {
+      await api.delete(`/business/meetings/${id}/share`);
+      await mutate();
+      setShareModalOpen(false);
+      toast.push({ level: "success", text: "공유를 중지했습니다. 기존 링크는 더 이상 작동하지 않습니다." });
+    } catch (e) {
+      toast.push({
+        level: "error",
+        text: e instanceof ApiRequestError && e.status === 404
+          ? "이 회의록은 삭제되었습니다."
+          : "공유 중지 실패. 다시 시도해주세요.",
+      });
+    } finally {
+      setRevoking(false);
+    }
+  };
+
+  const handleExport = async (fmt: "md" | "docx") => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
       toast.push({ level: "error", text: "API URL이 설정되지 않았습니다." });
@@ -235,19 +259,18 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
                 수정
               </button>
               <button
-                onClick={() => void handleShare()}
+                onClick={() => void handleOpenShare()}
                 disabled={sharing}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors disabled:opacity-60"
                 style={{
-                  background: copied ? "rgba(31,203,122,.12)" : "var(--surface-muted)",
-                  color: copied ? "var(--success)" : "var(--text-2)"
+                  background: note.shareToken ? "rgba(31,203,122,.12)" : "var(--surface-muted)",
+                  color: note.shareToken ? "var(--success)" : "var(--text-2)"
                 }}
               >
-                {copied ? (
-                  <><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>링크 복사됨</>
-                ) : (
-                  <><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7 1H3a1 1 0 0 0-1 1v7M5 3h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/></svg>공유</>
-                )}
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M7 1H3a1 1 0 0 0-1 1v7M5 3h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {note.shareToken ? "공유 중" : "공유"}
               </button>
               <div className="relative group">
                 <button
@@ -313,6 +336,76 @@ export default function MeetingNotePage({ params }: { params: Promise<{ id: stri
           </div>
         )}
       </div>
+
+      {/* Share modal */}
+      {shareModalOpen && note.shareToken && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center px-4"
+          style={{ background: "rgba(0,0,0,.4)" }}
+          onClick={() => setShareModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-[16px] p-5"
+            style={{ background: "var(--surface)", boxShadow: "var(--shadow-float)" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[15px] font-bold" style={{ color: "var(--text)" }}>공유 링크</h2>
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-[var(--surface-muted)] transition-colors"
+                aria-label="닫기"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M3 3l8 8M11 3l-8 8" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-[12px] mb-3" style={{ color: "var(--text-muted)" }}>
+              이 링크를 받은 사람은 로그인 없이 회의록을 볼 수 있습니다. 원본 자막은 노출되지 않습니다.
+            </p>
+
+            <div
+              className="flex items-center gap-2 p-2.5 rounded-[10px] mb-4"
+              style={{ background: "var(--surface-muted)" }}
+            >
+              <code className="flex-1 text-[12px] font-mono truncate" style={{ color: "var(--text-2)" }}>
+                {typeof window !== "undefined" ? `${window.location.origin}/share/${note.shareToken}` : ""}
+              </code>
+              <button
+                onClick={() => void copyShareUrl(note.shareToken!)}
+                className="flex-none flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-colors"
+                style={{
+                  background: copied ? "rgba(31,203,122,.15)" : "var(--surface)",
+                  color: copied ? "var(--success)" : "var(--text)",
+                  border: "1px solid var(--line)"
+                }}
+              >
+                {copied ? "복사됨" : "복사"}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={() => void revokeShare()}
+                disabled={revoking}
+                className="px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors disabled:opacity-60"
+                style={{ background: "var(--error-soft)", color: "var(--error)" }}
+              >
+                {revoking ? "중지 중…" : "공유 중지"}
+              </button>
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="px-4 py-1.5 rounded-full text-[12px] font-semibold text-white"
+                style={{ background: "var(--aurora)" }}
+              >
+                완료
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

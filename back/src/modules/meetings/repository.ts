@@ -162,7 +162,7 @@ export async function updateMeetingNote(
 export async function setShareToken(
   id: string,
   userId: string,
-  token: string
+  token: string | null
 ): Promise<void> {
   const db = getPool();
   await db.query(

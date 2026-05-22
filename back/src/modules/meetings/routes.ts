@@ -12,6 +12,7 @@ import {
   setShareToken,
   deleteMeetingNote
 } from "./repository.js";
+import { renderMeetingNoteToDocx } from "./docx-converter.js";
 
 export const meetingsRouter = Router();
 
@@ -133,7 +134,7 @@ meetingsRouter.patch("/:id", requireAuth, async (req, res) => {
   res.json(updated);
 });
 
-// POST /business/meetings/:id/share — 공유 토큰 발급
+// POST /business/meetings/:id/share — 공유 토큰 발급 (idempotent)
 meetingsRouter.post("/:id/share", requireAuth, async (req, res) => {
   const note = await getMeetingNoteById(req.params["id"] as string, req.authUser!.id);
   if (!note) {
@@ -147,6 +148,20 @@ meetingsRouter.post("/:id/share", requireAuth, async (req, res) => {
   }
 
   res.json({ shareToken: token });
+});
+
+// DELETE /business/meetings/:id/share — 공유 토큰 회수.
+// 기존 link는 즉시 무효. 같은 노트를 다시 공유하면 새 token 발급됨.
+meetingsRouter.delete("/:id/share", requireAuth, async (req, res) => {
+  const note = await getMeetingNoteById(req.params["id"] as string, req.authUser!.id);
+  if (!note) {
+    res.status(404).json({ error: "not_found" });
+    return;
+  }
+  if (note.shareToken) {
+    await setShareToken(req.params["id"] as string, req.authUser!.id, null);
+  }
+  res.json({ ok: true });
 });
 
 // GET /business/meetings/:id/export
@@ -167,8 +182,29 @@ meetingsRouter.get("/:id/export", requireAuth, async (req, res) => {
     return;
   }
 
-  // docx: 간단 텍스트 fallback (실제 docx 생성은 추후 추가)
-  res.status(501).json({ error: "docx_not_implemented" });
+  // docx: markdown subset → Word 문서
+  try {
+    const buffer = await renderMeetingNoteToDocx(note.title, note.createdAt, note.body);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${encodeURIComponent(note.title)}.docx"`,
+    );
+    res.send(buffer);
+  } catch (err) {
+    console.log(JSON.stringify({
+      level: "warn",
+      service: "aura-back",
+      module: "meetings",
+      message: "docx render failed",
+      noteId: note.id,
+      error: err instanceof Error ? err.message : String(err),
+    }));
+    res.status(500).json({ error: "docx_render_failed" });
+  }
 });
 
 // DELETE /business/meetings/:id
