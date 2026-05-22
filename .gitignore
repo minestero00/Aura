@@ -17,3 +17,4 @@ Image/screenshots
 keystore.properties
 *.keystore
 docs/slack-bot/aura-bot-dev.2026-05-15.private-key.pem
+.claude
