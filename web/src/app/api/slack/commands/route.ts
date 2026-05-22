@@ -248,7 +248,15 @@ async function openSettingsModal(
       response_type: "ephemeral",
       text: `설정 창을 열지 못했습니다 (${json.error}).`,
     });
+    return;
   }
+
+  // modal이 떴으면 "처리 중..." ephemeral을 짧은 안내 메시지로 갱신.
+  // 안 그러면 사용자가 "처리 중..."을 계속 보게 됨.
+  await sendToResponseUrl(responseUrl, {
+    response_type: "ephemeral",
+    text: "⚙️ 설정 창이 열렸습니다.",
+  });
 }
 
 async function handleRepos(teamId: string, responseUrl: string) {
