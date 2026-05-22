@@ -102,6 +102,48 @@ settings:
 
 ---
 
+## Railway 배포 (back) — API + Worker 두 서비스
+
+> **중요**: API 서버만으로는 `/aura brief` 즉시 실행은 되지만 **스케줄 digest, daily brief push, departure/meeting brief, wallet sweep, Toss billing이 전부 동작하지 않습니다.** Worker는 별도 Railway 서비스로 띄워야 합니다.
+
+같은 `back/Dockerfile` 이미지를 두 서비스에서 사용합니다.
+
+### 1. `aura-api` 서비스
+
+- Root Directory: repo 루트
+- Dockerfile Path: `back/Dockerfile`
+- Start Command: **(비워둠 — Dockerfile의 기본 CMD 사용)**
+  - 기본 CMD: `npm run preflight:prod && npm run migrate:prod && node dist/server.js`
+- 환경변수: 전체 (`DATABASE_URL`, `APP_ENCRYPTION_KEY`, `ANTHROPIC_API_KEY`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `SLACK_BOT_TRIGGER_SECRET` 등)
+- `ENABLE_BRIEFING_SCHEDULER=false` (worker가 담당)
+
+### 2. `aura-worker` 서비스 (필수, 신규)
+
+- Root Directory: repo 루트 (api와 동일)
+- Dockerfile Path: `back/Dockerfile` (api와 동일 이미지)
+- **Custom Start Command (override):**
+  ```sh
+  npm run preflight:prod && node dist/worker.js
+  ```
+  - migrate는 api 쪽에서만 실행 — worker는 절대 migrate 돌리지 않음 (race 방지)
+- 환경변수: api와 동일하게 복제. **단 `ENABLE_BRIEFING_SCHEDULER=true`**.
+  - `APP_ENCRYPTION_KEY`는 web의 `BOT_ENCRYPTION_KEY`와 **반드시 동일 값** (Slack bot token 복호화)
+- 노출 포트 없음 (HTTP listener 아님, 백그라운드 루프만)
+
+### 배포 후 확인
+
+```bash
+# API 헬스
+curl https://<api-domain>/health
+
+# Worker 로그 — Railway logs에서 다음 메시지 보이면 OK
+# {"level":"info","service":"aura-worker","message":"Aura worker started", ...}
+```
+
+worker가 떴는지 빠르게 검증하려면 `/aura setting`에서 digest_time을 현재 시간 +5분 / 30분 단위(:00 또는 :30)로 잡고 기다려보세요. 또는 web 설정의 "지금 요약 실행" 버튼은 worker 없어도 API 서버가 직접 처리하므로 별개입니다.
+
+---
+
 ## Supabase 마이그레이션
 
 ```bash

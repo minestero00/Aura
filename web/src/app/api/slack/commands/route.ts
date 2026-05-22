@@ -103,7 +103,7 @@ async function handleBrief(teamId: string, responseUrl: string) {
   const db = getBotDb();
   const { data } = await db
     .from("bot_installations")
-    .select("id, slack_team_name")
+    .select("id, slack_team_name, repos, slack_channel_id")
     .eq("slack_team_id", teamId)
     .eq("is_active", true)
     .maybeSingle();
@@ -116,16 +116,64 @@ async function handleBrief(teamId: string, responseUrl: string) {
     return;
   }
 
-  // 실제 digest는 back/ worker에서 처리
-  // 여기서는 트리거 신호만 → DB에 manual_trigger 플래그 설정
-  await db.from("bot_installations").update({
-    manual_trigger: true,
-    updated_at: new Date().toISOString()
-  }).eq("slack_team_id", teamId);
+  if (!data.slack_channel_id) {
+    await sendToResponseUrl(responseUrl, {
+      response_type: "ephemeral",
+      text: "전송할 채널이 설정되지 않았습니다. <" + process.env.NEXT_PUBLIC_APP_URL + "/slack/settings|설정 페이지>에서 채널을 선택해주세요."
+    });
+    return;
+  }
+
+  if (!data.repos || (Array.isArray(data.repos) && data.repos.length === 0)) {
+    await sendToResponseUrl(responseUrl, {
+      response_type: "ephemeral",
+      text: "모니터링 중인 레포가 없습니다. <" + process.env.NEXT_PUBLIC_APP_URL + "/slack/settings|설정 페이지>에서 레포를 선택해주세요."
+    });
+    return;
+  }
+
+  // back의 즉시 실행 endpoint 호출 — 30분 워커 폴링을 기다리지 않음
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const secret = process.env.SLACK_BOT_TRIGGER_SECRET;
+
+  let triggered = false;
+  if (apiUrl && secret) {
+    try {
+      const resp = await fetch(`${apiUrl}/slack-bot/trigger`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-trigger-secret": secret },
+        body: JSON.stringify({ installationId: data.id }),
+      });
+      triggered = resp.ok;
+      if (!resp.ok) {
+        const body = await resp.text().catch(() => "");
+        console.error("[slack/commands] back trigger failed:", resp.status, body);
+        void notifyOps("brief trigger failed (back)", { teamId, status: resp.status, body });
+      }
+    } catch (e) {
+      console.error("[slack/commands] back trigger fetch failed:", e);
+      void notifyOps("brief trigger fetch failed", { teamId, error: (e as Error)?.message });
+    }
+  } else {
+    console.error("[slack/commands] trigger not configured", { apiUrl: !!apiUrl, secret: !!secret });
+    void notifyOps("brief trigger env missing", {
+      missing: [!apiUrl && "NEXT_PUBLIC_API_URL", !secret && "SLACK_BOT_TRIGGER_SECRET"].filter(Boolean),
+    });
+  }
+
+  // back 즉시 실행이 실패해도 워커가 다음 폴링에서 잡을 수 있도록 fallback flag 설정
+  if (!triggered) {
+    await db.from("bot_installations").update({
+      manual_trigger: true,
+      updated_at: new Date().toISOString()
+    }).eq("slack_team_id", teamId);
+  }
 
   await sendToResponseUrl(responseUrl, {
     response_type: "ephemeral",
-    text: "GitHub 요약을 생성하고 있습니다. 잠시 후 채널에 전송됩니다."
+    text: triggered
+      ? "GitHub 요약을 생성하고 있습니다. 잠시 후 채널에 전송됩니다 (5-30초)."
+      : "요약을 큐에 등록했습니다. 백엔드 처리 후 채널에 전송됩니다."
   });
 }
 
