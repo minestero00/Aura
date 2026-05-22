@@ -13,10 +13,6 @@ interface MeetingNote {
   shareToken: string | null;
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
-}
-
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }

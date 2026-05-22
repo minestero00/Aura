@@ -111,11 +111,13 @@ export default function NewMeetingPage() {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const mimeRef = useRef<string | null>(null);
 
-  // 진입 시 localStorage 검사 — 이전 draft 있으면 복구 prompt
+  // 진입 시 localStorage 검사 — 이전 draft 있으면 복구 prompt.
+  // mount-once side effect (외부 store hydration 패턴). 직접 setState 의도된 동작.
   useEffect(() => {
     const draft = loadDraft();
     if (draft && (draft.body !== TEMPLATE_BODY[draft.templateId] || draft.transcript.length > 0)) {
       // 빈 템플릿 그대로면 무시 (의미 있는 작업 X)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowDraftRestore(draft);
     }
   }, []);
